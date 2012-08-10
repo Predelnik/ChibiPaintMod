@@ -25,7 +25,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
-import java.net.*;
 import java.util.*;
 
 import javax.imageio.*;
@@ -463,14 +462,28 @@ public abstract class CPController implements ActionListener {
 			mainGUI.togglePalettes();
 		}
 
-		if (e.getActionCommand().equals("CPSend")) {
+		if (e.getActionCommand().equals("CPSavePng")) {
 			savePng ();
 		}
 
-		callCPEventListeners();
-	}
+		if (e.getActionCommand().equals("CPSaveChi")) {
+			saveChi ();
+		}
 
-	public boolean savePng() {
+		callCPEventListeners();
+}
+public enum save_file_type {PNG_FILE, CHI_FILE};
+public boolean savePng ()
+{
+	return saveImageFile (save_file_type.PNG_FILE);
+}
+
+public boolean saveChi ()
+{
+	return saveImageFile (save_file_type.CHI_FILE);
+}
+
+	private boolean saveImageFile(save_file_type type) {
 
 		final JFileChooser fc = new JFileChooser()
 		{
@@ -497,14 +510,34 @@ public abstract class CPController implements ActionListener {
 			    super.approveSelection();
 			}
 		};
-
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG Files(*.png)", "png");
+		FileNameExtensionFilter filter = null;
+		switch (type)
+		{
+		case CHI_FILE:
+			filter = new FileNameExtensionFilter("ChibiPaint Files(*.chi)", "chi");
+			break;
+		case PNG_FILE:
+			filter = new FileNameExtensionFilter("PNG Files(*.png)", "png");
+			break;
+		}
 		fc.addChoosableFileFilter(filter);
 
 		int returnVal = fc.showSaveDialog(canvas);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
-				byte[] pngData = getPngData(canvas.img);
+				byte[] data = null;
+				switch (type)
+				{
+					case CHI_FILE:
+						ByteArrayOutputStream chibiFileStream = new ByteArrayOutputStream(1024);
+						CPChibiFile.write(chibiFileStream, artwork);
+						data = chibiFileStream.toByteArray();
+						break;
+					case PNG_FILE:
+						data = getPngData(canvas.img);
+						break;
+				}
+
 				FileOutputStream fos = null;
 			    try
 				    {
@@ -517,7 +550,7 @@ public abstract class CPController implements ActionListener {
 					}
 				try
 					{
-						fos.write (pngData);
+						fos.write (data);
 						fos.close ();
 					}
 				catch (IOException e)

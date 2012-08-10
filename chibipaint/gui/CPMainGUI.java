@@ -98,10 +98,17 @@ public class CPMainGUI {
 		menu.setMnemonic(KeyEvent.VK_F);
 		menuBar.add(menu);
 
-		menuItem = new JMenuItem("Save Image", KeyEvent.VK_S);
+		menuItem = new JMenuItem("Save .png File", KeyEvent.VK_S);
 		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Save Image");
-		menuItem.setActionCommand("CPSend");
+				"Save .png File");
+		menuItem.setActionCommand("CPSavePng");
+		menuItem.addActionListener(listener);
+		menu.add(menuItem);
+
+		menuItem = new JMenuItem("Save .chi File", KeyEvent.VK_C);
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"Save .chi File");
+		menuItem.setActionCommand("CPSaveChi");
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
 
