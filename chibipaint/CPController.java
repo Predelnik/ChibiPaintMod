@@ -710,13 +710,7 @@ public boolean loadChi ()
 
 	public Image loadImage(String imageName) {
 		Image image = null;
-		try {
-			String imageFullName = "gfx/images/" + imageName;
-		    // Read from a file
-		    File file = new File(imageFullName);
-		    image = ImageIO.read(file);
-		} catch (IOException e) {
-		}
+		image = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/resource/" + imageName));
 		return image;
 		/*
 		Image img = imageCache.get(imageName);
