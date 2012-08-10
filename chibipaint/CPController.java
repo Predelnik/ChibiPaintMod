@@ -529,6 +529,16 @@ public abstract class CPController implements ActionListener {
 	}
 
 	public Image loadImage(String imageName) {
+		Image image = null;
+		try {
+			String imageFullName = "gfx/images/" + imageName;
+		    // Read from a file
+		    File file = new File(imageFullName);
+		    image = ImageIO.read(file);
+		} catch (IOException e) {
+		}
+		return image;
+		/*
 		Image img = imageCache.get(imageName);
 		if (img == null) {
 			try {
@@ -542,6 +552,7 @@ public abstract class CPController implements ActionListener {
 			imageCache.put(imageName, img);
 		}
 		return img;
+		*/
 	}
 
 	public CPArtwork getArtwork() {
