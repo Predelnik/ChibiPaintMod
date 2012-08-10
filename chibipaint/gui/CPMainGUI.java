@@ -93,10 +93,18 @@ public class CPMainGUI {
 		//
 		// File Menu
 		//
-
 		menu = new JMenu("File");
 		menu.setMnemonic(KeyEvent.VK_F);
 		menuBar.add(menu);
+
+		menuItem = new JMenuItem("New File", KeyEvent.VK_N);
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"New File");
+		menuItem.setActionCommand("CPNew");
+		menuItem.addActionListener(listener);
+		menu.add(menuItem);
+
+		menu.add(new JSeparator());
 
 		menuItem = new JMenuItem("Save .png File", KeyEvent.VK_S);
 		menuItem.getAccessibleContext().setAccessibleDescription(

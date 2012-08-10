@@ -474,8 +474,37 @@ public abstract class CPController implements ActionListener {
 			loadChi ();
 		}
 
+		if (e.getActionCommand().equals("CPNew")) {
+			newDialog ();
+		}
+
 		callCPEventListeners();
 }
+
+void newDialog ()
+{
+	JPanel panel1 = new JPanel();
+
+	panel1.add(new JLabel("Width:"));
+	JTextField widthNum = new JTextField ("1024", 10);
+	panel1.add(widthNum);
+
+	JPanel panel2 = new JPanel();
+
+	panel2.add(new JLabel("Height:"));
+	JTextField heightNum = new JTextField ("768", 10);
+	panel2.add(heightNum);
+
+	Object[] array = { "Select Width and Height:\n\n", panel1, panel2 };
+	int choice = JOptionPane.showConfirmDialog(getDialogParent(), array, "Create New Image", JOptionPane.OK_CANCEL_OPTION,
+			JOptionPane.PLAIN_MESSAGE);
+
+	if (choice == JOptionPane.OK_OPTION) {
+		CPArtwork new_artwork = new CPArtwork (Integer.valueOf (widthNum.getText()),  Integer.valueOf (heightNum.getText()));
+		resetEverything(new_artwork);
+	}
+}
+
 public enum save_file_type {PNG_FILE, CHI_FILE};
 public enum action_save_load {ACTION_SAVE, ACTION_LOAD}
 public boolean savePng ()
