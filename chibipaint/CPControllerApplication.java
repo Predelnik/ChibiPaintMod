@@ -25,6 +25,8 @@ import java.awt.*;
 
 import javax.swing.*;
 
+import chibipaint.engine.CPArtwork;
+
 public class CPControllerApplication extends CPController {
 
 	JFrame mainFrame;
@@ -35,5 +37,10 @@ public class CPControllerApplication extends CPController {
 
 	public Component getDialogParent() {
 		return mainFrame;
+	}
+
+	public void resetEverything(CPArtwork newArtwork)
+	{
+		((ChibiApp) mainFrame).recreateEverything (newArtwork);
 	}
 }

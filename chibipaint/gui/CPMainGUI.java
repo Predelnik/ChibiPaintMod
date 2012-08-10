@@ -105,10 +105,19 @@ public class CPMainGUI {
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
 
+		menu.add(new JSeparator());
+
 		menuItem = new JMenuItem("Save .chi File", KeyEvent.VK_C);
 		menuItem.getAccessibleContext().setAccessibleDescription(
 				"Save .chi File");
 		menuItem.setActionCommand("CPSaveChi");
+		menuItem.addActionListener(listener);
+		menu.add(menuItem);
+
+		menuItem = new JMenuItem("Load .chi File", KeyEvent.VK_L);
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"Load .chi File");
+		menuItem.setActionCommand("CPLoadChi");
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
 

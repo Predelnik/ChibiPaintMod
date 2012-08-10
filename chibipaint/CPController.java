@@ -470,20 +470,30 @@ public abstract class CPController implements ActionListener {
 			saveChi ();
 		}
 
+		if (e.getActionCommand().equals("CPLoadChi")) {
+			loadChi ();
+		}
+
 		callCPEventListeners();
 }
 public enum save_file_type {PNG_FILE, CHI_FILE};
+public enum action_save_load {ACTION_SAVE, ACTION_LOAD}
 public boolean savePng ()
 {
-	return saveImageFile (save_file_type.PNG_FILE);
+	return saveLoadImageFile (save_file_type.PNG_FILE, action_save_load.ACTION_SAVE);
 }
 
 public boolean saveChi ()
 {
-	return saveImageFile (save_file_type.CHI_FILE);
+	return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_SAVE);
 }
 
-	private boolean saveImageFile(save_file_type type) {
+public boolean loadChi ()
+{
+	return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_LOAD);
+}
+
+	private boolean saveLoadImageFile(save_file_type type, action_save_load action) {
 
 		final JFileChooser fc = new JFileChooser()
 		{
@@ -522,42 +532,86 @@ public boolean saveChi ()
 		}
 		fc.addChoosableFileFilter(filter);
 
-		int returnVal = fc.showSaveDialog(canvas);
+		int returnVal = 0;
+
+		switch (action)
+		{
+		case ACTION_LOAD:
+			returnVal = fc.showOpenDialog(canvas);
+			break;
+		case ACTION_SAVE:
+			returnVal = fc.showSaveDialog(canvas);
+			break;
+		}
+
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
 				byte[] data = null;
-				switch (type)
+				switch (action)
 				{
+				case ACTION_LOAD:
+					switch (type)
+					{
 					case CHI_FILE:
-						ByteArrayOutputStream chibiFileStream = new ByteArrayOutputStream(1024);
-						CPChibiFile.write(chibiFileStream, artwork);
-						data = chibiFileStream.toByteArray();
+						FileInputStream fos = null;
+					    try
+						    {
+								fos = new FileInputStream(fc.getSelectedFile());
+							}
+						catch (FileNotFoundException e1)
+						    {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+						CPArtwork artwork = CPChibiFile.read (fos);
+						resetEverything (artwork);
+
+						try {
+							fos.close ();
+						} catch (IOException e2) {
+							// TODO Auto-generated catch block
+							e2.printStackTrace();
+						}
 						break;
 					case PNG_FILE:
-						data = getPngData(canvas.img);
+						// Do nothing for now
 						break;
+					}
+					break;
+				case ACTION_SAVE:
+					switch (type)
+					{
+						case CHI_FILE:
+							ByteArrayOutputStream chibiFileStream = new ByteArrayOutputStream(1024);
+							CPChibiFile.write(chibiFileStream, artwork);
+							data = chibiFileStream.toByteArray();
+							break;
+						case PNG_FILE:
+							data = getPngData(canvas.img);
+							break;
+					}
+					FileOutputStream fos = null;
+				    try
+					    {
+							fos = new FileOutputStream(fc.getSelectedFile());
+						}
+					catch (FileNotFoundException e1)
+					    {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					try
+						{
+							fos.write (data);
+							fos.close ();
+						}
+					catch (IOException e)
+						{
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					break;
 				}
-
-				FileOutputStream fos = null;
-			    try
-				    {
-						fos = new FileOutputStream(fc.getSelectedFile());
-					}
-				catch (FileNotFoundException e1)
-				    {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				try
-					{
-						fos.write (data);
-						fos.close ();
-					}
-				catch (IOException e)
-					{
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 			}
 		return true;
 	}
@@ -715,6 +769,8 @@ public boolean saveChi ()
 		}
 
 	}
+
+	abstract public void resetEverything(CPArtwork new_artwork);
 
 	public boolean isRunningAsApplet() {
 		return this instanceof CPControllerApplet;

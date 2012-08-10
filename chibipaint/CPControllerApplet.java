@@ -207,4 +207,9 @@ public class CPControllerApplet extends CPController {
 			// new CPMessageBox(this, CPMessageBox.CP_OK_MSGBOX, "The oekaki was successfully sent", "Send Oekaki");
 		}
 	}
+
+	@Override
+	public void resetEverything(CPArtwork new_artwork) {
+		// Do Nothing
+	}
 }

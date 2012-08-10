@@ -32,7 +32,7 @@ public class ChibiApp extends JFrame {
 	CPMainGUI mainGUI;
 
 	public ChibiApp() {
-		super("ChibiPaint");
+		super("ChibiPaintMod");
 
 		controller = new CPControllerApplication(this);
 
@@ -63,5 +63,20 @@ public class ChibiApp extends JFrame {
 				createChibiApp();
 			}
 		});
+	}
+
+	public void recreateEverything(CPArtwork artwork)
+	{
+		controller = new CPControllerApplication(this);
+
+		controller.setArtwork(artwork);
+
+		// FIXME: set a default tool so that we can start drawing
+		controller.setTool(CPController.T_PEN);
+
+		mainGUI = new CPMainGUI(controller);
+
+		setContentPane(mainGUI.getGUI());
+		setJMenuBar(mainGUI.getMenuBar());
 	}
 }
