@@ -98,14 +98,12 @@ public class CPMainGUI {
 		menu.setMnemonic(KeyEvent.VK_F);
 		menuBar.add(menu);
 
-		if (controller.isRunningAsApplet()) {
-			menuItem = new JMenuItem("Send Oekaki", KeyEvent.VK_S);
-			menuItem.getAccessibleContext().setAccessibleDescription(
-					"Sends the oekaki to the server and exits ChibiPaint");
-			menuItem.setActionCommand("CPSend");
-			menuItem.addActionListener(listener);
-			menu.add(menuItem);
-		}
+		menuItem = new JMenuItem("Save Image", KeyEvent.VK_S);
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"Save Image");
+		menuItem.setActionCommand("CPSend");
+		menuItem.addActionListener(listener);
+		menu.add(menuItem);
 
 		//
 		// Edit Menu

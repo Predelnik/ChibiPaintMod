@@ -30,6 +30,7 @@ import java.util.*;
 
 import javax.imageio.*;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import chibipaint.engine.*;
 import chibipaint.gui.*;
@@ -462,7 +463,70 @@ public abstract class CPController implements ActionListener {
 			mainGUI.togglePalettes();
 		}
 
+		if (e.getActionCommand().equals("CPSend")) {
+			savePng ();
+		}
+
 		callCPEventListeners();
+	}
+
+	public boolean savePng() {
+
+		final JFileChooser fc = new JFileChooser()
+		{
+			/**
+			 *
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void approveSelection(){
+			    File f = getSelectedFile();
+			    if(f.exists() && getDialogType() == SAVE_DIALOG){
+			        int result = JOptionPane.showConfirmDialog(this,"The file exists, overwrite?","Existing file",JOptionPane.YES_NO_OPTION);
+			        switch(result){
+			            case JOptionPane.YES_OPTION:
+			                super.approveSelection();
+			                return;
+			            case JOptionPane.NO_OPTION:
+			                return;
+			            case JOptionPane.CLOSED_OPTION:
+			                return;
+			        }
+			    }
+			    super.approveSelection();
+			}
+		};
+
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("PNG Files(*.png)", "png");
+		fc.addChoosableFileFilter(filter);
+
+		int returnVal = fc.showSaveDialog(canvas);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+			{
+				byte[] pngData = getPngData(canvas.img);
+				FileOutputStream fos = null;
+			    try
+				    {
+						fos = new FileOutputStream(fc.getSelectedFile());
+					}
+				catch (FileNotFoundException e1)
+				    {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				try
+					{
+						fos.write (pngData);
+						fos.close ();
+					}
+				catch (IOException e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+			}
+		return true;
 	}
 
 	public void addColorListener(ICPColorListener listener) {
