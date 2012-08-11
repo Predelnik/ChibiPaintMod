@@ -34,6 +34,10 @@ import chibipaint.gui.*;
 
 public class ChibiPaint extends JApplet {
 
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
 	CPControllerApplet controller;
 	CPMainGUI mainGUI;
 
@@ -52,7 +56,7 @@ public class ChibiPaint extends JApplet {
 		} catch (Exception e) {
 		}
 	}
-	
+
 	public void destroy() {
 
 		// The following bit of voodoo prevents the Java plugin
@@ -61,7 +65,7 @@ public class ChibiPaint extends JApplet {
 		// So have to make sure that we remove references
 		// to the rest of ChibiPaint so that they can be
 		// garbage collected normally.
-		
+
 		setContentPane(new JPanel());
 		setJMenuBar(null);
 

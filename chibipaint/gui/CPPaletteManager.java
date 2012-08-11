@@ -271,8 +271,11 @@ public class CPPaletteManager implements ContainerListener {
 	    Preferences preferences = userRoot.node( "chibipaintmod" );
 		for (CPPaletteFrame frame : paletteFrames)
 			{
-			    preferences.putInt(frame.getPalettesList().get(1).title + "(x pos)", frame.getX());
-			    preferences.putInt(frame.getPalettesList().get(1).title + "(y pos)", frame.getY());
+				if (frame.getPalettesList().size () > 0)
+					{
+					    preferences.putInt(frame.getPalettesList().get(0).title + "(x pos)", frame.getX());
+					    preferences.putInt(frame.getPalettesList().get(0).title + "(y pos)", frame.getY());
+					}
 			}
 	}
 

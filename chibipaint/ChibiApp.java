@@ -21,6 +21,10 @@
 
 package chibipaint;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.prefs.Preferences;
+
 import javax.swing.*;
 
 import chibipaint.engine.*;
@@ -28,6 +32,10 @@ import chibipaint.gui.*;
 
 public class ChibiApp extends JFrame {
 
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
 	CPControllerApplication controller;
 	CPMainGUI mainGUI;
 
@@ -47,15 +55,53 @@ public class ChibiApp extends JFrame {
 		setJMenuBar(mainGUI.getMenuBar());
 
 		mainGUI.getPaletteManager ().loadPalettesLocation();
+
+		final JFrame frame = this;
+
+    	frame.addWindowListener(new WindowAdapter() {
+    	    public void windowClosing(WindowEvent e) {
+    			SaveWindowSettings (frame);
+    			mainGUI.getPaletteManager ().savePalettesLocation();
+    	     }
+    	});
+	}
+
+	private static void LoadWindowSettings (JFrame frame) {
+
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		int s = preferences.getInt ("window_state", -1);
+		int h = preferences.getInt("window_height" , -1);
+		int w = preferences.getInt("window_width" , -1);
+		if (s != -1)
+			{
+				frame.setExtendedState (s);
+			}
+		if (h != -1 && w != -1)
+			frame.setSize (w, h);
+		else
+			frame.setSize(800, 600);
+
+		frame.validate();
+		frame.setVisible(true);
+	}
+
+	private static void SaveWindowSettings (JFrame frame) {
+
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		int s = frame.getExtendedState ();;
+		preferences.putInt ("window_state", s);
+		int h = frame.getHeight ();
+		int w = frame.getWidth ();
+		preferences.putInt ("window_height", h);
+		preferences.putInt ("window_width", w);
 	}
 
 	private static void createChibiApp() {
 		JFrame frame = new ChibiApp();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		frame.setSize(800, 600);
-		frame.validate();
-		frame.setVisible(true);
+		LoadWindowSettings (frame);
 	}
 
 	public static void main(String[] args) {
@@ -67,7 +113,8 @@ public class ChibiApp extends JFrame {
 		});
 	}
 
-	public void destroy() {
+	public void windowClosing(WindowEvent e) {
+		SaveWindowSettings (this);
 		mainGUI.getPaletteManager ().savePalettesLocation();
 	}
 
