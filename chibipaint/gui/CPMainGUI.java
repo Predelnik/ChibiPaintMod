@@ -32,7 +32,7 @@ import chibipaint.*;
 public class CPMainGUI {
 
 	CPController controller;
-	CPPaletteManager paletteManager;
+	private CPPaletteManager paletteManager;
 
 	JMenuBar menuBar;
 	JPanel mainPanel;
@@ -66,7 +66,7 @@ public class CPMainGUI {
 		mainPanel = new JPanel(new BorderLayout());
 
 		jdp = new CPDesktop();
-		paletteManager = new CPPaletteManager(controller, jdp);
+		setPaletteManager(new CPPaletteManager(controller, jdp));
 
 		createCanvasGUI(jdp);
 		mainPanel.add(jdp, BorderLayout.CENTER);
@@ -472,7 +472,7 @@ public class CPMainGUI {
 	}
 
 	public void showPalette(String palette, boolean show) {
-		paletteManager.showPalette(palette, show);
+		getPaletteManager().showPalette(palette, show);
 	}
 
 	public void setPaletteMenuItem(String title, boolean selected) {
@@ -483,7 +483,15 @@ public class CPMainGUI {
 	}
 
 	public void togglePalettes() {
-		paletteManager.togglePalettes();
+		getPaletteManager().togglePalettes();
+	}
+
+	public CPPaletteManager getPaletteManager() {
+		return paletteManager;
+	}
+
+	public void setPaletteManager(CPPaletteManager paletteManager) {
+		this.paletteManager = paletteManager;
 	}
 
 	class CPDesktop extends JDesktopPane {

@@ -22,7 +22,9 @@
 package chibipaint.gui;
 
 import java.awt.event.*;
+import java.io.File;
 import java.util.*;
+import java.util.prefs.Preferences;
 
 import javax.swing.*;
 
@@ -248,6 +250,30 @@ public class CPPaletteManager implements ContainerListener {
 			}
 			hiddenFrames.clear();
 		}
+	}
+
+	public void loadPalettesLocation ()
+	{
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		for (CPPaletteFrame frame : paletteFrames)
+			{
+				int x_value = preferences.getInt(frame.getPalettesList().get(0).title + "(x pos)", -1);
+				int y_value = preferences.getInt(frame.getPalettesList().get(0).title + "(y pos)", -1);
+				if (x_value != -1 && y_value != -1)
+					frame.setLocation (x_value, y_value);
+			}
+	}
+
+	public void savePalettesLocation ()
+	{
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		for (CPPaletteFrame frame : paletteFrames)
+			{
+			    preferences.putInt(frame.getPalettesList().get(1).title + "(x pos)", frame.getX());
+			    preferences.putInt(frame.getPalettesList().get(1).title + "(y pos)", frame.getY());
+			}
 	}
 
 }

@@ -45,6 +45,8 @@ public class ChibiApp extends JFrame {
 
 		setContentPane(mainGUI.getGUI());
 		setJMenuBar(mainGUI.getMenuBar());
+
+		mainGUI.getPaletteManager ().loadPalettesLocation();
 	}
 
 	private static void createChibiApp() {
@@ -65,6 +67,10 @@ public class ChibiApp extends JFrame {
 		});
 	}
 
+	public void destroy() {
+		mainGUI.getPaletteManager ().savePalettesLocation();
+	}
+
 	public void recreateEverything(CPArtwork artwork)
 	{
 		controller = new CPControllerApplication(this);
@@ -73,10 +79,13 @@ public class ChibiApp extends JFrame {
 
 		// FIXME: set a default tool so that we can start drawing
 		controller.setTool(CPController.T_PEN);
+		mainGUI.getPaletteManager ().savePalettesLocation();
 
 		mainGUI = new CPMainGUI(controller);
 
 		setContentPane(mainGUI.getGUI());
 		setJMenuBar(mainGUI.getMenuBar());
+
+		mainGUI.getPaletteManager ().loadPalettesLocation();
 	}
 }
