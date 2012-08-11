@@ -26,6 +26,7 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
 import java.util.*;
+import java.util.prefs.Preferences;
 
 import javax.imageio.*;
 import javax.swing.*;
@@ -524,7 +525,12 @@ public boolean loadChi ()
 
 	private boolean saveLoadImageFile(save_file_type type, action_save_load action) {
 
-		final JFileChooser fc = new JFileChooser()
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+	    String directoryName = preferences.get ("lastDirectory", "");
+	    File dir = new File (directoryName);
+
+		final JFileChooser fc = new JFileChooser(dir)
 		{
 			/**
 			 *
@@ -549,6 +555,7 @@ public boolean loadChi ()
 			    super.approveSelection();
 			}
 		};
+
 		FileNameExtensionFilter filter = null;
 		switch (type)
 		{
@@ -575,6 +582,7 @@ public boolean loadChi ()
 
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
+				preferences.put ("lastDirectory", fc.getSelectedFile().getParent());
 				byte[] data = null;
 				switch (action)
 				{
