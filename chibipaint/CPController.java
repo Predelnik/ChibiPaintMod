@@ -566,6 +566,7 @@ public boolean loadChi ()
 			filter = new FileNameExtensionFilter("PNG Files(*.png)", "png");
 			break;
 		}
+		fc.setAcceptAllFileFilterUsed(false);
 		fc.addChoosableFileFilter(filter);
 
 		int returnVal = 0;
@@ -582,7 +583,28 @@ public boolean loadChi ()
 
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 			{
-				preferences.put ("lastDirectory", fc.getSelectedFile().getParent());
+				File selectedFile = fc.getSelectedFile();
+			    if  (action == action_save_load.ACTION_SAVE)
+				    {
+					String filePath = selectedFile.getPath();
+					String ext = "";
+					switch (type)
+						{
+							case CHI_FILE:
+								ext = ".chi";
+								break;
+							case PNG_FILE:
+								ext = ".png";
+								break;
+						}
+
+					if(!filePath.toLowerCase().endsWith(ext))
+						{
+						    selectedFile = new File(filePath + ext);
+						}
+				    }
+
+				preferences.put ("lastDirectory", selectedFile.getParent());
 				byte[] data = null;
 				switch (action)
 				{
@@ -593,7 +615,7 @@ public boolean loadChi ()
 						FileInputStream fos = null;
 					    try
 						    {
-								fos = new FileInputStream(fc.getSelectedFile());
+								fos = new FileInputStream(selectedFile);
 							}
 						catch (FileNotFoundException e1)
 						    {
@@ -630,7 +652,7 @@ public boolean loadChi ()
 					FileOutputStream fos = null;
 				    try
 					    {
-							fos = new FileOutputStream(fc.getSelectedFile());
+							fos = new FileOutputStream(selectedFile);
 						}
 					catch (FileNotFoundException e1)
 					    {
