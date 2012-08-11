@@ -97,37 +97,50 @@ public class CPMainGUI {
 		menu.setMnemonic(KeyEvent.VK_F);
 		menuBar.add(menu);
 
-		menuItem = new JMenuItem("New File", KeyEvent.VK_N);
-		menuItem.getAccessibleContext().setAccessibleDescription(
-				"New File");
-		menuItem.setActionCommand("CPNew");
-		menuItem.addActionListener(listener);
-		menu.add(menuItem);
 
-		menu.add(new JSeparator());
+		if (controller.isRunningAsApplet ()) {
+			menuItem = new JMenuItem("Send Oekaki", KeyEvent.VK_S);
+			menuItem.getAccessibleContext().setAccessibleDescription(
+			"Sends the oekaki to the server and exits ChibiPaint");
+			menuItem.setActionCommand("CPSend");
+			menuItem.addActionListener(listener);
+			menu.add(menuItem);
+            }
 
-		menuItem = new JMenuItem("Save .png File", KeyEvent.VK_S);
-		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Save .png File");
-		menuItem.setActionCommand("CPSavePng");
-		menuItem.addActionListener(listener);
-		menu.add(menuItem);
+		if (controller.isRunningAsApplication ())
+			{
+				menuItem = new JMenuItem("New File", KeyEvent.VK_N);
+				menuItem.getAccessibleContext().setAccessibleDescription(
+						"New File");
+				menuItem.setActionCommand("CPNew");
+				menuItem.addActionListener(listener);
+				menu.add(menuItem);
 
-		menu.add(new JSeparator());
+				menu.add(new JSeparator());
 
-		menuItem = new JMenuItem("Save .chi File", KeyEvent.VK_C);
-		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Save .chi File");
-		menuItem.setActionCommand("CPSaveChi");
-		menuItem.addActionListener(listener);
-		menu.add(menuItem);
+				menuItem = new JMenuItem("Save .png File", KeyEvent.VK_S);
+				menuItem.getAccessibleContext().setAccessibleDescription(
+						"Save .png File");
+				menuItem.setActionCommand("CPSavePng");
+				menuItem.addActionListener(listener);
+				menu.add(menuItem);
 
-		menuItem = new JMenuItem("Load .chi File", KeyEvent.VK_L);
-		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Load .chi File");
-		menuItem.setActionCommand("CPLoadChi");
-		menuItem.addActionListener(listener);
-		menu.add(menuItem);
+				menu.add(new JSeparator());
+
+				menuItem = new JMenuItem("Save .chi File", KeyEvent.VK_C);
+				menuItem.getAccessibleContext().setAccessibleDescription(
+						"Save .chi File");
+				menuItem.setActionCommand("CPSaveChi");
+				menuItem.addActionListener(listener);
+				menu.add(menuItem);
+
+				menuItem = new JMenuItem("Load .chi File", KeyEvent.VK_L);
+				menuItem.getAccessibleContext().setAccessibleDescription(
+						"Load .chi File");
+				menuItem.setActionCommand("CPLoadChi");
+				menuItem.addActionListener(listener);
+				menu.add(menuItem);
+			}
 
 		//
 		// Edit Menu

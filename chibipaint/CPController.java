@@ -798,4 +798,8 @@ public boolean loadChi ()
 	public boolean isRunningAsApplet() {
 		return this instanceof CPControllerApplet;
 	}
+
+	public boolean isRunningAsApplication() {
+		return this instanceof CPControllerApplication;
+	}
 }
