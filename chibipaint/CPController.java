@@ -486,13 +486,13 @@ void newDialog ()
 	JPanel panel1 = new JPanel();
 
 	panel1.add(new JLabel("Width:"));
-	JTextField widthNum = new JTextField ("1024", 10);
+	JTextField widthNum = new JTextField (String.valueOf (this.artwork.width), 10);
 	panel1.add(widthNum);
 
 	JPanel panel2 = new JPanel();
 
 	panel2.add(new JLabel("Height:"));
-	JTextField heightNum = new JTextField ("768", 10);
+	JTextField heightNum = new JTextField (String.valueOf (this.artwork.height), 10);
 	panel2.add(heightNum);
 
 	Object[] array = { "Select Width and Height:\n\n", panel1, panel2 };
