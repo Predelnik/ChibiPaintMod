@@ -479,7 +479,21 @@ public abstract class CPController implements ActionListener {
 			newDialog ();
 		}
 
+		if (e.getActionCommand().startsWith("CPOpenRecent")) {
+			String command = e.getActionCommand();
+			int num = command.charAt (command.length() - 1) - '0';
+			openRecent (num);
+		}
+
 		callCPEventListeners();
+}
+
+void openRecent (int index)
+{
+	Preferences userRoot = Preferences.userRoot();
+    Preferences preferences = userRoot.node( "chibipaintmod" );
+    String recentFileName = preferences.get(recent_file_string (index), "");
+    saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_LOAD, recentFileName);
 }
 
 void newDialog ()
@@ -510,21 +524,27 @@ public enum save_file_type {PNG_FILE, CHI_FILE};
 public enum action_save_load {ACTION_SAVE, ACTION_LOAD}
 public boolean savePng ()
 {
-	return saveLoadImageFile (save_file_type.PNG_FILE, action_save_load.ACTION_SAVE);
+	return saveLoadImageFile (save_file_type.PNG_FILE, action_save_load.ACTION_SAVE, "");
 }
 
 public boolean saveChi ()
 {
-	return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_SAVE);
+	return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_SAVE, "");
 }
 
 public boolean loadChi ()
 {
-	return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_LOAD);
+	return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_LOAD, "");
 }
 
-	private boolean saveLoadImageFile(save_file_type type, action_save_load action) {
+static String recent_file_string (int i)
+{
+	return "Recent File[" + i + "]";
+}
 
+private boolean saveLoadImageFile(save_file_type type, action_save_load action, String file_name) {
+
+		int returnVal = JFileChooser.CANCEL_OPTION;
 		Preferences userRoot = Preferences.userRoot();
 	    Preferences preferences = userRoot.node( "chibipaintmod" );
 	    String directoryName = preferences.get ("lastDirectory", "");
@@ -556,6 +576,9 @@ public boolean loadChi ()
 			}
 		};
 
+		if (file_name == "")
+		{
+
 		FileNameExtensionFilter filter = null;
 		switch (type)
 		{
@@ -569,7 +592,7 @@ public boolean loadChi ()
 		fc.setAcceptAllFileFilterUsed(false);
 		fc.addChoosableFileFilter(filter);
 
-		int returnVal = 0;
+		returnVal = 0;
 
 		switch (action)
 		{
@@ -580,10 +603,16 @@ public boolean loadChi ()
 			returnVal = fc.showSaveDialog(canvas);
 			break;
 		}
+	}
 
-		if (returnVal == JFileChooser.APPROVE_OPTION)
+		if (returnVal == JFileChooser.APPROVE_OPTION || file_name != "")
 			{
-				File selectedFile = fc.getSelectedFile();
+				File selectedFile;
+				if (file_name != "")
+					selectedFile = new File (file_name);
+				else
+					selectedFile = fc.getSelectedFile();
+
 			    if  (action == action_save_load.ACTION_SAVE)
 				    {
 					String filePath = selectedFile.getPath();
@@ -606,6 +635,32 @@ public boolean loadChi ()
 
 				preferences.put ("lastDirectory", selectedFile.getParent());
 				byte[] data = null;
+
+				// Writing file to recent
+				if (type == save_file_type.CHI_FILE && action == action_save_load.ACTION_LOAD)
+				{
+					Boolean found = false;
+						for (int i = 0; i < 10; i++)
+						{
+							String file_name_from_list = preferences.get("Recent File[" + i + "]", "");
+							if (file_name_from_list.length () != 0 && file_name_from_list.equals (selectedFile.getAbsolutePath()))
+								{
+									for (int j = i - 1; j >= 0; j--)
+										 preferences.put(recent_file_string (j + 1), preferences.get (recent_file_string (j), ""));
+
+									found = true;
+									break;
+								}
+						}
+					if (!found)
+						{
+							for (int j = 8; j >= 0; j--)
+								 preferences.put(recent_file_string (j + 1), preferences.get (recent_file_string (j), ""));
+						}
+
+					preferences.put (recent_file_string (0), selectedFile.getAbsolutePath());
+				}
+
 				switch (action)
 				{
 				case ACTION_LOAD:

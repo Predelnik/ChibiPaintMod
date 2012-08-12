@@ -23,7 +23,9 @@ package chibipaint.gui;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.*;
+import java.util.prefs.Preferences;
 
 import javax.swing.*;
 
@@ -140,6 +142,31 @@ public class CPMainGUI {
 				menuItem.setActionCommand("CPLoadChi");
 				menuItem.addActionListener(listener);
 				menu.add(menuItem);
+
+				submenu = new JMenu("Open Recent");
+
+
+				Preferences userRoot = Preferences.userRoot();
+			    Preferences preferences = userRoot.node( "chibipaintmod" );
+			    int recent_file_num = 0;
+			    for (int i = 0; i < 10; i++)
+				{
+					String recentFileName = preferences.get("Recent File["+ i + "]", "");
+					if (recentFileName.length() != 0)
+						{
+							File recentFile = new File (recentFileName);
+							menuItem = new JMenuItem(recentFile.getName ());
+							menuItem.getAccessibleContext().setAccessibleDescription("Open Recent File");
+							menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0 + (i + 1) % 10, ActionEvent.CTRL_MASK));
+							menuItem.setActionCommand("CPOpenRecent " + i);
+							menuItem.addActionListener(listener);
+							submenu.add(menuItem);
+							recent_file_num++;
+						}
+				}
+
+			    if (recent_file_num > 0)
+			    	menu.add (submenu);
 			}
 
 		//
