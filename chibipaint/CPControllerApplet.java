@@ -223,4 +223,14 @@ public class CPControllerApplet extends CPController {
 		return null;
 		// Do Nothing
 	}
+
+	@Override
+	public void updateChanges(CPUndo first) {
+		// Do Nothing
+	}
+
+	@Override
+	public void setLatestAction(CPUndo cpUndo) {
+		// Do Nothing
+	}
 }

@@ -652,7 +652,7 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 				byte[] data = null;
 
 				// Writing file to recent
-				if (type == save_file_type.CHI_FILE && action == action_save_load.ACTION_LOAD)
+				if (type == save_file_type.CHI_FILE)
 				{
 					Boolean found = false;
 						for (int i = 0; i < 10; i++)
@@ -678,6 +678,11 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 					// Adding name to frame title
 					setCurrentFile (selectedFile);
 
+					if (action == action_save_load.ACTION_SAVE)
+						{
+							mainGUI.createMainMenu (null);
+							setLatestAction (artwork.getUndoList ().size () > 0 ?  artwork.getUndoList ().getFirst () : null);
+						}
 				}
 
 				switch (action)
@@ -745,10 +750,12 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 						}
 					break;
 				}
+				return true;
 			}
-		return true;
+		return false;
 	}
 
+	public abstract void setLatestAction(CPUndo cpUndo);
 	abstract public void setCurrentFile (File file);
 
 	public void addColorListener(ICPColorListener listener) {
@@ -908,4 +915,6 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 	public boolean isRunningAsApplication() {
 		return this instanceof CPControllerApplication;
 	}
+
+	public abstract void updateChanges(CPUndo first);
 }

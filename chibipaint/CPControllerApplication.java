@@ -27,11 +27,14 @@ import java.io.File;
 import javax.swing.*;
 
 import chibipaint.engine.CPArtwork;
+import chibipaint.engine.CPUndo;
 
 public class CPControllerApplication extends CPController {
 
 	JFrame mainFrame;
 	File currentFile;
+	CPUndo latestAction = null;
+	boolean changed;
 
 	public CPControllerApplication(JFrame mainFrame) {
 		this.mainFrame = mainFrame;
@@ -46,22 +49,41 @@ public class CPControllerApplication extends CPController {
 		((ChibiApp) mainFrame).recreateEverything (newArtwork, file);
 	}
 
+	private void updateTitle ()
+	{
+		String titleString;
+		titleString = (changed ? "*" : "");
+		if (currentFile != null)
+		  titleString += currentFile.getName () + " - ChibiPaintMod";
+		else
+		  titleString += "Untitled - ChibiPaintMod";
+		mainFrame.setTitle (titleString);
+	}
+
 	public void setCurrentFile (File file)
 	{
 		if (file != null)
-			{
-				currentFile = new File (file.getAbsolutePath ());
-				mainFrame.setTitle (file.getName () + " - ChibiPaintMod");
-			}
+			currentFile = new File (file.getAbsolutePath ());
 		else
-			{
-				currentFile = null;
-				mainFrame.setTitle ("ChibiPaintMod");
-			}
+			currentFile = null;
+		updateTitle ();
 	}
 
 	public File getCurrentFile ()
 	{
 		return currentFile;
+	}
+
+	public void updateChanges (CPUndo action)
+	{
+		changed = (latestAction != action);
+		updateTitle ();
+	}
+
+	public void setLatestAction (CPUndo action)
+	{
+		changed = false;
+		latestAction = action;
+		updateTitle ();
 	}
 }

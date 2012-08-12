@@ -87,7 +87,7 @@ public class CPMainGUI {
 		canvas.grabFocus();
 	}
 
-	private JMenuBar createMainMenu(ActionListener listener) {
+	public JMenuBar createMainMenu(ActionListener listener) {
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menu, submenu;
 		JMenuItem menuItem;

@@ -58,12 +58,33 @@ public class ChibiApp extends JFrame {
 
 		mainGUI.getPaletteManager ().loadPalettesSettings();
 
-		final JFrame frame = this;
+		final ChibiApp frame = this;
 
     	frame.addWindowListener(new WindowAdapter() {
     	    public void windowClosing(WindowEvent e) {
-    			SaveWindowSettings (frame);
-    			mainGUI.getPaletteManager ().savePalettesSettings();
+    			if (frame.controller.changed)
+    			{
+    		        int result = JOptionPane.showConfirmDialog(frame,
+    		        										   "Save the Changes to Image '" +
+    		        										   (frame.controller.getCurrentFile() != null ? frame.controller.getCurrentFile().getName ()
+    		        										    										 : "Untitled") + "' Before Closing?", "Existing file",
+    		        										   JOptionPane.YES_NO_CANCEL_OPTION);
+    		        switch(result){
+    		            case JOptionPane.YES_OPTION:
+    		                if (!frame.controller.save ())
+    		                	return;
+    		                break;
+    		            case JOptionPane.NO_OPTION:
+    		            	break;
+    		            case JOptionPane.CLOSED_OPTION:
+    		            case JOptionPane.CANCEL_OPTION:
+    		                return;
+    		        }
+    			}
+
+    		SaveWindowSettings (frame);
+    		mainGUI.getPaletteManager ().savePalettesSettings();
+    		System.exit(0);
     	     }
     	});
 	}
@@ -102,7 +123,7 @@ public class ChibiApp extends JFrame {
 
 	private static void createChibiApp() {
 		JFrame frame = new ChibiApp();
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		LoadWindowSettings (frame);
 	}
 
@@ -113,11 +134,6 @@ public class ChibiApp extends JFrame {
 				createChibiApp();
 			}
 		});
-	}
-
-	public void windowClosing(WindowEvent e) {
-		SaveWindowSettings (this);
-		mainGUI.getPaletteManager ().savePalettesSettings();
 	}
 
 	public void recreateEverything(CPArtwork artwork, File file)

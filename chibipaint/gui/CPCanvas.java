@@ -355,6 +355,9 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 		 * if((test++ & 16) == 0) { g.setColor(Color.magenta); Dimension dd = getSize();
 		 * g.fillRect(0,0,dd.width,dd.height); g.setColor(Color.black); }
 		 */
+
+		// Adding * for unsaved changes
+		controller.updateChanges (artwork.getUndoList().size () > 0 ? artwork.getUndoList().getFirst() : null);
 	}
 
 	private GeneralPath getCheckerboardBackgroundPath(Rectangle2D r) {

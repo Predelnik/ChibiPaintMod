@@ -69,7 +69,9 @@ public class CPArtwork {
 
 	CPClip clipboard = null;
 
-	LinkedList<CPUndo> undoList, redoList;
+	private LinkedList<CPUndo> undoList;
+
+	LinkedList<CPUndo> redoList;
 
 	private CPBrushInfo curBrush;
 
@@ -122,7 +124,7 @@ public class CPArtwork {
 
 		fusion = new CPLayer(width, height);
 
-		undoList = new LinkedList();
+		setUndoList(new LinkedList());
 		redoList = new LinkedList();
 	}
 
@@ -142,7 +144,7 @@ public class CPArtwork {
 			total += undo.getMemoryUsed(true, lastBitmap);
 		}
 
-		for (CPUndo undo : undoList) {
+		for (CPUndo undo : getUndoList()) {
 			total += undo.getMemoryUsed(false, lastBitmap);
 		}
 
@@ -1100,7 +1102,7 @@ public class CPArtwork {
 			return;
 		}
 
-		CPUndo undo = undoList.removeFirst();
+		CPUndo undo = getUndoList().removeFirst();
 		undo.undo();
 		redoList.addFirst(undo);
 	}
@@ -1112,11 +1114,11 @@ public class CPArtwork {
 
 		CPUndo redo = redoList.removeFirst();
 		redo.redo();
-		undoList.addFirst(redo);
+		getUndoList().addFirst(redo);
 	}
 
 	public boolean canUndo() {
-		return !undoList.isEmpty();
+		return !getUndoList().isEmpty();
 	}
 
 	public boolean canRedo() {
@@ -1124,16 +1126,16 @@ public class CPArtwork {
 	}
 
 	private void addUndo(CPUndo undo) {
-		if (undoList.isEmpty() || !(undoList.getFirst()).merge(undo)) {
-			if (undoList.size() >= maxUndo) {
-				undoList.removeLast();
+		if (getUndoList().isEmpty() || !(getUndoList().getFirst()).merge(undo)) {
+			if (getUndoList().size() >= maxUndo) {
+				getUndoList().removeLast();
 			}
-			undoList.addFirst(undo);
+			getUndoList().addFirst(undo);
 		} else {
 			// Two merged changes can mean no change at all
 			// don't leave a useless undo in the list
-			if ((undoList.getFirst()).noChange()) {
-				undoList.removeFirst();
+			if ((getUndoList().getFirst()).noChange()) {
+				getUndoList().removeFirst();
 			}
 		}
 		if (!redoList.isEmpty()) {
@@ -1142,7 +1144,7 @@ public class CPArtwork {
 	}
 
 	public void clearHistory() {
-		undoList = new LinkedList();
+		setUndoList(new LinkedList());
 		redoList = new LinkedList();
 
 		Runtime r = Runtime.getRuntime();
@@ -1504,9 +1506,9 @@ public class CPArtwork {
 	public void beginPreviewMode(boolean copy) {
 		// !!!! awful awful hack !!! will break as soon as CPMultiUndo is used for other things
 		// FIXME: ASAP!
-		if (!copy && !undoList.isEmpty() && redoList.isEmpty() && (undoList.getFirst() instanceof CPMultiUndo)
-				&& (((CPMultiUndo) undoList.getFirst()).undoes[0] instanceof CPUndoPaint)
-				&& ((CPUndoPaint) ((CPMultiUndo) undoList.getFirst()).undoes[0]).layer == getActiveLayerNb()) {
+		if (!copy && !getUndoList().isEmpty() && redoList.isEmpty() && (getUndoList().getFirst() instanceof CPMultiUndo)
+				&& (((CPMultiUndo) getUndoList().getFirst()).undoes[0] instanceof CPUndoPaint)
+				&& ((CPUndoPaint) ((CPMultiUndo) getUndoList().getFirst()).undoes[0]).layer == getActiveLayerNb()) {
 			undo();
 			copy = prevModeCopy;
 		} else {
@@ -1683,6 +1685,14 @@ public class CPArtwork {
 
 	// ////////////////////////////////////////////////////
 	// Undo classes
+
+	public LinkedList<CPUndo> getUndoList() {
+		return undoList;
+	}
+
+	public void setUndoList(LinkedList<CPUndo> undoList) {
+		this.undoList = undoList;
+	}
 
 	class CPUndoPaint extends CPUndo {
 
