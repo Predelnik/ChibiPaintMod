@@ -209,7 +209,18 @@ public class CPControllerApplet extends CPController {
 	}
 
 	@Override
-	public void resetEverything(CPArtwork new_artwork) {
+	public void resetEverything(CPArtwork new_artwork, File file) {
+		// Do Nothing
+	}
+
+	@Override
+	public void setCurrentFile (File file) {
+		// Do Nothing
+	}
+
+	@Override
+	public File getCurrentFile () {
+		return null;
 		// Do Nothing
 	}
 }

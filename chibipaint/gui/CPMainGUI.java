@@ -120,7 +120,7 @@ public class CPMainGUI {
 
 				menu.add(new JSeparator());
 
-				menuItem = new JMenuItem("Save .png File", KeyEvent.VK_S);
+				menuItem = new JMenuItem("Save as .png File...", KeyEvent.VK_C);
 				menuItem.getAccessibleContext().setAccessibleDescription(
 						"Save .png File");
 				menuItem.setActionCommand("CPSavePng");
@@ -129,18 +129,28 @@ public class CPMainGUI {
 
 				menu.add(new JSeparator());
 
-				menuItem = new JMenuItem("Save .chi File", KeyEvent.VK_C);
+				menuItem = new JMenuItem("Save", KeyEvent.VK_S);
+				menuItem.getAccessibleContext().setAccessibleDescription(
+						"Save File");
+				menuItem.setActionCommand("CPSave");
+				menuItem.addActionListener(listener);
+				menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+				menu.add(menuItem);
+
+				menuItem = new JMenuItem("Save as .chi File...", KeyEvent.VK_A);
 				menuItem.getAccessibleContext().setAccessibleDescription(
 						"Save .chi File");
 				menuItem.setActionCommand("CPSaveChi");
 				menuItem.addActionListener(listener);
+				menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
 				menu.add(menuItem);
 
-				menuItem = new JMenuItem("Load .chi File", KeyEvent.VK_L);
+				menuItem = new JMenuItem("Open .chi File...", KeyEvent.VK_L);
 				menuItem.getAccessibleContext().setAccessibleDescription(
-						"Load .chi File");
+						"Open .chi File");
 				menuItem.setActionCommand("CPLoadChi");
 				menuItem.addActionListener(listener);
+				menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 				menu.add(menuItem);
 
 				submenu = new JMenu("Open Recent");

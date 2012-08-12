@@ -252,31 +252,44 @@ public class CPPaletteManager implements ContainerListener {
 		}
 	}
 
-	public void loadPalettesLocation ()
+	public void loadPalettesSettings ()
 	{
 		Preferences userRoot = Preferences.userRoot();
 	    Preferences preferences = userRoot.node( "chibipaintmod" );
 		for (CPPaletteFrame frame : paletteFrames)
 			{
-				int x_value = preferences.getInt(frame.getPalettesList().get(0).title + "(x pos)", -1);
-				int y_value = preferences.getInt(frame.getPalettesList().get(0).title + "(y pos)", -1);
-				if (x_value != -1 && y_value != -1)
-					frame.setLocation (x_value, y_value);
-			}
-	}
-
-	public void savePalettesLocation ()
-	{
-		Preferences userRoot = Preferences.userRoot();
-	    Preferences preferences = userRoot.node( "chibipaintmod" );
-		for (CPPaletteFrame frame : paletteFrames)
-			{
-				if (frame.getPalettesList().size () > 0)
+				for (CPPalette pal : frame.getPalettesList())
 					{
-					    preferences.putInt(frame.getPalettesList().get(0).title + "(x pos)", frame.getX());
-					    preferences.putInt(frame.getPalettesList().get(0).title + "(y pos)", frame.getY());
+						int x_value = preferences.getInt(pal.title + "(x pos)", -1);
+						int y_value = preferences.getInt(pal.title + "(y pos)", -1);
+						boolean visibility =  preferences.getBoolean(pal.title + "(visibility)", true);
+
+						showPalette (pal, visibility);
+
+						if (x_value != -1 && y_value != -1)
+							frame.setLocation (x_value, y_value);
 					}
 			}
+
+		if (preferences.getBoolean ("Palettes Hidden", false))
+			togglePalettes ();
+	}
+
+	public void savePalettesSettings ()
+	{
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		for (CPPaletteFrame frame : paletteFrames)
+			{
+				for (CPPalette pal : frame.getPalettesList())
+					{
+					    preferences.putInt(pal.title + "(x pos)", frame.getX());
+					    preferences.putInt(pal.title + "(y pos)", frame.getY());
+					    preferences.putBoolean(pal.title + "(visibility)", frame.isVisible () || hiddenFrames.contains(frame));
+					}
+			}
+
+		preferences.putBoolean ("Palettes Hidden", !hiddenFrames.isEmpty());
 	}
 
 }

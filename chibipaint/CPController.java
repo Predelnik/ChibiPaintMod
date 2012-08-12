@@ -471,6 +471,10 @@ public abstract class CPController implements ActionListener {
 			saveChi ();
 		}
 
+		if (e.getActionCommand().equals("CPSave")) {
+			save ();
+		}
+
 		if (e.getActionCommand().equals("CPLoadChi")) {
 			loadChi ();
 		}
@@ -516,7 +520,8 @@ void newDialog ()
 
 	if (choice == JOptionPane.OK_OPTION) {
 		CPArtwork new_artwork = new CPArtwork (Integer.valueOf (widthNum.getText()),  Integer.valueOf (heightNum.getText()));
-		resetEverything(new_artwork);
+		setCurrentFile (null);
+		resetEverything(new_artwork, null);
 	}
 }
 
@@ -526,6 +531,16 @@ public boolean savePng ()
 {
 	return saveLoadImageFile (save_file_type.PNG_FILE, action_save_load.ACTION_SAVE, "");
 }
+
+public boolean save ()
+{
+	if (getCurrentFile () != null)
+		return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_SAVE, getCurrentFile ().getAbsolutePath ());
+	else
+		return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_SAVE, "");
+}
+
+public abstract File getCurrentFile();
 
 public boolean saveChi ()
 {
@@ -659,6 +674,10 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 						}
 
 					preferences.put (recent_file_string (0), selectedFile.getAbsolutePath());
+
+					// Adding name to frame title
+					setCurrentFile (selectedFile);
+
 				}
 
 				switch (action)
@@ -678,7 +697,7 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 								e1.printStackTrace();
 							}
 						CPArtwork artwork = CPChibiFile.read (fos);
-						resetEverything (artwork);
+						resetEverything (artwork, selectedFile);
 
 						try {
 							fos.close ();
@@ -729,6 +748,8 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 			}
 		return true;
 	}
+
+	abstract public void setCurrentFile (File file);
 
 	public void addColorListener(ICPColorListener listener) {
 		colorListeners.addLast(listener);
@@ -878,7 +899,7 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 
 	}
 
-	abstract public void resetEverything(CPArtwork new_artwork);
+	abstract public void resetEverything(CPArtwork new_artwork, File file);
 
 	public boolean isRunningAsApplet() {
 		return this instanceof CPControllerApplet;

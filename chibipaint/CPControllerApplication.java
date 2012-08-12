@@ -22,6 +22,7 @@
 package chibipaint;
 
 import java.awt.*;
+import java.io.File;
 
 import javax.swing.*;
 
@@ -30,6 +31,7 @@ import chibipaint.engine.CPArtwork;
 public class CPControllerApplication extends CPController {
 
 	JFrame mainFrame;
+	File currentFile;
 
 	public CPControllerApplication(JFrame mainFrame) {
 		this.mainFrame = mainFrame;
@@ -39,8 +41,27 @@ public class CPControllerApplication extends CPController {
 		return mainFrame;
 	}
 
-	public void resetEverything(CPArtwork newArtwork)
+	public void resetEverything(CPArtwork newArtwork, File file)
 	{
-		((ChibiApp) mainFrame).recreateEverything (newArtwork);
+		((ChibiApp) mainFrame).recreateEverything (newArtwork, file);
+	}
+
+	public void setCurrentFile (File file)
+	{
+		if (file != null)
+			{
+				currentFile = new File (file.getAbsolutePath ());
+				mainFrame.setTitle (file.getName () + " - ChibiPaintMod");
+			}
+		else
+			{
+				currentFile = null;
+				mainFrame.setTitle ("ChibiPaintMod");
+			}
+	}
+
+	public File getCurrentFile ()
+	{
+		return currentFile;
 	}
 }
