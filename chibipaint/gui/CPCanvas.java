@@ -357,7 +357,8 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 		 */
 
 		// Adding * for unsaved changes
-		controller.updateChanges (artwork.getUndoList().size () > 0 ? artwork.getUndoList().getFirst() : null);
+		if (controller.isRunningAsApplication ()) 
+			((CPControllerApplication) controller).updateChanges (artwork.getUndoList().size () > 0 ? artwork.getUndoList().getFirst() : null);
 	}
 
 	private GeneralPath getCheckerboardBackgroundPath(Rectangle2D r) {

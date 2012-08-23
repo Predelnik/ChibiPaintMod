@@ -26,12 +26,8 @@ import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
 import java.util.*;
-import java.util.prefs.Preferences;
-
 import javax.imageio.*;
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import chibipaint.engine.*;
 import chibipaint.gui.*;
 import chibipaint.util.*;
@@ -89,7 +85,7 @@ public abstract class CPController implements ActionListener {
 	// Image loader cache
 	private Map<String, Image> imageCache = new HashMap<String, Image>();
 
-	private CPMainGUI mainGUI;
+	protected CPMainGUI mainGUI;
 
 	public interface ICPColorListener {
 
@@ -462,301 +458,8 @@ public abstract class CPController implements ActionListener {
 		if (e.getActionCommand().equals("CPTogglePalettes")) {
 			mainGUI.togglePalettes();
 		}
-
-		if (e.getActionCommand().equals("CPSavePng")) {
-			savePng ();
-		}
-
-		if (e.getActionCommand().equals("CPSaveChi")) {
-			saveChi ();
-		}
-
-		if (e.getActionCommand().equals("CPSave")) {
-			save ();
-		}
-
-		if (e.getActionCommand().equals("CPLoadChi")) {
-			loadChi ();
-		}
-
-		if (e.getActionCommand().equals("CPNew")) {
-			newDialog ();
-		}
-
-		if (e.getActionCommand().startsWith("CPOpenRecent")) {
-			String command = e.getActionCommand();
-			int num = command.charAt (command.length() - 1) - '0';
-			openRecent (num);
-		}
-
 		callCPEventListeners();
 }
-
-void openRecent (int index)
-{
-	Preferences userRoot = Preferences.userRoot();
-    Preferences preferences = userRoot.node( "chibipaintmod" );
-    String recentFileName = preferences.get(recent_file_string (index), "");
-    saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_LOAD, recentFileName);
-}
-
-void newDialog ()
-{
-	JPanel panel1 = new JPanel();
-
-	panel1.add(new JLabel("Width:"));
-	JTextField widthNum = new JTextField (String.valueOf (this.artwork.width), 10);
-	panel1.add(widthNum);
-
-	JPanel panel2 = new JPanel();
-
-	panel2.add(new JLabel("Height:"));
-	JTextField heightNum = new JTextField (String.valueOf (this.artwork.height), 10);
-	panel2.add(heightNum);
-
-	Object[] array = { "Select Width and Height:\n\n", panel1, panel2 };
-	int choice = JOptionPane.showConfirmDialog(getDialogParent(), array, "Create New Image", JOptionPane.OK_CANCEL_OPTION,
-			JOptionPane.PLAIN_MESSAGE);
-
-	if (choice == JOptionPane.OK_OPTION) {
-		CPArtwork new_artwork = new CPArtwork (Integer.valueOf (widthNum.getText()),  Integer.valueOf (heightNum.getText()));
-		setCurrentFile (null);
-		resetEverything(new_artwork, null);
-	}
-}
-
-public enum save_file_type {PNG_FILE, CHI_FILE};
-public enum action_save_load {ACTION_SAVE, ACTION_LOAD}
-public boolean savePng ()
-{
-	return saveLoadImageFile (save_file_type.PNG_FILE, action_save_load.ACTION_SAVE, "");
-}
-
-public boolean save ()
-{
-	if (getCurrentFile () != null)
-		return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_SAVE, getCurrentFile ().getAbsolutePath ());
-	else
-		return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_SAVE, "");
-}
-
-public abstract File getCurrentFile();
-
-public boolean saveChi ()
-{
-	return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_SAVE, "");
-}
-
-public boolean loadChi ()
-{
-	return saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_LOAD, "");
-}
-
-static String recent_file_string (int i)
-{
-	return "Recent File[" + i + "]";
-}
-
-private boolean saveLoadImageFile(save_file_type type, action_save_load action, String file_name) {
-
-		int returnVal = JFileChooser.CANCEL_OPTION;
-		Preferences userRoot = Preferences.userRoot();
-	    Preferences preferences = userRoot.node( "chibipaintmod" );
-	    String directoryName = preferences.get ("lastDirectory", "");
-	    File dir = new File (directoryName);
-
-		final JFileChooser fc = new JFileChooser(dir)
-		{
-			/**
-			 *
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void approveSelection(){
-			    File f = getSelectedFile();
-			    if(f.exists() && getDialogType() == SAVE_DIALOG){
-			        int result = JOptionPane.showConfirmDialog(this,"The file exists, overwrite?","Existing file",JOptionPane.YES_NO_OPTION);
-			        switch(result){
-			            case JOptionPane.YES_OPTION:
-			                super.approveSelection();
-			                return;
-			            case JOptionPane.NO_OPTION:
-			                return;
-			            case JOptionPane.CLOSED_OPTION:
-			                return;
-			        }
-			    }
-			    super.approveSelection();
-			}
-		};
-
-		if (file_name == "")
-		{
-
-		FileNameExtensionFilter filter = null;
-		switch (type)
-		{
-		case CHI_FILE:
-			filter = new FileNameExtensionFilter("ChibiPaint Files(*.chi)", "chi");
-			break;
-		case PNG_FILE:
-			filter = new FileNameExtensionFilter("PNG Files(*.png)", "png");
-			break;
-		}
-		fc.setAcceptAllFileFilterUsed(false);
-		fc.addChoosableFileFilter(filter);
-
-		returnVal = 0;
-
-		switch (action)
-		{
-		case ACTION_LOAD:
-			returnVal = fc.showOpenDialog(canvas);
-			break;
-		case ACTION_SAVE:
-			returnVal = fc.showSaveDialog(canvas);
-			break;
-		}
-	}
-
-		if (returnVal == JFileChooser.APPROVE_OPTION || file_name != "")
-			{
-				File selectedFile;
-				if (file_name != "")
-					selectedFile = new File (file_name);
-				else
-					selectedFile = fc.getSelectedFile();
-
-			    if  (action == action_save_load.ACTION_SAVE)
-				    {
-					String filePath = selectedFile.getPath();
-					String ext = "";
-					switch (type)
-						{
-							case CHI_FILE:
-								ext = ".chi";
-								break;
-							case PNG_FILE:
-								ext = ".png";
-								break;
-						}
-
-					if(!filePath.toLowerCase().endsWith(ext))
-						{
-						    selectedFile = new File(filePath + ext);
-						}
-				    }
-
-				preferences.put ("lastDirectory", selectedFile.getParent());
-				byte[] data = null;
-
-				// Writing file to recent
-				if (type == save_file_type.CHI_FILE)
-				{
-					Boolean found = false;
-						for (int i = 0; i < 10; i++)
-						{
-							String file_name_from_list = preferences.get("Recent File[" + i + "]", "");
-							if (file_name_from_list.length () != 0 && file_name_from_list.equals (selectedFile.getAbsolutePath()))
-								{
-									for (int j = i - 1; j >= 0; j--)
-										 preferences.put(recent_file_string (j + 1), preferences.get (recent_file_string (j), ""));
-
-									found = true;
-									break;
-								}
-						}
-					if (!found)
-						{
-							for (int j = 8; j >= 0; j--)
-								 preferences.put(recent_file_string (j + 1), preferences.get (recent_file_string (j), ""));
-						}
-
-					preferences.put (recent_file_string (0), selectedFile.getAbsolutePath());
-
-					// Adding name to frame title
-					setCurrentFile (selectedFile);
-
-					if (action == action_save_load.ACTION_SAVE)
-						{
-							mainGUI.createMainMenu (null);
-							setLatestAction (artwork.getUndoList ().size () > 0 ?  artwork.getUndoList ().getFirst () : null);
-						}
-				}
-
-				switch (action)
-				{
-				case ACTION_LOAD:
-					switch (type)
-					{
-					case CHI_FILE:
-						FileInputStream fos = null;
-					    try
-						    {
-								fos = new FileInputStream(selectedFile);
-							}
-						catch (FileNotFoundException e1)
-						    {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
-						CPArtwork artwork = CPChibiFile.read (fos);
-						resetEverything (artwork, selectedFile);
-
-						try {
-							fos.close ();
-						} catch (IOException e2) {
-							// TODO Auto-generated catch block
-							e2.printStackTrace();
-						}
-						break;
-					case PNG_FILE:
-						// Do nothing for now
-						break;
-					}
-					break;
-				case ACTION_SAVE:
-					switch (type)
-					{
-						case CHI_FILE:
-							ByteArrayOutputStream chibiFileStream = new ByteArrayOutputStream(1024);
-							CPChibiFile.write(chibiFileStream, artwork);
-							data = chibiFileStream.toByteArray();
-							break;
-						case PNG_FILE:
-							data = getPngData(canvas.img);
-							break;
-					}
-					FileOutputStream fos = null;
-				    try
-					    {
-							fos = new FileOutputStream(selectedFile);
-						}
-					catch (FileNotFoundException e1)
-					    {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-					try
-						{
-							fos.write (data);
-							fos.close ();
-						}
-					catch (IOException e)
-						{
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					break;
-				}
-				return true;
-			}
-		return false;
-	}
-
-	public abstract void setLatestAction(CPUndo cpUndo);
-	abstract public void setCurrentFile (File file);
 
 	public void addColorListener(ICPColorListener listener) {
 		colorListeners.addLast(listener);
@@ -906,8 +609,6 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 
 	}
 
-	abstract public void resetEverything(CPArtwork new_artwork, File file);
-
 	public boolean isRunningAsApplet() {
 		return this instanceof CPControllerApplet;
 	}
@@ -915,6 +616,4 @@ private boolean saveLoadImageFile(save_file_type type, action_save_load action, 
 	public boolean isRunningAsApplication() {
 		return this instanceof CPControllerApplication;
 	}
-
-	public abstract void updateChanges(CPUndo first);
 }

@@ -207,30 +207,4 @@ public class CPControllerApplet extends CPController {
 			// new CPMessageBox(this, CPMessageBox.CP_OK_MSGBOX, "The oekaki was successfully sent", "Send Oekaki");
 		}
 	}
-
-	@Override
-	public void resetEverything(CPArtwork new_artwork, File file) {
-		// Do Nothing
-	}
-
-	@Override
-	public void setCurrentFile (File file) {
-		// Do Nothing
-	}
-
-	@Override
-	public File getCurrentFile () {
-		return null;
-		// Do Nothing
-	}
-
-	@Override
-	public void updateChanges(CPUndo first) {
-		// Do Nothing
-	}
-
-	@Override
-	public void setLatestAction(CPUndo cpUndo) {
-		// Do Nothing
-	}
 }
