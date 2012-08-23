@@ -73,7 +73,7 @@ public class CPControllerApplication extends CPController {
 		}
 		super.actionPerformed(e);
 	}
-	
+
 	public CPControllerApplication(JFrame mainFrame) {
 		this.mainFrame = mainFrame;
 	}
@@ -124,7 +124,7 @@ public class CPControllerApplication extends CPController {
 		latestAction = action;
 		updateTitle ();
 	}
-	
+
 
 	void openRecent (int index)
 	{
@@ -386,4 +386,34 @@ public class CPControllerApplication extends CPController {
 				}
 			return false;
 		}
+	void saveControllerSettings () {
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		for (int i = 0; i < T_MAX; i++)
+			{
+				preferences.putInt   ("Tool " + String.valueOf(i) + " - Type"      , tools[i].type);
+				preferences.putInt   ("Tool " + String.valueOf(i) + " - Size"      , tools[i].size);
+				preferences.putInt   ("Tool " + String.valueOf(i) + " - Alpha"     , tools[i].alpha);
+				preferences.putFloat ("Tool " + String.valueOf(i) + " - Color"     , tools[i].resat);
+				preferences.putFloat ("Tool " + String.valueOf(i) + " - Blend"     , tools[i].bleed);
+				preferences.putFloat ("Tool " + String.valueOf(i) + " - Spacing"   , tools[i].spacing);
+				preferences.putFloat ("Tool " + String.valueOf(i) + " - Scattering", tools[i].scattering);
+				preferences.putFloat ("Tool " + String.valueOf(i) + " - Smoothing" , tools[i].smoothing);
+			}
+	}
+	void loadControllerSettings () {
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		for (int i = 0; i < T_MAX; i++)
+			{
+				tools[i].type = preferences.getInt   ("Tool " + String.valueOf(i) + " - Type"      , tools[i].type);
+				tools[i].size = preferences.getInt   ("Tool " + String.valueOf(i) + " - Size"      , tools[i].size);
+				tools[i].alpha = preferences.getInt   ("Tool " + String.valueOf(i) + " - Alpha"     , tools[i].alpha);
+				tools[i].resat = preferences.getFloat ("Tool " + String.valueOf(i) + " - Color"     , tools[i].resat);
+				tools[i].bleed = preferences.getFloat ("Tool " + String.valueOf(i) + " - Blend"     , tools[i].bleed);
+				tools[i].spacing = preferences.getFloat ("Tool " + String.valueOf(i) + " - Spacing"   , tools[i].spacing);
+				tools[i].scattering = preferences.getFloat ("Tool " + String.valueOf(i) + " - Scattering", tools[i].scattering);
+				tools[i].smoothing = preferences.getFloat ("Tool " + String.valueOf(i) + " - Smoothing" , tools[i].smoothing);
+			}
+	}
 }

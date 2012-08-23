@@ -45,6 +45,8 @@ public class ChibiApp extends JFrame {
 
 		controller = new CPControllerApplication(this);
 
+		controller.loadControllerSettings ();
+
 		controller.setCurrentFile (null);
 		controller.setArtwork(new CPArtwork(600, 450));
 
@@ -84,6 +86,7 @@ public class ChibiApp extends JFrame {
 
     		SaveWindowSettings (frame);
     		mainGUI.getPaletteManager ().savePalettesSettings();
+    		controller.saveControllerSettings ();
     		System.exit(0);
     	     }
     	});
@@ -138,14 +141,18 @@ public class ChibiApp extends JFrame {
 
 	public void recreateEverything(CPArtwork artwork, File file)
 	{
+		mainGUI.getPaletteManager ().savePalettesSettings();
+		controller.saveControllerSettings ();
+
 		controller = new CPControllerApplication(this);
+
+		controller.loadControllerSettings ();
 
 		controller.setArtwork(artwork);
 
 		// FIXME: set a default tool so that we can start drawing
 		controller.setTool(CPController.T_PEN);
 		controller.setCurrentFile (file);
-		mainGUI.getPaletteManager ().savePalettesSettings();
 
 		mainGUI = new CPMainGUI(controller);
 
