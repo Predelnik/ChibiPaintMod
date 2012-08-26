@@ -357,7 +357,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 		 */
 
 		// Adding * for unsaved changes
-		if (controller.isRunningAsApplication ()) 
+		if (controller.isRunningAsApplication ())
 			((CPControllerApplication) controller).updateChanges (artwork.getUndoList().size () > 0 ? artwork.getUndoList().getFirst() : null);
 	}
 
@@ -647,8 +647,11 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 		}
 	}
 
-	private Rectangle getBrushPreviewOval() {
-		int bSize = (int) (controller.getBrushSize() * zoom);
+	private Rectangle getBrushPreviewOval(boolean calcPressure) {
+		// TODO: Disable ability to turn on PressureSize for M_SMUDGE and M_OIL
+		if  (controller.getBrushInfo().paintMode == CPBrushInfo.M_SMUDGE || controller.getBrushInfo().paintMode == CPBrushInfo.M_OIL)
+			calcPressure = false;
+		int bSize = (int) (controller.getBrushSize() * zoom * (calcPressure && controller.getBrushInfo().pressureSize ? CPTablet.getRef().getPressure() : 1.0));
 		return new Rectangle(mouseX - bSize / 2, mouseY - bSize / 2, bSize, bSize);
 	}
 
@@ -665,7 +668,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 		if (!spacePressed && mouseIn) {
 			brushPreview = true;
 
-			Rectangle r = getBrushPreviewOval();
+			Rectangle r = getBrushPreviewOval(false);
 			r.grow(2, 2);
 			if (oldPreviewRect != null) {
 				r = r.union(oldPreviewRect);
@@ -921,7 +924,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 			if (brushPreview && curSelectedMode == curDrawMode) {
 				brushPreview = false;
 
-				Rectangle r = getBrushPreviewOval();
+				Rectangle r = getBrushPreviewOval(false);
 				g2d.drawOval(r.x, r.y, r.width, r.height);
 
 				r.grow(2, 2);
@@ -933,7 +936,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 			if (!spacePressed) {
 				brushPreview = true;
 
-				Rectangle r = getBrushPreviewOval();
+				Rectangle r = getBrushPreviewOval(false);
 				r.grow(2, 2);
 				if (oldPreviewRect != null) {
 					r = r.union(oldPreviewRect);
@@ -988,6 +991,23 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 			if (dragLeft) {
 				artwork.continueStroke(smoothMouse.x, smoothMouse.y, CPTablet.getRef().getPressure());
 			}
+
+			brushPreview = true;
+
+			Rectangle r = getBrushPreviewOval(true);
+			r.grow(2, 2);
+			if (oldPreviewRect != null) {
+				r = r.union(oldPreviewRect);
+				oldPreviewRect = null;
+			}
+
+			if (artwork.isPointWithin(pf.x, pf.y)) {
+				setCursor(defaultCursor); // FIXME find a cursor that everyone likes
+			} else {
+				setCursor(defaultCursor);
+			}
+
+			repaint(r.x, r.y, r.width, r.height);
 		}
 
 		public void mouseReleased(MouseEvent e) {
@@ -996,6 +1016,18 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 				artwork.endStroke();
 
 				activeMode = defaultMode; // yield control to the default mode
+			}
+		}
+
+		public void paint(Graphics2D g2d) {
+			if (brushPreview && curSelectedMode == curDrawMode) {
+				brushPreview = false;
+
+				Rectangle r = getBrushPreviewOval(true);
+				g2d.drawOval(r.x, r.y, r.width, r.height);
+
+				r.grow(2, 2);
+				oldPreviewRect = oldPreviewRect != null ? r.union(oldPreviewRect) : r;
 			}
 		}
 	}
