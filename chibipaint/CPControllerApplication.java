@@ -153,9 +153,15 @@ public class CPControllerApplication extends CPController {
 				JOptionPane.PLAIN_MESSAGE);
 
 		if (choice == JOptionPane.OK_OPTION) {
-			CPArtwork new_artwork = new CPArtwork (Integer.valueOf (widthNum.getText()),  Integer.valueOf (heightNum.getText()));
-			setCurrentFile (null);
-			resetEverything(new_artwork, null);
+			try {
+				CPArtwork new_artwork = new CPArtwork (Integer.valueOf (widthNum.getText()),  Integer.valueOf (heightNum.getText()));
+				setCurrentFile (null);
+				resetEverything(new_artwork, null);
+				}
+			catch (OutOfMemoryError E)
+			{
+				JOptionPane.showMessageDialog(mainFrame, "Sorry, not Enough Memory. Please restart the application or try to use lesser image size.");
+			}
 		}
 	}
 
@@ -333,8 +339,15 @@ public class CPControllerApplication extends CPController {
 									// TODO Auto-generated catch block
 									e1.printStackTrace();
 								}
-							CPArtwork artwork = CPChibiFile.read (fos);
-							resetEverything (artwork, selectedFile);
+						    try
+						    {
+								CPArtwork artwork = CPChibiFile.read (fos);
+								resetEverything (artwork, selectedFile);
+						    }
+							catch (OutOfMemoryError E)
+							{
+								JOptionPane.showMessageDialog(mainFrame, "Sorry, not Enough Memory. Please restart the application or try to use lesser image size.");
+							}
 
 							try {
 								fos.close ();
