@@ -402,6 +402,7 @@ public class CPMainGUI {
 		menuItem.setActionCommand("CPLinearInterpolation");
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
+		paletteItems.put("Use Linear Interpolation", (JCheckBoxMenuItem) menuItem);
 
 		menu.add(new JSeparator());
 
@@ -412,6 +413,7 @@ public class CPMainGUI {
 		menuItem.setActionCommand("CPToggleGrid");
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
+		paletteItems.put("Show Grid", (JCheckBoxMenuItem) menuItem);
 
 		menuItem = new JMenuItem("Grid options...", KeyEvent.VK_D);
 		menuItem.getAccessibleContext().setAccessibleDescription("Shows the grid options dialog box");

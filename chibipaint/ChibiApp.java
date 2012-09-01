@@ -59,6 +59,7 @@ public class ChibiApp extends JFrame {
 		setJMenuBar(mainGUI.getMenuBar());
 
 		mainGUI.getPaletteManager ().loadPalettesSettings();
+		controller.canvas.loadCanvasSettings ();
 
 		final ChibiApp frame = this;
 
@@ -85,9 +86,10 @@ public class ChibiApp extends JFrame {
     			}
 
     		SaveWindowSettings (frame);
-    		mainGUI.getPaletteManager ().savePalettesSettings();
-    		controller.saveControllerSettings ();
-    		System.exit(0);
+            mainGUI.getPaletteManager ().savePalettesSettings ();
+            controller.canvas.saveCanvasSettings ();
+            controller.saveControllerSettings ();
+            System.exit(0);
     	     }
     	});
 	}
@@ -160,5 +162,6 @@ public class ChibiApp extends JFrame {
 		setJMenuBar(mainGUI.getMenuBar());
 
 		mainGUI.getPaletteManager ().loadPalettesSettings();
+		controller.canvas.loadCanvasSettings ();
 	}
 }

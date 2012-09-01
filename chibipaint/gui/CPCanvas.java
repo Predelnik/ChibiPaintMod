@@ -25,6 +25,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.*;
+import java.util.prefs.Preferences;
 
 import javax.swing.*;
 
@@ -838,6 +839,26 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 		repaint();
 	}
 
+	public void saveCanvasSettings ()
+	{
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		preferences.putBoolean ("Interpolation", interpolation);
+		preferences.putBoolean ("Show Grid", showGrid);
+		preferences.putInt ("Grid size", gridSize);
+	}
+
+	public void loadCanvasSettings ()
+	{
+		Preferences userRoot = Preferences.userRoot();
+	    Preferences preferences = userRoot.node( "chibipaintmod" );
+	    setInterpolation (preferences.getBoolean ("Interpolation", interpolation));
+		showGrid (preferences.getBoolean ("Show Grid", showGrid));
+		controller.getMainGUI().setPaletteMenuItem("Use Linear Interpolation", interpolation);
+		controller.getMainGUI().setPaletteMenuItem("Show Grid", showGrid);
+		gridSize = preferences.getInt ("Grid size", gridSize);
+	}
+
 	//
 	// base class for the different modes
 	//
@@ -1461,3 +1482,4 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 	 * public void mouseReleased(MouseEvent e) {} }
 	 */
 }
+
