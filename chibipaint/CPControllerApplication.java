@@ -404,14 +404,17 @@ public class CPControllerApplication extends CPController {
 	    Preferences preferences = userRoot.node( "chibipaintmod" );
 		for (int i = 0; i < T_MAX; i++)
 			{
-				preferences.putInt   ("Tool " + String.valueOf(i) + " - Type"      , tools[i].type);
-				preferences.putInt   ("Tool " + String.valueOf(i) + " - Size"      , tools[i].size);
-				preferences.putInt   ("Tool " + String.valueOf(i) + " - Alpha"     , tools[i].alpha);
-				preferences.putFloat ("Tool " + String.valueOf(i) + " - Color"     , tools[i].resat);
-				preferences.putFloat ("Tool " + String.valueOf(i) + " - Blend"     , tools[i].bleed);
-				preferences.putFloat ("Tool " + String.valueOf(i) + " - Spacing"   , tools[i].spacing);
-				preferences.putFloat ("Tool " + String.valueOf(i) + " - Scattering", tools[i].scattering);
-				preferences.putFloat ("Tool " + String.valueOf(i) + " - Smoothing" , tools[i].smoothing);
+				preferences.putInt     ("Tool " + String.valueOf(i) + " - Type"      , tools[i].type);
+				preferences.putInt     ("Tool " + String.valueOf(i) + " - Size"      , tools[i].size);
+				preferences.putInt     ("Tool " + String.valueOf(i) + " - Alpha"     , tools[i].alpha);
+				preferences.putFloat   ("Tool " + String.valueOf(i) + " - Color"     , tools[i].resat);
+				preferences.putFloat   ("Tool " + String.valueOf(i) + " - Blend"     , tools[i].bleed);
+				preferences.putFloat   ("Tool " + String.valueOf(i) + " - Spacing"   , tools[i].spacing);
+				preferences.putFloat   ("Tool " + String.valueOf(i) + " - Scattering", tools[i].scattering);
+				preferences.putFloat   ("Tool " + String.valueOf(i) + " - Smoothing" , tools[i].smoothing);
+				preferences.putBoolean ("Tool " + String.valueOf(i) + " - Alpha from Pressure", tools[i].pressureAlpha);
+				preferences.putBoolean ("Tool " + String.valueOf(i) + " - Size from Pressure", tools[i].pressureSize);
+				preferences.putBoolean ("Tool " + String.valueOf(i) + " - Scattering from Pressure", tools[i].pressureScattering);
 			}
 	}
 	void loadControllerSettings () {
@@ -427,6 +430,9 @@ public class CPControllerApplication extends CPController {
 				tools[i].spacing = preferences.getFloat ("Tool " + String.valueOf(i) + " - Spacing"   , tools[i].spacing);
 				tools[i].scattering = preferences.getFloat ("Tool " + String.valueOf(i) + " - Scattering", tools[i].scattering);
 				tools[i].smoothing = preferences.getFloat ("Tool " + String.valueOf(i) + " - Smoothing" , tools[i].smoothing);
+				tools[i].pressureAlpha = preferences.getBoolean ("Tool " + String.valueOf(i) + " - Alpha from Pressure", tools[i].pressureAlpha);
+				tools[i].pressureSize = preferences.getBoolean ("Tool " + String.valueOf(i) + " - Size from Pressure", tools[i].pressureSize);
+				tools[i].pressureScattering = preferences.getBoolean ("Tool " + String.valueOf(i) + " - Scattering from Pressure", tools[i].pressureScattering);
 			}
 	}
 }
