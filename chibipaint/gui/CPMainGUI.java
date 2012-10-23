@@ -103,81 +103,81 @@ public class CPMainGUI {
 		if (controller.isRunningAsApplet ()) {
 			menuItem = new JMenuItem("Send Oekaki", KeyEvent.VK_S);
 			menuItem.getAccessibleContext().setAccessibleDescription(
-			"Sends the oekaki to the server and exits ChibiPaint");
+					"Sends the oekaki to the server and exits ChibiPaint");
 			menuItem.setActionCommand("CPSend");
 			menuItem.addActionListener(listener);
 			menu.add(menuItem);
-            }
+		}
 
 		if (controller.isRunningAsApplication ())
+		{
+			menuItem = new JMenuItem("New File", KeyEvent.VK_N);
+			menuItem.getAccessibleContext().setAccessibleDescription(
+					"New File");
+			menuItem.setActionCommand("CPNew");
+			menuItem.addActionListener(listener);
+			menu.add(menuItem);
+
+			menu.add(new JSeparator());
+
+			menuItem = new JMenuItem("Export as .png File...", KeyEvent.VK_C);
+			menuItem.getAccessibleContext().setAccessibleDescription(
+					"Save .png File");
+			menuItem.setActionCommand("CPSavePng");
+			menuItem.addActionListener(listener);
+			menu.add(menuItem);
+
+			menu.add(new JSeparator());
+
+			menuItem = new JMenuItem("Save", KeyEvent.VK_S);
+			menuItem.getAccessibleContext().setAccessibleDescription(
+					"Save File");
+			menuItem.setActionCommand("CPSave");
+			menuItem.addActionListener(listener);
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+			menu.add(menuItem);
+
+			menuItem = new JMenuItem("Save as...", KeyEvent.VK_A);
+			menuItem.getAccessibleContext().setAccessibleDescription(
+					"Save .chi File");
+			menuItem.setActionCommand("CPSaveChi");
+			menuItem.addActionListener(listener);
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+			menu.add(menuItem);
+
+			menuItem = new JMenuItem("Open...", KeyEvent.VK_L);
+			menuItem.getAccessibleContext().setAccessibleDescription(
+					"Open .chi File");
+			menuItem.setActionCommand("CPLoadChi");
+			menuItem.addActionListener(listener);
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+			menu.add(menuItem);
+
+			submenu = new JMenu("Open Recent");
+
+
+			Preferences userRoot = Preferences.userRoot();
+			Preferences preferences = userRoot.node( "chibipaintmod" );
+			int recent_file_num = 0;
+			for (int i = 0; i < 10; i++)
 			{
-				menuItem = new JMenuItem("New File", KeyEvent.VK_N);
-				menuItem.getAccessibleContext().setAccessibleDescription(
-						"New File");
-				menuItem.setActionCommand("CPNew");
-				menuItem.addActionListener(listener);
-				menu.add(menuItem);
-
-				menu.add(new JSeparator());
-
-				menuItem = new JMenuItem("Save as .png File...", KeyEvent.VK_C);
-				menuItem.getAccessibleContext().setAccessibleDescription(
-						"Save .png File");
-				menuItem.setActionCommand("CPSavePng");
-				menuItem.addActionListener(listener);
-				menu.add(menuItem);
-
-				menu.add(new JSeparator());
-
-				menuItem = new JMenuItem("Save", KeyEvent.VK_S);
-				menuItem.getAccessibleContext().setAccessibleDescription(
-						"Save File");
-				menuItem.setActionCommand("CPSave");
-				menuItem.addActionListener(listener);
-				menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
-				menu.add(menuItem);
-
-				menuItem = new JMenuItem("Save as .chi File...", KeyEvent.VK_A);
-				menuItem.getAccessibleContext().setAccessibleDescription(
-						"Save .chi File");
-				menuItem.setActionCommand("CPSaveChi");
-				menuItem.addActionListener(listener);
-				menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
-				menu.add(menuItem);
-
-				menuItem = new JMenuItem("Open .chi File...", KeyEvent.VK_L);
-				menuItem.getAccessibleContext().setAccessibleDescription(
-						"Open .chi File");
-				menuItem.setActionCommand("CPLoadChi");
-				menuItem.addActionListener(listener);
-				menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
-				menu.add(menuItem);
-
-				submenu = new JMenu("Open Recent");
-
-
-				Preferences userRoot = Preferences.userRoot();
-			    Preferences preferences = userRoot.node( "chibipaintmod" );
-			    int recent_file_num = 0;
-			    for (int i = 0; i < 10; i++)
+				String recentFileName = preferences.get("Recent File["+ i + "]", "");
+				if (recentFileName.length() != 0)
 				{
-					String recentFileName = preferences.get("Recent File["+ i + "]", "");
-					if (recentFileName.length() != 0)
-						{
-							File recentFile = new File (recentFileName);
-							menuItem = new JMenuItem(recentFile.getName ());
-							menuItem.getAccessibleContext().setAccessibleDescription("Open Recent File");
-							menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0 + (i + 1) % 10, ActionEvent.CTRL_MASK));
-							menuItem.setActionCommand("CPOpenRecent " + i);
-							menuItem.addActionListener(listener);
-							submenu.add(menuItem);
-							recent_file_num++;
-						}
+					File recentFile = new File (recentFileName);
+					menuItem = new JMenuItem(recentFile.getName ());
+					menuItem.getAccessibleContext().setAccessibleDescription("Open Recent File");
+					menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0 + (i + 1) % 10, ActionEvent.CTRL_MASK));
+					menuItem.setActionCommand("CPOpenRecent " + i);
+					menuItem.addActionListener(listener);
+					submenu.add(menuItem);
+					recent_file_num++;
 				}
-
-			    if (recent_file_num > 0)
-			    	menu.add (submenu);
 			}
+
+			if (recent_file_num > 0)
+				menu.add (submenu);
+		}
 
 		//
 		// Edit Menu
