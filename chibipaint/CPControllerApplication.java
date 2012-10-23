@@ -154,6 +154,8 @@ public class CPControllerApplication extends CPController {
 
 		if (choice == JOptionPane.OK_OPTION) {
 			try {
+				if (!((ChibiApp) mainFrame).confirmDialog ())
+					return;
 				CPArtwork new_artwork = new CPArtwork (Integer.valueOf (widthNum.getText()),  Integer.valueOf (heightNum.getText()));
 				setCurrentFile (null);
 				resetEverything(new_artwork, null);
@@ -290,6 +292,11 @@ public class CPControllerApplication extends CPController {
 					byte[] data = null;
 
 					// Writing file to recent
+
+					if  (action == action_save_load.ACTION_LOAD &&
+					     !((ChibiApp) mainFrame).confirmDialog ())
+					  return false;
+
 					if (type == save_file_type.CHI_FILE)
 					{
 						Boolean found = false;

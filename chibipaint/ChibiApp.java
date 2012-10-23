@@ -40,6 +40,32 @@ public class ChibiApp extends JFrame {
 	CPControllerApplication controller;
 	CPMainGUI mainGUI;
 
+	// Returns if it is ok to continue operation
+	boolean confirmDialog ()
+	{
+		if (this.controller.changed)
+		{
+			int result =JOptionPane.showConfirmDialog(this,
+					"Save the Changes to Image '" +
+							(this.controller.getCurrentFile() != null ? this.controller.getCurrentFile().getName ()
+									: "Untitled") + "' Before Closing?", "Existing file",
+									JOptionPane.YES_NO_CANCEL_OPTION);
+			switch(result){
+			case JOptionPane.YES_OPTION:
+				if (this.controller.save ())
+					return true;
+				else
+					return false;
+			case JOptionPane.NO_OPTION:
+				break;
+			case JOptionPane.CLOSED_OPTION:
+			case JOptionPane.CANCEL_OPTION:
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public ChibiApp() {
 		super("ChibiPaintMod");
 
@@ -63,48 +89,31 @@ public class ChibiApp extends JFrame {
 
 		final ChibiApp frame = this;
 
-    	frame.addWindowListener(new WindowAdapter() {
-    	    public void windowClosing(WindowEvent e) {
-    			if (frame.controller.changed)
-    			{
-    		        int result = JOptionPane.showConfirmDialog(frame,
-    		        										   "Save the Changes to Image '" +
-    		        										   (frame.controller.getCurrentFile() != null ? frame.controller.getCurrentFile().getName ()
-    		        										    										 : "Untitled") + "' Before Closing?", "Existing file",
-    		        										   JOptionPane.YES_NO_CANCEL_OPTION);
-    		        switch(result){
-    		            case JOptionPane.YES_OPTION:
-    		                if (!frame.controller.save ())
-    		                	return;
-    		                break;
-    		            case JOptionPane.NO_OPTION:
-    		            	break;
-    		            case JOptionPane.CLOSED_OPTION:
-    		            case JOptionPane.CANCEL_OPTION:
-    		                return;
-    		        }
-    			}
+		frame.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				if (!confirmDialog ())
+					return;
 
-    		SaveWindowSettings (frame);
-            mainGUI.getPaletteManager ().savePalettesSettings ();
-            controller.canvas.saveCanvasSettings ();
-            controller.saveControllerSettings ();
-            System.exit(0);
-    	     }
-    	});
+				SaveWindowSettings (frame);
+				mainGUI.getPaletteManager ().savePalettesSettings ();
+				controller.canvas.saveCanvasSettings ();
+				controller.saveControllerSettings ();
+				System.exit(0);
+			}
+		});
 	}
 
 	private static void LoadWindowSettings (JFrame frame) {
 
 		Preferences userRoot = Preferences.userRoot();
-	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		Preferences preferences = userRoot.node( "chibipaintmod" );
 		int s = preferences.getInt ("window_state", -1);
 		int h = preferences.getInt("window_height" , -1);
 		int w = preferences.getInt("window_width" , -1);
 		if (s != -1)
-			{
-				frame.setExtendedState (s);
-			}
+		{
+			frame.setExtendedState (s);
+		}
 		if (h != -1 && w != -1)
 			frame.setSize (w, h);
 		else
@@ -117,7 +126,7 @@ public class ChibiApp extends JFrame {
 	private static void SaveWindowSettings (JFrame frame) {
 
 		Preferences userRoot = Preferences.userRoot();
-	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		Preferences preferences = userRoot.node( "chibipaintmod" );
 		int s = frame.getExtendedState ();;
 		preferences.putInt ("window_state", s);
 		int h = frame.getHeight ();
