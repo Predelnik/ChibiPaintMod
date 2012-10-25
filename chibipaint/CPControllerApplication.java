@@ -44,6 +44,7 @@ public class CPControllerApplication extends CPController {
 	File currentFile;
 	CPUndo latestRedoAction = null;
 	CPUndo latestUndoAction = null;
+	boolean redoActionMayChange = false;
 	boolean changed;
 
 	public void actionPerformed(ActionEvent e) {
@@ -115,8 +116,16 @@ public class CPControllerApplication extends CPController {
 
 	public void updateChanges (CPUndo undoAction, CPUndo redoAction)
 	{
-		changed = (latestUndoAction != undoAction || latestRedoAction != redoAction);
+		changed = ((latestUndoAction != undoAction || latestRedoAction != redoAction));
 		updateTitle ();
+
+		if ((latestUndoAction == null && latestRedoAction == null) || (redoActionMayChange && latestRedoAction != redoAction))
+		{
+			latestRedoAction = undoAction;
+			redoActionMayChange = false;
+		}
+		if (latestRedoAction == redoAction)
+			redoActionMayChange = true;
 	}
 
 	public void setLatestAction (CPUndo undoAction, CPUndo redoAction)
