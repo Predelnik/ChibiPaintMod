@@ -82,7 +82,7 @@ public class CPArtwork {
 	float lastX, lastY, lastPressure;
 	int[] brushBuffer = null;
 
-	private int maxUndo = 30;
+	public int maxUndo = 30;
 
 	//
 	// Current Engine Parameters

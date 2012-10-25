@@ -146,6 +146,8 @@ public abstract class CPController implements ActionListener {
 
 	public void setArtwork(CPArtwork artwork) {
 		this.artwork = artwork;
+		if (isRunningAsApplication ())
+			this.artwork.maxUndo = 50;
 	}
 
 	public void setCanvas(CPCanvas canvas) {
