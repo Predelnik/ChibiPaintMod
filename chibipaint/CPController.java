@@ -391,6 +391,10 @@ public abstract class CPController implements ActionListener {
 			artwork.invert(canvas.getApplyToAllLayers ());
 		}
 
+		if (e.getActionCommand().equals("CPFXMakeMonochrome")) {
+			artwork.makeMonochrome(canvas.getApplyToAllLayers ());
+		}
+
 		if (e.getActionCommand().equals("CPCut")) {
 			artwork.cutSelection(true);
 		}

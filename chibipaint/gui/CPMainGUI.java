@@ -327,6 +327,12 @@ public class CPMainGUI {
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
 
+		menuItem = new JMenuItem("Make Grayscale", KeyEvent.VK_I);
+		menuItem.getAccessibleContext().setAccessibleDescription("Make image grayscale");
+		menuItem.setActionCommand("CPFXMakeMonochrome");
+		menuItem.addActionListener(listener);
+		menu.add(menuItem);
+
 		submenu = new JMenu("Blur");
 		submenu.setMnemonic(KeyEvent.VK_B);
 

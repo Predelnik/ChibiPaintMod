@@ -1604,6 +1604,34 @@ public class CPArtwork {
 		invalidateFusion();
 	}
 
+	public void makeMonochrome(boolean applyToAllLayers) {
+		CPRect r = getSelectionAutoSelect();
+		undoArea = r;
+
+		if (!applyToAllLayers)
+		{
+			undoBuffer.copyFrom(curLayer);
+
+			curLayer.makeMonochrome (r);
+
+			addUndo(new CPUndoPaint());
+		}
+		else
+		{
+			undoBufferAll = new Vector <CPLayer> (layers.size ());
+			undoBufferAll.setSize (layers.size ());
+			for (int i = 0; i < layers.size (); i++)
+			{
+				undoBufferAll.setElementAt(new CPLayer (width, height), i);
+				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
+				layers.elementAt(i).makeMonochrome(r);
+			}
+			addUndo(new CPUndoPaintAll());
+		}
+
+		invalidateFusion();
+	}
+
 	public void rectangleSelection(CPRect r) {
 		CPRect newSelection = (CPRect) r.clone();
 		newSelection.clip(getSize());

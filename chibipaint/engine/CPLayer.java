@@ -286,9 +286,9 @@ public class CPLayer extends CPColorBmp {
 					fusion.data[off] = 0xff000000
 							| ((color2 >>> 16 & 0xff) - (color1 >>> 16 & 0xff) * (color2 >>> 16 & 0xff) * alpha
 									/ (255 * 255)) << 16
-							| ((color2 >>> 8 & 0xff) - (color1 >>> 8 & 0xff) * (color2 >>> 8 & 0xff) * alpha
-									/ (255 * 255)) << 8
-							| ((color2 & 0xff) - (color1 & 0xff) * (color2 & 0xff) * alpha / (255 * 255));
+									| ((color2 >>> 8 & 0xff) - (color1 >>> 8 & 0xff) * (color2 >>> 8 & 0xff) * alpha
+											/ (255 * 255)) << 8
+											| ((color2 & 0xff) - (color1 & 0xff) * (color2 & 0xff) * alpha / (255 * 255));
 				}
 			}
 		}
@@ -329,19 +329,19 @@ public class CPLayer extends CPColorBmp {
 			for (int i = rect.left; i < rect.right; i++, off++) {
 				int color1 = data[off];
 				int alpha = color1 >>> 24;
-				if (alpha == 0) {
-					continue;
-				} else if (alpha == 255) {
-					fusion.data[off] = color1;
-				} else {
-					int color2 = fusion.data[off];
+		if (alpha == 0) {
+			continue;
+		} else if (alpha == 255) {
+			fusion.data[off] = color1;
+		} else {
+			int color2 = fusion.data[off];
 
-					int invAlpha = 255 - alpha;
-					fusion.data[off] = 0xff000000
-							| (((color1 >>> 16 & 0xff) * alpha + (color2 >>> 16 & 0xff) * invAlpha) / 255) << 16
-							| (((color1 >>> 8 & 0xff) * alpha + (color2 >>> 8 & 0xff) * invAlpha) / 255) << 8
-							| (((color1 & 0xff) * alpha + (color2 & 0xff) * invAlpha) / 255);
-				}
+			int invAlpha = 255 - alpha;
+			fusion.data[off] = 0xff000000
+					| (((color1 >>> 16 & 0xff) * alpha + (color2 >>> 16 & 0xff) * invAlpha) / 255) << 16
+					| (((color1 >>> 8 & 0xff) * alpha + (color2 >>> 8 & 0xff) * invAlpha) / 255) << 8
+					| (((color1 & 0xff) * alpha + (color2 & 0xff) * invAlpha) / 255);
+		}
 			}
 		}
 	}
@@ -425,11 +425,11 @@ public class CPLayer extends CPColorBmp {
 							| (((color1 >>> 16 & 0xff) * alpha1n2) + ((color2 >>> 16 & 0xff) * alphan12) + (color1 >>> 16 & 0xff)
 									* (color2 >>> 16 & 0xff) * alpha12 / 255)
 									/ newAlpha << 16
-							| (((color1 >>> 8 & 0xff) * alpha1n2) + ((color2 >>> 8 & 0xff) * alphan12) + (color1 >>> 8 & 0xff)
-									* (color2 >>> 8 & 0xff) * alpha12 / 255)
-									/ newAlpha << 8
-							| (((color1 & 0xff) * alpha1n2) + ((color2 & 0xff) * alphan12) + (color1 & 0xff)
-									* (color2 & 0xff) * alpha12 / 255) / newAlpha;
+									| (((color1 >>> 8 & 0xff) * alpha1n2) + ((color2 >>> 8 & 0xff) * alphan12) + (color1 >>> 8 & 0xff)
+											* (color2 >>> 8 & 0xff) * alpha12 / 255)
+											/ newAlpha << 8
+											| (((color1 & 0xff) * alpha1n2) + ((color2 & 0xff) * alphan12) + (color1 & 0xff)
+													* (color2 & 0xff) * alpha12 / 255) / newAlpha;
 				}
 			}
 		}
@@ -540,8 +540,8 @@ public class CPLayer extends CPColorBmp {
 									| (((color1 >>> 8 & 0xff) * alpha1n2) + ((color2 >>> 8 & 0xff) * alphan12) + (color1 >>> 8 & 0xff)
 											* (color2 >>> 8 & 0xff) * alpha12 / 255)
 											/ newAlpha << 8 | (((color1 & 0xff) * alpha1n2)
-									+ ((color2 & 0xff) * alphan12) + (color1 & 0xff) * (color2 & 0xff) * alpha12 / 255)
-									/ newAlpha));
+													+ ((color2 & 0xff) * alphan12) + (color1 & 0xff) * (color2 & 0xff) * alpha12 / 255)
+													/ newAlpha));
 				}
 			}
 		}
@@ -677,14 +677,14 @@ public class CPLayer extends CPColorBmp {
 							| (((color1 >>> 16 & 0xff) * alpha1n2) + ((color2 >>> 16 & 0xff) * alphan12) + alpha12
 									* (((invColor1 >>> 16 & 0xff) == 0) ? 255 : Math.min(255, 255
 											* (color2 >>> 16 & 0xff) / (invColor1 >>> 16 & 0xff))))
-									/ newAlpha << 16
-							| (((color1 >>> 8 & 0xff) * alpha1n2) + ((color2 >>> 8 & 0xff) * alphan12) + alpha12
-									* (((invColor1 >>> 8 & 0xff) == 0) ? 255 : Math.min(255, 255
-											* (color2 >>> 8 & 0xff) / (invColor1 >>> 8 & 0xff))))
-									/ newAlpha << 8
-							| (((color1 & 0xff) * alpha1n2) + ((color2 & 0xff) * alphan12) + alpha12
-									* (((invColor1 & 0xff) == 0) ? 255 : Math.min(255, 255 * (color2 & 0xff)
-											/ (invColor1 & 0xff)))) / newAlpha;
+											/ newAlpha << 16
+											| (((color1 >>> 8 & 0xff) * alpha1n2) + ((color2 >>> 8 & 0xff) * alphan12) + alpha12
+													* (((invColor1 >>> 8 & 0xff) == 0) ? 255 : Math.min(255, 255
+															* (color2 >>> 8 & 0xff) / (invColor1 >>> 8 & 0xff))))
+															/ newAlpha << 8
+															| (((color1 & 0xff) * alpha1n2) + ((color2 & 0xff) * alphan12) + alpha12
+																	* (((invColor1 & 0xff) == 0) ? 255 : Math.min(255, 255 * (color2 & 0xff)
+																			/ (invColor1 & 0xff)))) / newAlpha;
 				}
 			}
 		}
@@ -723,14 +723,14 @@ public class CPLayer extends CPColorBmp {
 							| (((color1 >>> 16 & 0xff) * alpha1n2) + ((color2 >>> 16 & 0xff) * alphan12) + alpha12
 									* (((color1 >>> 16 & 0xff) == 0) ? 0 : Math.min(255, 255
 											* (invColor2 >>> 16 & 0xff) / (color1 >>> 16 & 0xff)) ^ 0xff))
-									/ newAlpha << 16
-							| (((color1 >>> 8 & 0xff) * alpha1n2) + ((color2 >>> 8 & 0xff) * alphan12) + alpha12
-									* (((color1 >>> 8 & 0xff) == 0) ? 0 : Math.min(255, 255 * (invColor2 >>> 8 & 0xff)
-											/ (color1 >>> 8 & 0xff)) ^ 0xff))
-									/ newAlpha << 8
-							| (((color1 & 0xff) * alpha1n2) + ((color2 & 0xff) * alphan12) + alpha12
-									* (((color1 & 0xff) == 0) ? 0 : Math.min(255, 255 * (invColor2 & 0xff)
-											/ (color1 & 0xff)) ^ 0xff)) / newAlpha;
+											/ newAlpha << 16
+											| (((color1 >>> 8 & 0xff) * alpha1n2) + ((color2 >>> 8 & 0xff) * alphan12) + alpha12
+													* (((color1 >>> 8 & 0xff) == 0) ? 0 : Math.min(255, 255 * (invColor2 >>> 8 & 0xff)
+															/ (color1 >>> 8 & 0xff)) ^ 0xff))
+															/ newAlpha << 8
+															| (((color1 & 0xff) * alpha1n2) + ((color2 & 0xff) * alphan12) + alpha12
+																	* (((color1 & 0xff) == 0) ? 0 : Math.min(255, 255 * (invColor2 & 0xff)
+																			/ (color1 & 0xff)) ^ 0xff)) / newAlpha;
 				}
 			}
 		}
@@ -881,22 +881,22 @@ public class CPLayer extends CPColorBmp {
 					c2 = (color2 >>> 16 & 0xff);
 					color |= (alpha1n2 * c1 + alphan12 * c2 + ((c1 <= 127) ? (alpha12 * ((2 * c1 - 255)
 							* softLightLUTSquare[c2] / 255 + c2)) : (alpha12 * ((2 * c1 - 255)
-							* softLightLUTSquareRoot[c2] / 255 + c2))))
-							/ newAlpha << 16;
+									* softLightLUTSquareRoot[c2] / 255 + c2))))
+									/ newAlpha << 16;
 
 					c1 = (color1 >>> 8 & 0xff);
 					c2 = (color2 >>> 8 & 0xff);
 					color |= (alpha1n2 * c1 + alphan12 * c2 + ((c1 <= 127) ? (alpha12 * ((2 * c1 - 255)
 							* softLightLUTSquare[c2] / 255 + c2)) : (alpha12 * ((2 * c1 - 255)
-							* softLightLUTSquareRoot[c2] / 255 + c2))))
-							/ newAlpha << 8;
+									* softLightLUTSquareRoot[c2] / 255 + c2))))
+									/ newAlpha << 8;
 
 					c1 = color1 & 0xff;
 					c2 = color2 & 0xff;
 					color |= (alpha1n2 * c1 + alphan12 * c2 + ((c1 <= 127) ? (alpha12 * ((2 * c1 - 255)
 							* softLightLUTSquare[c2] / 255 + c2)) : (alpha12 * ((2 * c1 - 255)
-							* softLightLUTSquareRoot[c2] / 255 + c2))))
-							/ newAlpha;
+									* softLightLUTSquareRoot[c2] / 255 + c2))))
+									/ newAlpha;
 
 					fusion.data[off] = color;
 				}
@@ -939,22 +939,22 @@ public class CPLayer extends CPColorBmp {
 					c2 = (color2 >>> 16 & 0xff);
 					color |= (alpha1n2 * c1 + alphan12 * c2 + ((c1 <= 127) ? (alpha12 * ((c1 == 0) ? 0 : 255 - Math
 							.min(255, (255 - c2) * 255 / (2 * c1)))) : (alpha12 * (c1 == 255 ? 255 : Math.min(255, c2
-							* 255 / (2 * (255 - c1)))))))
-							/ newAlpha << 16;
+									* 255 / (2 * (255 - c1)))))))
+									/ newAlpha << 16;
 
 					c1 = (color1 >>> 8 & 0xff);
 					c2 = (color2 >>> 8 & 0xff);
 					color |= (alpha1n2 * c1 + alphan12 * c2 + ((c1 <= 127) ? (alpha12 * ((c1 == 0) ? 0 : 255 - Math
 							.min(255, (255 - c2) * 255 / (2 * c1)))) : (alpha12 * (c1 == 255 ? 255 : Math.min(255, c2
-							* 255 / (2 * (255 - c1)))))))
-							/ newAlpha << 8;
+									* 255 / (2 * (255 - c1)))))))
+									/ newAlpha << 8;
 
 					c1 = color1 & 0xff;
 					c2 = color2 & 0xff;
 					color |= (alpha1n2 * c1 + alphan12 * c2 + ((c1 <= 127) ? (alpha12 * ((c1 == 0) ? 0 : 255 - Math
 							.min(255, (255 - c2) * 255 / (2 * c1)))) : (alpha12 * (c1 == 255 ? 255 : Math.min(255, c2
-							* 255 / (2 * (255 - c1)))))))
-							/ newAlpha;
+									* 255 / (2 * (255 - c1)))))))
+									/ newAlpha;
 
 					fusion.data[off] = color;
 				}
@@ -1148,6 +1148,19 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			for (int i = rect.left; i < rect.right; i++) {
 				data[i + j * width] ^= 0xffffff;
+			}
+		}
+	}
+
+	public void makeMonochrome(CPRect r) {
+		CPRect rect = new CPRect(0, 0, width, height);
+		rect.clip(r);
+		int luminosity = 0;
+
+		for (int j = rect.top; j < rect.bottom; j++) {
+			for (int i = rect.left; i < rect.right; i++) {
+				luminosity = (int) (0.2125 * (data[i + j * width]>>> 16 & 0xff) + 0.7154 * (data[i + j * width]>>> 8 & 0xff) + 0.0721 * (data[i + j * width] & 0xff));
+				data[i + j * width] = (data[i + j * width] & 0xff000000) | luminosity << 16 | luminosity << 8 | luminosity;
 			}
 		}
 	}
