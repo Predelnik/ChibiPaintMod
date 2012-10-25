@@ -258,14 +258,10 @@ public class CPArtwork {
 
 	void mergeOpacityBuffer(int color, boolean clear) {
 		if (!opacityArea.isEmpty()) {
-			if (curBrush.paintMode != CPBrushInfo.M_ERASE || !lockAlpha) {
-				paintingModes[curBrush.paintMode].mergeOpacityBuf(opacityArea, color);
-			} else {
-				// FIXME: it would be nice to be able to set the paper color
-				paintingModes[CPBrushInfo.M_PAINT].mergeOpacityBuf(opacityArea, 0xffffff);
-			}
+			paintingModes[curBrush.paintMode].mergeOpacityBuf(opacityArea, color);
 
-			if (lockAlpha) {
+			// Allow to eraser lower alpha with 'lock alpha' because it's all more logical and comfortable (look at gimp and other stuff)
+			if (lockAlpha && curBrush.paintMode != CPBrushInfo.M_ERASE) {
 				restoreAlpha(opacityArea);
 			}
 
