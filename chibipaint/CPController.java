@@ -350,11 +350,11 @@ public abstract class CPController implements ActionListener {
 		}
 
 		if (e.getActionCommand().equals("CPFill")) {
-			artwork.fill(getCurColorRgb() | 0xff000000);
+			artwork.fill(getCurColorRgb() | 0xff000000, canvas.getApplyToAllLayers ());
 		}
 
 		if (e.getActionCommand().equals("CPClear")) {
-			artwork.clear();
+			artwork.clear(canvas.getApplyToAllLayers ());
 		}
 
 		if (e.getActionCommand().equals("CPSelectAll")) {
@@ -368,19 +368,19 @@ public abstract class CPController implements ActionListener {
 		}
 
 		if (e.getActionCommand().equals("CPHFlip")) {
-			artwork.hFlip();
+			artwork.hFlip(canvas.getApplyToAllLayers ());
 		}
 
 		if (e.getActionCommand().equals("CPVFlip")) {
-			artwork.vFlip();
+			artwork.vFlip(canvas.getApplyToAllLayers ());
 		}
 
 		if (e.getActionCommand().equals("CPMNoise")) {
-			artwork.monochromaticNoise();
+			artwork.monochromaticNoise(canvas.getApplyToAllLayers ());
 		}
 
 		if (e.getActionCommand().equals("CPCNoise")) {
-			artwork.colorNoise();
+			artwork.colorNoise(canvas.getApplyToAllLayers ());
 		}
 
 		if (e.getActionCommand().equals("CPFXBoxBlur")) {
@@ -388,7 +388,7 @@ public abstract class CPController implements ActionListener {
 		}
 
 		if (e.getActionCommand().equals("CPFXInvert")) {
-			artwork.invert();
+			artwork.invert(canvas.getApplyToAllLayers ());
 		}
 
 		if (e.getActionCommand().equals("CPCut")) {
@@ -405,6 +405,10 @@ public abstract class CPController implements ActionListener {
 
 		if (e.getActionCommand().equals("CPPaste")) {
 			artwork.pasteClipboard(true);
+		}
+
+		if (e.getActionCommand().equals("CPApplyToAllLayers")) {
+			canvas.setApplyToAllLayers(((JCheckBoxMenuItem) e.getSource()).isSelected());
 		}
 
 		if (e.getActionCommand().equals("CPLinearInterpolation")) {
@@ -459,7 +463,7 @@ public abstract class CPController implements ActionListener {
 			mainGUI.togglePalettes();
 		}
 		callCPEventListeners();
-}
+	}
 
 	public void addColorListener(ICPColorListener listener) {
 		colorListeners.addLast(listener);
@@ -542,7 +546,7 @@ public abstract class CPController implements ActionListener {
 			imageCache.put(imageName, img);
 		}
 		return img;
-		*/
+		 */
 	}
 
 	public CPArtwork getArtwork() {
@@ -584,7 +588,7 @@ public abstract class CPController implements ActionListener {
 			int blur = ((Integer) blurX.getValue()).intValue();
 			int iterations = ((Integer) iter.getValue()).intValue();
 
-			artwork.boxBlur(blur, blur, iterations);
+			artwork.boxBlur(blur, blur, iterations, canvas.getApplyToAllLayers ());
 			canvas.repaint();
 		}
 	}

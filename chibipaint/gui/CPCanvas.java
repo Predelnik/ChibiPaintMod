@@ -34,8 +34,8 @@ import chibipaint.engine.*;
 import chibipaint.util.*;
 
 public class CPCanvas extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener,
-		ComponentListener, KeyListener, CPController.ICPToolListener, CPController.ICPModeListener,
-		CPArtwork.ICPArtworkListener {
+ComponentListener, KeyListener, CPController.ICPToolListener, CPController.ICPModeListener,
+CPArtwork.ICPArtworkListener {
 
 	CPController controller;
 
@@ -56,6 +56,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 	int offsetX, offsetY;
 	float canvasRotation = 0.f;
 	AffineTransform transform = new AffineTransform();
+	boolean applyToAllLayers = false;
 	boolean interpolation = false;
 
 	int mouseX, mouseY;
@@ -224,7 +225,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
 	void updateScrollBars() {
 		if (horizScroll == null || vertScroll == null
-		 || horizScroll.getValueIsAdjusting() || vertScroll.getValueIsAdjusting() ) {
+				|| horizScroll.getValueIsAdjusting() || vertScroll.getValueIsAdjusting() ) {
 			return;
 		}
 
@@ -321,8 +322,8 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 		if (!artwork.getSelection().isEmpty()) {
 			Stroke stroke = g2d.getStroke();
 			g2d
-					.setStroke(new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f,
-							new float[] { 2f }, 0f));
+			.setStroke(new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f,
+					new float[] { 2f }, 0f));
 			g2d.draw(coordToDisplay(artwork.getSelection()));
 			g2d.setStroke(stroke);
 		}
@@ -359,7 +360,8 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
 		// Adding * for unsaved changes
 		if (controller.isRunningAsApplication ())
-			((CPControllerApplication) controller).updateChanges (artwork.getUndoList().size () > 0 ? artwork.getUndoList().getFirst() : null);
+			((CPControllerApplication) controller).updateChanges (artwork.getUndoList().size () > 0 ? artwork.getUndoList().getFirst() : null,
+					artwork.getRedoList().size () > 0 ? artwork.getRedoList().getFirst() : null);
 	}
 
 	private GeneralPath getCheckerboardBackgroundPath(Rectangle2D r) {
@@ -481,6 +483,14 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
 	public float getRotation() {
 		return canvasRotation;
+	}
+
+	public void setApplyToAllLayers (boolean enabled) {
+		applyToAllLayers = enabled;
+	}
+
+	public boolean getApplyToAllLayers() {
+		return applyToAllLayers;
 	}
 
 	public void setInterpolation(boolean enabled) {
@@ -733,7 +743,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 			case KeyEvent.VK_EQUALS:
 				zoomIn();
 				break;
-			// case KeyEvent.VK_SUBTRACT:
+				// case KeyEvent.VK_SUBTRACT:
 			case KeyEvent.VK_MINUS:
 				zoomOut();
 				break;
@@ -842,8 +852,9 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 	public void saveCanvasSettings ()
 	{
 		Preferences userRoot = Preferences.userRoot();
-	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		Preferences preferences = userRoot.node( "chibipaintmod" );
 		preferences.putBoolean ("Interpolation", interpolation);
+		preferences.putBoolean ("Apply to All Layers", applyToAllLayers);
 		preferences.putBoolean ("Show Grid", showGrid);
 		preferences.putInt ("Grid size", gridSize);
 	}
@@ -851,10 +862,12 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 	public void loadCanvasSettings ()
 	{
 		Preferences userRoot = Preferences.userRoot();
-	    Preferences preferences = userRoot.node( "chibipaintmod" );
-	    setInterpolation (preferences.getBoolean ("Interpolation", interpolation));
+		Preferences preferences = userRoot.node( "chibipaintmod" );
+		setInterpolation (preferences.getBoolean ("Interpolation", interpolation));
+		setApplyToAllLayers(preferences.getBoolean ("Apply to All Layers", applyToAllLayers));
 		showGrid (preferences.getBoolean ("Show Grid", showGrid));
 		controller.getMainGUI().setPaletteMenuItem("Use Linear Interpolation", interpolation);
+		controller.getMainGUI().setPaletteMenuItem("Apply to All Layers", applyToAllLayers);
 		controller.getMainGUI().setPaletteMenuItem("Show Grid", showGrid);
 		gridSize = preferences.getInt ("Grid size", gridSize);
 	}
@@ -1096,7 +1109,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
 				Rectangle r = new Rectangle(Math.min(dragLineFrom.x, dragLineTo.x), Math.min(dragLineFrom.y,
 						dragLineTo.y), Math.abs(dragLineFrom.x - dragLineTo.x) + 1, Math.abs(dragLineFrom.y
-						- dragLineTo.y) + 1);
+								- dragLineTo.y) + 1);
 				repaint(r.x, r.y, r.width, r.height);
 
 				activeMode = defaultMode; // yield control to the default mode

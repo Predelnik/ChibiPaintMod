@@ -152,7 +152,8 @@ public class ChibiApp extends JFrame {
 
 	public void recreateEverything(CPArtwork artwork, File file)
 	{
-		mainGUI.getPaletteManager ().savePalettesSettings();
+		mainGUI.getPaletteManager ().savePalettesSettings ();
+		controller.canvas.saveCanvasSettings ();
 		controller.saveControllerSettings ();
 
 		controller = new CPControllerApplication(this);

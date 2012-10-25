@@ -355,6 +355,16 @@ public class CPMainGUI {
 
 		menu.add(submenu);
 
+		menu.add(new JSeparator());
+
+		menuItem = new JCheckBoxMenuItem("Apply to All Layers", false);
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"Apply all listed above effects to all layers instead of just current");
+		menuItem.setActionCommand("CPApplyToAllLayers");
+		menuItem.addActionListener(listener);
+		menu.add(menuItem);
+		paletteItems.put("Apply to All Layers", (JCheckBoxMenuItem) menuItem);
+
 		//
 		// View Menu
 		//
