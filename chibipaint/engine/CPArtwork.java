@@ -1690,6 +1690,10 @@ public class CPArtwork {
 		return undoList;
 	}
 
+	public LinkedList<CPUndo> getRedoList() {
+		return redoList;
+	}
+
 	public void setUndoList(LinkedList<CPUndo> undoList) {
 		this.undoList = undoList;
 	}

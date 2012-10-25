@@ -112,16 +112,17 @@ public class CPControllerApplication extends CPController {
 		return currentFile;
 	}
 
-	public void updateChanges (CPUndo action)
+	public void updateChanges (CPUndo undoAction, CPUndo redoAction)
 	{
-		changed = (latestAction != action);
+		changed = (latestUndoAction != undoAction || latestRedoAction != redoAction);
 		updateTitle ();
 	}
 
-	public void setLatestAction (CPUndo action)
+	public void setLatestAction (CPUndo undoAction, CPUndo redoAction)
 	{
 		changed = false;
-		latestAction = action;
+		latestRedoAction = redoAction;
+		latestUndoAction = undoAction;
 		updateTitle ();
 	}
 
@@ -129,9 +130,9 @@ public class CPControllerApplication extends CPController {
 	void openRecent (int index)
 	{
 		Preferences userRoot = Preferences.userRoot();
-	    Preferences preferences = userRoot.node( "chibipaintmod" );
-	    String recentFileName = preferences.get(recent_file_string (index), "");
-	    saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_LOAD, recentFileName);
+		Preferences preferences = userRoot.node( "chibipaintmod" );
+		String recentFileName = preferences.get(recent_file_string (index), "");
+		saveLoadImageFile (save_file_type.CHI_FILE, action_save_load.ACTION_LOAD, recentFileName);
 	}
 
 	void newDialog ()
