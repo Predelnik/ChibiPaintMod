@@ -292,8 +292,6 @@ CPArtwork.ICPArtworkListener {
 		Rectangle pathRect = path.getBounds();
 		pathRect.x -= 2;
 		pathRect.y -= 2;
-		pathRect.width += 4;
-		pathRect.height += 4;
 
 		g2d.setPaint(new TexturePaint(checkerboardPattern, new Rectangle(0, 0, 64, 64)));
 		g2d.fill(pathRect);
