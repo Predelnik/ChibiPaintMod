@@ -1604,7 +1604,7 @@ public class CPArtwork {
 		invalidateFusion();
 	}
 
-	public void makeMonochrome(boolean applyToAllLayers) {
+	public void makeMonochrome(boolean applyToAllLayers, int type) {
 		CPRect r = getSelectionAutoSelect();
 		undoArea = r;
 
@@ -1612,7 +1612,7 @@ public class CPArtwork {
 		{
 			undoBuffer.copyFrom(curLayer);
 
-			curLayer.makeMonochrome (r);
+			curLayer.makeMonochrome (r, type);
 
 			addUndo(new CPUndoPaint());
 		}
@@ -1624,7 +1624,7 @@ public class CPArtwork {
 			{
 				undoBufferAll.setElementAt(new CPLayer (width, height), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
-				layers.elementAt(i).makeMonochrome(r);
+				layers.elementAt(i).makeMonochrome(r, type);
 			}
 			addUndo(new CPUndoPaintAll());
 		}

@@ -327,11 +327,34 @@ public class CPMainGUI {
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
 
-		menuItem = new JMenuItem("Make Grayscale", KeyEvent.VK_I);
-		menuItem.getAccessibleContext().setAccessibleDescription("Make image grayscale");
-		menuItem.setActionCommand("CPFXMakeMonochrome");
+		submenu = new JMenu("Make Grayscale");
+		submenu.setMnemonic(KeyEvent.VK_G);
+
+		menuItem = new JMenuItem("By Intensity", KeyEvent.VK_I);
+		menuItem.getAccessibleContext().setAccessibleDescription("Make image grayscale by Intensity Formula");
+		menuItem.setActionCommand("CPFXMakeMonochromeByIntensity");
 		menuItem.addActionListener(listener);
-		menu.add(menuItem);
+		submenu.add(menuItem);
+
+		menuItem = new JMenuItem("By Value", KeyEvent.VK_V);
+		menuItem.getAccessibleContext().setAccessibleDescription("Make image grayscale by Value Formula");
+		menuItem.setActionCommand("CPFXMakeMonochromeByValue");
+		menuItem.addActionListener(listener);
+		submenu.add(menuItem);
+
+		menuItem = new JMenuItem("By Lightness", KeyEvent.VK_L);
+		menuItem.getAccessibleContext().setAccessibleDescription("Make image grayscale by Lightness Formula");
+		menuItem.setActionCommand("CPFXMakeMonochromeByLightness");
+		menuItem.addActionListener(listener);
+		submenu.add(menuItem);
+
+		menuItem = new JMenuItem("By Luma", KeyEvent.VK_U);
+		menuItem.getAccessibleContext().setAccessibleDescription("Make image grayscale by Luma Formula");
+		menuItem.setActionCommand("CPFXMakeMonochromeByLuma");
+		menuItem.addActionListener(listener);
+		submenu.add(menuItem);
+
+		menu.add(submenu);
 
 		submenu = new JMenu("Blur");
 		submenu.setMnemonic(KeyEvent.VK_B);

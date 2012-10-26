@@ -1152,15 +1152,32 @@ public class CPLayer extends CPColorBmp {
 		}
 	}
 
-	public void makeMonochrome(CPRect r) {
+	// 0 - Intensity, 1 - Value, 2 - Lightness, 3 - Luma
+	public void makeMonochrome(CPRect r, int type) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(r);
-		int luminosity = 0;
+		int red, green, blue;
+		int v = 0;
 
 		for (int j = rect.top; j < rect.bottom; j++) {
 			for (int i = rect.left; i < rect.right; i++) {
-				luminosity = (int) (0.2125 * (data[i + j * width]>>> 16 & 0xff) + 0.7154 * (data[i + j * width]>>> 8 & 0xff) + 0.0721 * (data[i + j * width] & 0xff));
-				data[i + j * width] = (data[i + j * width] & 0xff000000) | luminosity << 16 | luminosity << 8 | luminosity;
+				red = data[i + j * width]>>> 16 & 0xff;
+		green = data[i + j * width]>>> 8 & 0xff;
+			blue = data[i + j * width] & 0xff;
+			switch (type)
+			{
+			case 0:
+				v = (red + green + blue) / 3;
+			case 1:
+				v = Math.max (Math.max (red, green), blue);
+			case 2:
+				v = (Math.max (Math.max (red, green), blue) + Math.min (Math.min (red, green), blue)) / 2;
+				break;
+			case 3:
+				v = (int) (0.2125 * red + 0.7154 * green + 0.0721 * blue);
+				break;
+			}
+			data[i + j * width] = (data[i + j * width] & 0xff000000) | v << 16 | v << 8 | v;
 			}
 		}
 	}
