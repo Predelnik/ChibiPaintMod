@@ -116,24 +116,31 @@ public class CPControllerApplication extends CPController {
 
 	public void updateChanges (CPUndo undoAction, CPUndo redoAction)
 	{
-		changed = ((latestUndoAction != undoAction || latestRedoAction != redoAction));
+		changed = (latestUndoAction != undoAction || latestRedoAction != redoAction); // Trivial logic - our position changed so file is changed
+		if (latestUndoAction == undoAction && redoAction == null) // We have returned to our saved state (which was without any redo action initially)
+			changed = false;								      // So file isn't changed (This logic is needed cause redo action may have changed in the future)
 		updateTitle ();
 
-		if ((latestUndoAction == null && latestRedoAction == null) || (redoActionMayChange && latestRedoAction != redoAction))
+		if (   (latestUndoAction == null && latestRedoAction == null)  // If latestRedoaction wasn't set at all
+				||
+				(    redoActionMayChange                             // Or latestRedoAction may change according to the later logic
+						&& (changed) // But change of position has happened
+						&& (redoAction != latestUndoAction || latestUndoAction == null)))  // And it's not undo change
 		{
-			latestRedoAction = undoAction;
-			redoActionMayChange = false;
+			latestRedoAction = undoAction;                           // Then really changing latestRedoaction
+			redoActionMayChange = false;                             // And disabling flag
 		}
-		if (latestRedoAction == redoAction)
-			redoActionMayChange = true;
+
+		if (!changed)                         // lastestRedoAction may change when we returned to initial (saved) position
+			redoActionMayChange = true;       // Cause changes may be rewritten
+		// Some bugs mat still be present, need further testing
 	}
 
 	public void setLatestAction (CPUndo undoAction, CPUndo redoAction)
 	{
-		changed = false;
 		latestRedoAction = redoAction;
 		latestUndoAction = undoAction;
-		updateTitle ();
+		updateChanges (undoAction, redoAction);
 	}
 
 
