@@ -37,6 +37,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPChibiFile;
 import chibipaint.engine.CPUndo;
+import chibipaint.gui.CPMainGUI;
 
 public class CPControllerApplication extends CPController {
 
@@ -343,7 +344,7 @@ public class CPControllerApplication extends CPController {
 
 				if (action == action_save_load.ACTION_SAVE)
 				{
-					mainGUI.createMainMenu (null);
+					mainGUI = new CPMainGUI(this);
 					setLatestAction (artwork.getUndoList ().size () > 0 ?  artwork.getUndoList ().getFirst () : null,
 							artwork.getRedoList ().size () > 0 ?  artwork.getRedoList ().getFirst () : null);
 				}
