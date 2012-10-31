@@ -1152,17 +1152,20 @@ public class CPLayer extends CPColorBmp {
 		}
 	}
 
-	// 0 - Intensity, 1 - Value, 2 - Lightness, 3 - Luma
-	public void makeMonochrome(CPRect r, int type) {
+	// 0 - Intensity, 1 - Value, 2 - Lightness, 3 - Luma, 4 - Color
+	public void makeMonochrome(CPRect r, int type, int color) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(r);
 		int red, green, blue;
 		int v = 0;
+		int cr = color >>> 16 & 0xff;
+		int cg = color >>> 8 & 0xff;
+				int cb = color & 0xff;
 
-		for (int j = rect.top; j < rect.bottom; j++) {
-			for (int i = rect.left; i < rect.right; i++) {
-				red = data[i + j * width]>>> 16 & 0xff;
-		green = data[i + j * width]>>> 8 & 0xff;
+				for (int j = rect.top; j < rect.bottom; j++) {
+					for (int i = rect.left; i < rect.right; i++) {
+						red = data[i + j * width]>>> 16 & 0xff;
+				green = data[i + j * width]>>> 8 & 0xff;
 			blue = data[i + j * width] & 0xff;
 			switch (type)
 			{
@@ -1176,10 +1179,12 @@ public class CPLayer extends CPColorBmp {
 			case 3:
 				v = (int) (0.2125 * red + 0.7154 * green + 0.0721 * blue);
 				break;
+			case 4:
+				v = (cr * red + cg * green + cb * blue) / 255 / 3;
 			}
 			data[i + j * width] = (data[i + j * width] & 0xff000000) | v << 16 | v << 8 | v;
-			}
-		}
+					}
+				}
 	}
 
 	public boolean hasAlpha() {

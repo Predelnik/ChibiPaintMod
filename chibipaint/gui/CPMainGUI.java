@@ -354,6 +354,12 @@ public class CPMainGUI {
 		menuItem.addActionListener(listener);
 		submenu.add(menuItem);
 
+		menuItem = new JMenuItem("By Selected Color", KeyEvent.VK_C);
+		menuItem.getAccessibleContext().setAccessibleDescription("Make image grayscale by Selected Color");
+		menuItem.setActionCommand("CPFXMakeMonochromeBySelColor");
+		menuItem.addActionListener(listener);
+		submenu.add(menuItem);
+
 		menu.add(submenu);
 
 		submenu = new JMenu("Blur");

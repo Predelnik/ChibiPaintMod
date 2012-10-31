@@ -1612,7 +1612,7 @@ public class CPArtwork {
 		{
 			undoBuffer.copyFrom(curLayer);
 
-			curLayer.makeMonochrome (r, type);
+			curLayer.makeMonochrome (r, type, curColor);
 
 			addUndo(new CPUndoPaint());
 		}
@@ -1624,7 +1624,7 @@ public class CPArtwork {
 			{
 				undoBufferAll.setElementAt(new CPLayer (width, height), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
-				layers.elementAt(i).makeMonochrome(r, type);
+				layers.elementAt(i).makeMonochrome(r, type, curColor);
 			}
 			addUndo(new CPUndoPaintAll());
 		}
