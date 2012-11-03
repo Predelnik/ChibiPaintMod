@@ -154,6 +154,8 @@ public class ChibiApp extends JFrame {
 	{
 		mainGUI.getPaletteManager ().savePalettesSettings ();
 		controller.canvas.saveCanvasSettings ();
+		controller.canvas.setArtwork (null);
+		controller.artwork = null;
 		controller.setArtwork(artwork);
 
 		// FIXME: set a default tool so that we can start drawing
