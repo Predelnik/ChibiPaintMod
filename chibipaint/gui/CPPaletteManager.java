@@ -33,7 +33,7 @@ import chibipaint.*;
 public class CPPaletteManager implements ContainerListener {
 
 	CPController controller;
-	JDesktopPane jdp;
+	private JDesktopPane jdp;
 
 	Map<String, CPPalette> palettes = new HashMap();
 	List<CPPaletteFrame> paletteFrames = new Vector();
@@ -82,7 +82,7 @@ public class CPPaletteManager implements ContainerListener {
 
 	public CPPaletteManager(CPController controller, JDesktopPane desktop) {
 		this.controller = controller;
-		this.jdp = desktop;
+		this.setJdp(desktop);
 
 		desktop.addContainerListener(this);
 
@@ -206,11 +206,11 @@ public class CPPaletteManager implements ContainerListener {
 		}
 
 		if (show) {
-			jdp.add(frame, 0);
+			getJdp().add(frame, 0);
 			frame.setVisible(true);
 		} else {
 			frame.setVisible(false);
-			jdp.remove(frame);
+			getJdp().remove(frame);
 		}
 		controller.getMainGUI().setPaletteMenuItem(palette.title, show);
 
@@ -290,6 +290,14 @@ public class CPPaletteManager implements ContainerListener {
 			}
 
 		preferences.putBoolean ("Palettes Hidden", !hiddenFrames.isEmpty());
+	}
+
+	public JDesktopPane getJdp() {
+		return jdp;
+	}
+
+	public void setJdp(JDesktopPane jdp) {
+		this.jdp = jdp;
 	}
 
 }

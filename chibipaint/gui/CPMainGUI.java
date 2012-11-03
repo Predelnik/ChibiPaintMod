@@ -39,7 +39,7 @@ public class CPMainGUI {
 	JMenuBar menuBar;
 	JPanel mainPanel;
 	JDesktopPane jdp;
-	JPanel bg;
+	private JPanel bg;
 
 	// FIXME: replace this hack by something better
 	Map<String, JCheckBoxMenuItem> paletteItems = new HashMap();
@@ -81,9 +81,9 @@ public class CPMainGUI {
 
 	void createCanvasGUI(JComponent c) {
 		CPCanvas canvas = new CPCanvas(controller);
-		bg = canvas.getContainer();
+		setBg(canvas.getContainer());
 
-		c.add(bg);
+		c.add(getBg());
 		canvas.grabFocus();
 	}
 
@@ -579,14 +579,22 @@ public class CPMainGUI {
 		this.paletteManager = paletteManager;
 	}
 
+	public JPanel getBg() {
+		return bg;
+	}
+
+	public void setBg(JPanel bg) {
+		this.bg = bg;
+	}
+
 	class CPDesktop extends JDesktopPane {
 
 		public CPDesktop() {
 			addComponentListener(new ComponentAdapter() {
 
 				public void componentResized(ComponentEvent e) {
-					bg.setSize(getSize());
-					bg.validate();
+					getBg().setSize(getSize());
+					getBg().validate();
 				}
 			});
 		}

@@ -34,6 +34,7 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 
 	CPController controller;
 	JLabel memory, zoom;
+	private Timer timer = null;
 
 	public CPStatusBar(CPController controller) {
 		super(new BorderLayout());
@@ -58,14 +59,16 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 		controller.addViewListener(this);
 		// controller.addCPEventListener(this);
 
-		Timer timer = new Timer(2000, new ActionListener() {
+		if (timer == null) {
+			timer = new Timer(2000, new ActionListener() {
 
-			public void actionPerformed(ActionEvent e) {
-				updateMemory();
-			}
-		});
-		timer.setRepeats(true);
-		timer.start();
+				public void actionPerformed(ActionEvent e) {
+					updateMemory();
+				}
+			});
+			timer.setRepeats(true);
+			timer.start();
+		}
 	}
 
 	public void viewChange(CPController.CPViewInfo viewInfo) {
