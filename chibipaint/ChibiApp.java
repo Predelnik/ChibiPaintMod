@@ -155,30 +155,16 @@ public class ChibiApp extends JFrame {
 		mainGUI.getPaletteManager ().savePalettesSettings ();
 		controller.canvas.saveCanvasSettings ();
 		controller.saveControllerSettings ();
+
+		controller.canvas.KillCanvas (); // Kinda disconnecting previous canvas from everything
 		controller.canvas.setArtwork (null);
 		controller.artwork = null;
-		controller.setMainGUI (null);
-		this.remove (mainGUI.getGUI ());
-		this.remove (mainGUI.getMenuBar());
-		mainGUI.setBg(null);
-		mainGUI.setPaletteManager(null);
-		this.setLayout(null);
-		mainGUI = null;
-		controller = null;
+		mainGUI.recreateMenuBar ();
 
-		controller = new CPControllerApplication(this);
-
-		controller.setArtwork(artwork);
-		controller.loadControllerSettings ();
-
-		// FIXME: set a default tool so that we can start drawing
-		controller.setTool(CPController.T_PEN);
-		controller.setCurrentFile (file);
-
-		mainGUI = new CPMainGUI(controller);
-
-		setContentPane(mainGUI.getGUI());
 		setJMenuBar(mainGUI.getMenuBar());
+		controller.setArtwork (artwork);
+		controller.canvas.initCanvas (controller); // Reinit canvas
+		controller.setTool(CPController.T_PEN);
 
 		mainGUI.getPaletteManager ().loadPalettesSettings();
 		controller.canvas.loadCanvasSettings ();
@@ -186,18 +172,8 @@ public class ChibiApp extends JFrame {
 
 	public void resetMainMenu ()
 	{
-		mainGUI.getPaletteManager ().savePalettesSettings ();
-		controller.canvas.saveCanvasSettings ();
-		controller.setMainGUI (null);
-		this.remove (mainGUI.getGUI ());
-		this.remove (mainGUI.getMenuBar());
-		mainGUI = null;
+		mainGUI.recreateMenuBar ();
 
-		mainGUI = new CPMainGUI(controller);
-
-		setContentPane(mainGUI.getGUI());
 		setJMenuBar(mainGUI.getMenuBar());
-		mainGUI.getPaletteManager ().loadPalettesSettings();
-		controller.canvas.loadCanvasSettings ();
 	}
 }

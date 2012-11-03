@@ -196,6 +196,10 @@ public class CPArtwork {
 		artworkListeners.addLast(listener);
 	}
 
+	public void removeListener(ICPArtworkListener listener) {
+		artworkListeners.remove(listener);
+	}
+
 	public void callListenersUpdateRegion(CPRect region) {
 		for (ICPArtworkListener l : artworkListeners) {
 			l.updateRegion(this, region);

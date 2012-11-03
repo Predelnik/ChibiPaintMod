@@ -64,6 +64,11 @@ public class CPMainGUI {
 		return menuBar;
 	}
 
+	public void recreateMenuBar ()
+	{
+		menuBar = createMainMenu(controller);
+	}
+
 	private void createGUI() {
 		mainPanel = new JPanel(new BorderLayout());
 

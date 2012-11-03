@@ -103,7 +103,8 @@ CPArtwork.ICPArtworkListener {
 		this.artwork = artwork;
 	}
 
-	public CPCanvas(CPController ctrl) {
+	public void initCanvas (CPController ctrl)
+	{
 		this.controller = ctrl;
 		artwork = ctrl.getArtwork();
 
@@ -151,6 +152,7 @@ CPArtwork.ICPArtworkListener {
 		 */
 
 		// register as a listener for Mouse & MouseMotion events
+
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		addMouseWheelListener(this);
@@ -167,6 +169,24 @@ CPArtwork.ICPArtworkListener {
 
 		// So that the tab key will work
 		setFocusTraversalKeysEnabled(false);
+	}
+
+	public void KillCanvas()
+	{
+		removeMouseListener(this);
+		removeMouseMotionListener(this);
+		removeMouseWheelListener(this);
+		removeComponentListener(this);
+		removeKeyListener(this);
+
+		controller.removeToolListener(this);
+		controller.removeModeListener(this);
+
+		artwork.removeListener(this);
+	}
+
+	public CPCanvas(CPController ctrl) {
+		initCanvas (ctrl);
 	}
 
 	public boolean isOpaque() {

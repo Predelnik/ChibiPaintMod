@@ -495,6 +495,10 @@ public abstract class CPController implements ActionListener {
 		toolListeners.addLast(listener);
 	}
 
+	public void removeToolListener(ICPToolListener listener) {
+		toolListeners.remove(listener);
+	}
+
 	public void callToolListeners() {
 		for (ICPToolListener l : toolListeners) {
 			l.newTool(curBrush, tools[curBrush]);
@@ -503,6 +507,10 @@ public abstract class CPController implements ActionListener {
 
 	public void addModeListener(ICPModeListener listener) {
 		modeListeners.addLast(listener);
+	}
+
+	public void removeModeListener(ICPModeListener listener) {
+		modeListeners.remove(listener);
 	}
 
 	public void callModeListeners() {
