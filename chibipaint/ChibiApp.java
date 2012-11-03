@@ -165,6 +165,8 @@ public class ChibiApp extends JFrame {
 		controller.setArtwork (artwork);
 		controller.canvas.initCanvas (controller); // Reinit canvas
 		controller.setTool(CPController.T_PEN);
+		((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes().get("layers")).removeListener ();
+		((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes().get("layers")).addListener ();
 
 		mainGUI.getPaletteManager ().loadPalettesSettings();
 		controller.canvas.loadCanvasSettings ();

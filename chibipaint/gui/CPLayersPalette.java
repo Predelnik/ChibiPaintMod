@@ -132,10 +132,20 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 		alphaSlider.setValue(artwork.getActiveLayer().getAlpha());
 
 		// add listeners
-		controller.getArtwork().addListener(this);
 
+		addListener ();
 		// validate();
 		// pack();
+	}
+
+	public void addListener()
+	{
+		controller.getArtwork().addListener(this);
+	}
+
+	public void removeListener()
+	{
+		controller.getArtwork().removeListener(this);
 	}
 
 	public void actionPerformed(ActionEvent e) {

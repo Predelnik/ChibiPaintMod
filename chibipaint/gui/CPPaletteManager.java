@@ -35,7 +35,7 @@ public class CPPaletteManager implements ContainerListener {
 	CPController controller;
 	private JDesktopPane jdp;
 
-	Map<String, CPPalette> palettes = new HashMap();
+	private Map<String, CPPalette> palettes = new HashMap();
 	List<CPPaletteFrame> paletteFrames = new Vector();
 	List<CPPaletteFrame> hiddenFrames = new Vector();
 
@@ -89,7 +89,7 @@ public class CPPaletteManager implements ContainerListener {
 		// Color Palette
 
 		CPPalette palette = new CPColorPalette(controller);
-		palettes.put("color", palette);
+		getPalettes().put("color", palette);
 
 		CPPaletteFrame frame = new CPPaletteFrame(palette);
 		paletteFrames.add(frame);
@@ -102,7 +102,7 @@ public class CPPaletteManager implements ContainerListener {
 		// Brush Palette
 
 		palette = new CPBrushPalette(controller);
-		palettes.put("brush", palette);
+		getPalettes().put("brush", palette);
 
 		frame = new CPPaletteFrame(palette);
 		paletteFrames.add(frame);
@@ -114,7 +114,7 @@ public class CPPaletteManager implements ContainerListener {
 		// Layers Palette
 
 		palette = new CPLayersPalette(controller);
-		palettes.put("layers", palette);
+		getPalettes().put("layers", palette);
 
 		frame = new CPPaletteFrame(palette);
 		paletteFrames.add(frame);
@@ -127,7 +127,7 @@ public class CPPaletteManager implements ContainerListener {
 		// Stroke Palette
 
 		palette = new CPStrokePalette(controller);
-		palettes.put("stroke", palette);
+		getPalettes().put("stroke", palette);
 
 		frame = new CPPaletteFrame(palette);
 		paletteFrames.add(frame);
@@ -139,7 +139,7 @@ public class CPPaletteManager implements ContainerListener {
 		// Tool Palette
 
 		palette = new CPToolPalette(controller);
-		palettes.put("tool", palette);
+		getPalettes().put("tool", palette);
 
 		frame = new CPPaletteFrame(palette);
 		paletteFrames.add(frame);
@@ -152,7 +152,7 @@ public class CPPaletteManager implements ContainerListener {
 		// Swatches Palette
 
 		palette = new CPSwatchesPalette(controller);
-		palettes.put("swatches", palette);
+		getPalettes().put("swatches", palette);
 
 		frame = new CPPaletteFrame(palette);
 		paletteFrames.add(frame);
@@ -165,7 +165,7 @@ public class CPPaletteManager implements ContainerListener {
 		// Misc Palette
 
 		palette = new CPMiscPalette(controller);
-		palettes.put("misc", palette);
+		getPalettes().put("misc", palette);
 
 		frame = new CPPaletteFrame(palette);
 		paletteFrames.add(frame);
@@ -178,7 +178,7 @@ public class CPPaletteManager implements ContainerListener {
 		// Misc Palette
 
 		palette = new CPTexturePalette(controller);
-		palettes.put("textures", palette);
+		getPalettes().put("textures", palette);
 
 		frame = new CPPaletteFrame(palette);
 		paletteFrames.add(frame);
@@ -190,7 +190,7 @@ public class CPPaletteManager implements ContainerListener {
 	}
 
 	public void showPalette(String paletteName, boolean show) {
-		CPPalette palette = palettes.get(paletteName);
+		CPPalette palette = getPalettes().get(paletteName);
 		if (palette == null) {
 			return;
 		}
@@ -298,6 +298,14 @@ public class CPPaletteManager implements ContainerListener {
 
 	public void setJdp(JDesktopPane jdp) {
 		this.jdp = jdp;
+	}
+
+	public Map<String, CPPalette> getPalettes() {
+		return palettes;
+	}
+
+	public void setPalettes(Map<String, CPPalette> palettes) {
+		this.palettes = palettes;
 	}
 
 }
