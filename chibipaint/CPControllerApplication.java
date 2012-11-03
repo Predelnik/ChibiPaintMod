@@ -261,6 +261,9 @@ public class CPControllerApplication extends CPController {
 				break;
 			case PNG_FILE:
 				filter = new FileNameExtensionFilter("PNG Files(*.png)", "png");
+				if (currentFile != null)
+					fc.setSelectedFile (new File (currentFile.getName ().substring (0, currentFile.getName ().lastIndexOf ('.'))));
+
 				break;
 			}
 			fc.setAcceptAllFileFilterUsed(false);
@@ -315,6 +318,13 @@ public class CPControllerApplication extends CPController {
 			if  (action == action_save_load.ACTION_LOAD &&
 					!((ChibiApp) mainFrame).confirmDialog ())
 				return false;
+
+			if (!selectedFile.exists ())
+			{
+				// TODO:
+				// Here should be code about asking for removal from recent file list
+				return false;
+			}
 
 			if (type == save_file_type.CHI_FILE)
 			{
