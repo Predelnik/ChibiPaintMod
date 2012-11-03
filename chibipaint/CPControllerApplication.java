@@ -319,7 +319,8 @@ public class CPControllerApplication extends CPController {
 					!((ChibiApp) mainFrame).confirmDialog ())
 				return false;
 
-			if (!selectedFile.exists ())
+			if (   !selectedFile.exists ()
+					&& action == action_save_load.ACTION_LOAD)
 			{
 				// TODO:
 				// Here should be code about asking for removal from recent file list
