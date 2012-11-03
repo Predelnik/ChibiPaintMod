@@ -355,7 +355,7 @@ public class CPControllerApplication extends CPController {
 
 				if (action == action_save_load.ACTION_SAVE)
 				{
-					mainGUI = new CPMainGUI(this);
+					((ChibiApp) mainFrame).resetMainMenu ();
 					setLatestAction (artwork.getUndoList ().size () > 0 ?  artwork.getUndoList ().getFirst () : null,
 							artwork.getRedoList ().size () > 0 ?  artwork.getRedoList ().getFirst () : null);
 				}
