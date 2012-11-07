@@ -130,7 +130,7 @@ public class CPMainGUI {
 					"Save .png File");
 			menuItem.setActionCommand("CPSavePng");
 			menuItem.addActionListener(listener);
-			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
 			menu.add(menuItem);
 
 			menu.add(new JSeparator());
