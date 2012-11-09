@@ -23,6 +23,7 @@ package chibipaint.engine;
 
 import java.util.*;
 
+import chibipaint.engine.CPColorBmp.CPFillLine;
 import chibipaint.util.*;
 
 //
@@ -177,30 +178,30 @@ public class CPColorBmp extends CPBitmap {
 				int color1 = srcData[srcOffset];
 				int alpha1 = color1 >>> 24;
 
-				if (alpha1 <= 0) {
-					continue;
-				}
+		if (alpha1 <= 0) {
+			continue;
+		}
 
-				if (alpha1 == 255) {
-					data[dstOffset] = color1;
-					continue;
-				}
+		if (alpha1 == 255) {
+			data[dstOffset] = color1;
+			continue;
+		}
 
-				int color2 = data[dstOffset];
-				int alpha2 = (color2 >>> 24);
+		int color2 = data[dstOffset];
+		int alpha2 = (color2 >>> 24);
 
-				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
-				if (newAlpha > 0) {
-					int realAlpha = alpha1 * 255 / newAlpha;
-					int invAlpha = 255 - realAlpha;
+		int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
+		if (newAlpha > 0) {
+			int realAlpha = alpha1 * 255 / newAlpha;
+			int invAlpha = 255 - realAlpha;
 
-					data[dstOffset] = newAlpha << 24
-							| ((color1 >>> 16 & 0xff) + (((color2 >>> 16 & 0xff) * invAlpha - (color1 >>> 16 & 0xff)
-									* invAlpha) / 255)) << 16
+			data[dstOffset] = newAlpha << 24
+					| ((color1 >>> 16 & 0xff) + (((color2 >>> 16 & 0xff) * invAlpha - (color1 >>> 16 & 0xff)
+							* invAlpha) / 255)) << 16
 							| ((color1 >>> 8 & 0xff) + (((color2 >>> 8 & 0xff) * invAlpha - (color1 >>> 8 & 0xff)
 									* invAlpha) / 255)) << 8
-							| ((color1 & 0xff) + (((color2 & 0xff) * invAlpha - (color1 & 0xff) * invAlpha) / 255));
-				}
+									| ((color1 & 0xff) + (((color2 & 0xff) * invAlpha - (color1 & 0xff) * invAlpha) / 255));
+		}
 			}
 		}
 	}
@@ -264,12 +265,12 @@ public class CPColorBmp extends CPBitmap {
 		}
 	}
 
-	public void floodFill(int x, int y, int color) {
+	public void floodFill(int x, int y, int color, CPLayer useDataFrom) {
 		if (!isInside(x, y)) {
 			return;
 		}
 
-		int oldColor, colorMask;
+		int oldColor, colorMask, dataOldColor, dataColorMask;
 		oldColor = getPixel(x, y);
 
 		// If we are filling 100% transparent areas
@@ -289,7 +290,17 @@ public class CPColorBmp extends CPBitmap {
 			return;
 		}
 
-		LinkedList stack = new LinkedList();
+		dataOldColor = useDataFrom.getPixel(x, y);
+
+
+		if ((dataOldColor & 0xff000000) == 0) {
+			dataColorMask = 0xff000000;
+			dataOldColor = 0;
+		} else {
+			dataColorMask = 0xffffffff;
+		}
+
+		LinkedList<CPFillLine> stack = new LinkedList<CPFillLine>();
 		stack.addLast(new CPFillLine(x, x, y, -1));
 		stack.addLast(new CPFillLine(x, x, y + 1, 1));
 
@@ -304,12 +315,16 @@ public class CPColorBmp extends CPBitmap {
 			int lineOffset = line.y * width;
 
 			int left = line.x1, next;
-			while (left >= clip.left && (data[left + lineOffset] & colorMask) == oldColor) {
+			while (left >= clip.left && (data[left + lineOffset] & colorMask) == oldColor
+					&& (useDataFrom.data[left + lineOffset] & dataColorMask) == dataOldColor)
+			{
 				data[left + lineOffset] = color;
 				left--;
 			}
 			if (left >= line.x1) {
-				while (left <= line.x2 && (data[left + lineOffset] & colorMask) != oldColor) {
+				while (    left <= line.x2 && ((data[left + lineOffset] & colorMask) != oldColor
+						|| (useDataFrom.data[left + lineOffset] & dataColorMask) != dataOldColor)
+						) {
 					left++;
 				}
 				next = left + 1;
@@ -326,7 +341,8 @@ public class CPColorBmp extends CPBitmap {
 
 			do {
 				data[left + lineOffset] = color;
-				while (next < clip.right && (data[next + lineOffset] & colorMask) == oldColor) {
+				while (next < clip.right && (data[next + lineOffset] & colorMask) == oldColor
+						&& (useDataFrom.data[next + lineOffset] & dataColorMask) == dataOldColor) {
 					data[next + lineOffset] = color;
 					next++;
 				}
@@ -337,7 +353,8 @@ public class CPColorBmp extends CPBitmap {
 				}
 
 				left = next + 1;
-				while (left <= line.x2 && (data[left + lineOffset] & colorMask) != oldColor) {
+				while (left <= line.x2 && ((data[left + lineOffset] & colorMask) != oldColor
+						|| (useDataFrom.data[left + lineOffset] & dataColorMask) != dataOldColor)) {
 					left++;
 				}
 
@@ -345,7 +362,7 @@ public class CPColorBmp extends CPBitmap {
 			} while (left <= line.x2);
 		}
 	}
-	
+
 	//
 	// Box Blur algorithm
 	//
@@ -375,7 +392,7 @@ public class CPColorBmp extends CPBitmap {
 			copyArrayToColumn(i, rect.top, h, dst);
 		}
 	}
-	
+
 	public void multiplyAlpha(int[] buffer, int len) {
 		for (int i = 0; i < len; i++) {
 			buffer[i] = buffer[i] & 0xff000000 | ((buffer[i] >>> 24) * (buffer[i] >>> 16 & 0xff) / 255) << 16
@@ -403,19 +420,19 @@ public class CPColorBmp extends CPBitmap {
 		for (int i = 0; i < radius && i <= len; i++) {
 			pix = src[i];
 			ta += pix >>> 24;
-			tr += (pix >>> 16) & 0xff;
-			tg += (pix >>> 8) & 0xff;
-			tb += pix & 0xff;
-			s++;
+		tr += (pix >>> 16) & 0xff;
+		tg += (pix >>> 8) & 0xff;
+		tb += pix & 0xff;
+		s++;
 		}
 		for (int i = 0; i < len; i++) {
 			if (i + radius < len) {
 				pix = src[i + radius];
 				ta += pix >>> 24;
-				tr += (pix >>> 16) & 0xff;
-				tg += (pix >>> 8) & 0xff;
-				tb += pix & 0xff;
-				s++;
+		tr += (pix >>> 16) & 0xff;
+		tg += (pix >>> 8) & 0xff;
+		tb += pix & 0xff;
+		s++;
 			}
 
 			dst[i] = (ta / s << 24) | (tr / s << 16) | (tg / s << 8) | tb / s;
@@ -423,10 +440,10 @@ public class CPColorBmp extends CPBitmap {
 			if (i - radius >= 0) {
 				pix = src[i - radius];
 				ta -= pix >>> 24;
-				tr -= (pix >>> 16) & 0xff;
-				tg -= (pix >>> 8) & 0xff;
-				tb -= pix & 0xff;
-				s--;
+			tr -= (pix >>> 16) & 0xff;
+			tg -= (pix >>> 8) & 0xff;
+			tb -= pix & 0xff;
+			s--;
 			}
 		}
 	}

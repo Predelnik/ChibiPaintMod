@@ -1399,7 +1399,7 @@ public class CPArtwork {
 		undoBuffer.copyFrom(curLayer);
 		undoArea = new CPRect(width, height);
 
-		curLayer.floodFill((int) x, (int) y, curColor | 0xff000000);
+		curLayer.floodFill((int) x, (int) y, curColor | 0xff000000, sampleAllLayers ? fusion : curLayer);
 
 		addUndo(new CPUndoPaint());
 		invalidateFusion();
