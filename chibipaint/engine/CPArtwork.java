@@ -1160,8 +1160,10 @@ public class CPArtwork {
 		// not really necessary and could potentially the repaint
 		// of the canvas to miss that area
 		// fusionLayers();
-
-		return fusion.getPixel((int) x, (int) y) & 0xffffff;
+		if (sampleAllLayers)
+			return fusion.getPixel((int) x, (int) y) & 0xffffff;
+		else
+			return curLayer.getPixel((int) x, (int) y) & 0xffffff;
 	}
 
 	public boolean isPointWithin(float x, float y) {
