@@ -263,6 +263,15 @@ public class CPMainGUI {
 		menu.setMnemonic(KeyEvent.VK_L);
 		menuBar.add(menu);
 
+		menuItem = new JMenuItem("Show / Hide All Layers", KeyEvent.VK_A);
+		menuItem.getAccessibleContext().setAccessibleDescription("Toggle All Layers Visibility");
+		menuItem.setActionCommand("CPLayerToggleAll");
+		menuItem.addActionListener(listener);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+		menu.add(menuItem);
+
+		menu.add(new JSeparator());
+
 		menuItem = new JMenuItem("Duplicate", KeyEvent.VK_D);
 		menuItem.getAccessibleContext().setAccessibleDescription("Creates a copy of the currently selected layer");
 		menuItem.setActionCommand("CPLayerDuplicate");

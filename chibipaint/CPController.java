@@ -339,6 +339,11 @@ public abstract class CPController implements ActionListener {
 
 		// Layers actions
 
+
+		if (e.getActionCommand().equals("CPLayerToggleAll")) {
+			artwork.toggleLayers ();
+		}
+
 		if (e.getActionCommand().equals("CPLayerDuplicate")) {
 			artwork.duplicateLayer();
 		}

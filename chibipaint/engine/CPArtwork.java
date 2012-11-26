@@ -1297,6 +1297,22 @@ public class CPArtwork {
 		}
 	}
 
+	public void toggleLayers ()
+	{
+		int i = 0, first_unchecked_pos = 0;
+		addUndo (new CPUndoToggleLayers ());
+		for (i = 0; i < layers.size (); i++)
+			if (!layers.elementAt (i).visible)
+				break;
+		first_unchecked_pos = i;
+
+		for (i = 0; i < layers.size (); i++)
+			layers.elementAt (i).visible = (first_unchecked_pos < layers.size ());
+
+		invalidateFusion();
+		callListenersLayerChange();
+	}
+
 	public void duplicateLayer() {
 		String copySuffix = " Copy";
 
@@ -1962,6 +1978,42 @@ public class CPArtwork {
 			layers.add(layer + 1, newLayer);
 
 			setActiveLayer(layer + 1);
+			invalidateFusion();
+			callListenersLayerChange();
+		}
+	}
+
+	class CPUndoToggleLayers extends CPUndo
+	{
+		Vector<Boolean> mask;
+		boolean         toggleType; // true - we checking everything, false - unchecking
+		public CPUndoToggleLayers() {
+			mask = new Vector<Boolean> ();
+			mask.setSize (layers.size ());
+			boolean first = false;
+			toggleType = false;
+			for (int i = 0; i < layers.size (); i++)
+			{
+				if (!first && !layers.elementAt(i).visible)
+				{
+					toggleType = true;
+					first = true;
+				}
+				mask.setElementAt(layers.elementAt (i).visible, i);
+			}
+		}
+
+		public void undo() {
+			for (int i = 0; i < layers.size (); i++)
+				layers.elementAt (i).visible = mask.elementAt(i);
+			invalidateFusion();
+			callListenersLayerChange();
+		}
+
+		@Override
+		public void redo() {
+			for (int i = 0; i < layers.size (); i++)
+				layers.elementAt (i).visible = toggleType;
 			invalidateFusion();
 			callListenersLayerChange();
 		}
