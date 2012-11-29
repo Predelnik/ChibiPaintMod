@@ -174,7 +174,9 @@ public class ChibiApp extends JFrame {
 
 	public void resetMainMenu ()
 	{
+		controller.canvas.saveCanvasSettings ();
 		mainGUI.recreateMenuBar ();
+		controller.canvas.loadCanvasSettings ();
 
 		setJMenuBar(mainGUI.getMenuBar());
 	}
