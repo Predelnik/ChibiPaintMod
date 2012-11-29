@@ -230,9 +230,14 @@ public class CPControllerApplication extends CPController {
 
 	public boolean save() {
 		if (getCurrentFile() != null)
+		{
+			if (!changed) // Nothing to do in that case
+				return true;
+
 			return saveLoadImageFile(save_file_type.CHI_FILE,
 					action_save_load.ACTION_SAVE, getCurrentFile()
 					.getAbsolutePath());
+		}
 		else
 			return saveLoadImageFile(save_file_type.CHI_FILE,
 					action_save_load.ACTION_SAVE, "");
@@ -260,6 +265,7 @@ public class CPControllerApplication extends CPController {
 		Preferences preferences = userRoot.node("chibipaintmod");
 		String directoryName = preferences.get("lastDirectory", "");
 		File dir = new File(directoryName);
+
 
 		final JFileChooser fc = new JFileChooser(dir) {
 			/**
