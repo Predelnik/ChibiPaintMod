@@ -276,18 +276,34 @@ public class CPControllerApplication extends CPController {
 			@Override
 			public void approveSelection() {
 				File f = getSelectedFile();
-				if (f.exists() && getDialogType() == SAVE_DIALOG) {
-					int result = JOptionPane.showConfirmDialog(this,
-							"The file exists, overwrite?", "Existing file",
-							JOptionPane.YES_NO_OPTION);
-					switch (result) {
-					case JOptionPane.YES_OPTION:
-						super.approveSelection();
-						return;
-					case JOptionPane.NO_OPTION:
-						return;
-					case JOptionPane.CLOSED_OPTION:
-						return;
+				if (getDialogType() == SAVE_DIALOG) {
+					String filePath = f.getPath();
+					String ext = "";
+					if (this.getChoosableFileFilters() [0].toString() == "ChibiPaint Files(*.chi)") {
+						ext = ".chi";
+					}
+					else
+					{
+						ext = ".png";
+					}
+
+					if (!filePath.toLowerCase().endsWith(ext)) {
+						f = new File(filePath + ext);
+					}
+					if (f.exists())
+					{
+						int result = JOptionPane.showConfirmDialog(this,
+								"The file exists, overwrite?", "Existing file",
+								JOptionPane.YES_NO_OPTION);
+						switch (result) {
+						case JOptionPane.YES_OPTION:
+							super.approveSelection();
+							return;
+						case JOptionPane.NO_OPTION:
+							return;
+						case JOptionPane.CLOSED_OPTION:
+							return;
+						}
 					}
 				}
 				super.approveSelection();
