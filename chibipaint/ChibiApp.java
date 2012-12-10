@@ -71,13 +71,10 @@ public class ChibiApp extends JFrame {
 
 		controller = new CPControllerApplication(this);
 
-		controller.loadControllerSettings ();
-
 		controller.setCurrentFile (null);
 		controller.setArtwork(new CPArtwork(600, 450));
 
-		// FIXME: set a default tool so that we can start drawing
-		controller.setTool(CPController.T_PEN);
+		controller.loadControllerSettings ();
 
 		mainGUI = new CPMainGUI(controller);
 
@@ -163,8 +160,8 @@ public class ChibiApp extends JFrame {
 
 		setJMenuBar(mainGUI.getMenuBar());
 		controller.setArtwork (artwork);
+		controller.loadControllerSettings ();
 		controller.canvas.initCanvas (controller); // Reinit canvas
-		controller.setTool(CPController.T_PEN);
 		((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes().get("layers")).removeListener ();
 		((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes().get("layers")).addListener ();
 

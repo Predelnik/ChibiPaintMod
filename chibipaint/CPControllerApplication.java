@@ -490,6 +490,8 @@ public class CPControllerApplication extends CPController {
 	void saveControllerSettings() {
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node("chibipaintmod");
+		preferences.putInt ("Mode", curMode);
+		preferences.putInt ("Brush", curBrush);
 		for (int i = 0; i < T_MAX; i++) {
 			preferences.putInt("Tool " + String.valueOf(i) + " - Type",
 					tools[i].type);
@@ -520,6 +522,10 @@ public class CPControllerApplication extends CPController {
 	void loadControllerSettings() {
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node("chibipaintmod");
+		setMode (preferences.getInt ("Mode", curMode));
+		if (curMode == M_DRAW)
+			setTool (preferences.getInt ("Brush", curBrush));
+
 		for (int i = 0; i < T_MAX; i++) {
 			tools[i].type = preferences.getInt("Tool " + String.valueOf(i)
 					+ " - Type", tools[i].type);
