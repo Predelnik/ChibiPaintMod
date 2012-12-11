@@ -74,15 +74,16 @@ public class ChibiApp extends JFrame {
 		controller.setCurrentFile (null);
 		controller.setArtwork(new CPArtwork(600, 450));
 
-		controller.loadControllerSettings ();
-
+		controller.loadUrgentSettings ();
 		mainGUI = new CPMainGUI(controller);
 
 		setContentPane(mainGUI.getGUI());
 		setJMenuBar(mainGUI.getMenuBar());
 
+
 		mainGUI.getPaletteManager ().loadPalettesSettings();
 		controller.canvas.loadCanvasSettings ();
+		controller.loadControllerSettings ();
 
 		final ChibiApp frame = this;
 
@@ -160,11 +161,11 @@ public class ChibiApp extends JFrame {
 
 		setJMenuBar(mainGUI.getMenuBar());
 		controller.setArtwork (artwork);
-		controller.loadControllerSettings ();
 		controller.canvas.initCanvas (controller); // Reinit canvas
 		((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes().get("layers")).removeListener ();
 		((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes().get("layers")).addListener ();
 
+		controller.loadControllerSettings ();
 		mainGUI.getPaletteManager ().loadPalettesSettings();
 		controller.canvas.loadCanvasSettings ();
 	}

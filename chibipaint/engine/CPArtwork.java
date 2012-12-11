@@ -1413,11 +1413,11 @@ public class CPArtwork {
 		}
 	}
 
-	public void floodFill(float x, float y) {
+	public void floodFill(float x, float y, int colorDistance) {
 		undoBuffer.copyFrom(curLayer);
 		undoArea = new CPRect(width, height);
 
-		curLayer.floodFill((int) x, (int) y, curColor | 0xff000000, sampleAllLayers ? fusion : curLayer);
+		curLayer.floodFill((int) x, (int) y, curColor | 0xff000000, sampleAllLayers ? fusion : curLayer, colorDistance);
 
 		addUndo(new CPUndoPaint());
 		invalidateFusion();

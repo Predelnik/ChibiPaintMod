@@ -28,6 +28,7 @@ import javax.swing.*;
 
 import chibipaint.*;
 import chibipaint.engine.*;
+import chibipaint.CPController;
 
 public class CPBrushPalette extends CPPalette implements CPController.ICPToolListener, ActionListener {
 
@@ -36,6 +37,10 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 
 	CPCheckBox alphaCB, sizeCB, scatteringCB;
 	CPSlider resatSlider, bleedSlider, spacingSlider, scatteringSlider, smoothingSlider;
+	CPBrushPreview brushPreview;
+
+	// For Floodfill
+	CPSlider colorDistanceSlider;
 
 	JComboBox tipCombo;
 	String tipNames[] = { "Round Pixelated", "Round Hard Edge", "Round Soft", "Square Pixelated", "Square Hard Edge" };
@@ -50,13 +55,17 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 		// setBounds(getInnerDimensions());
 
 		setLayout(null);
+		colorDistanceSlider = new CPColorDistanceSlider ();
+		colorDistanceSlider.setLocation(20, 25);
+		colorDistanceSlider.setSize (130, 16);
+		add(colorDistanceSlider);
 
 		alphaSlider = new CPAlphaSlider();
 		alphaSlider.setLocation(20, 120);
 		alphaSlider.setSize(130, 16);
 		add(alphaSlider);
 
-		CPBrushPreview brushPreview = new CPBrushPreview();
+		brushPreview = new CPBrushPreview();
 		brushPreview.setLocation(5, 25);
 		add(brushPreview);
 
@@ -156,6 +165,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 		smoothingSlider.setSize(130, 16);
 		add(smoothingSlider);
 
+		colorDistanceSlider.setValue(ctrlr.getColorDistance () );
 		alphaSlider.setValue(ctrlr.getAlpha());
 		sizeSlider.setValue(ctrlr.getBrushSize());
 		sizeCB.setValue(ctrlr.getBrushInfo().pressureSize);
@@ -170,9 +180,37 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 		smoothingSlider.setValue((int) (ctrlr.getBrushInfo().smoothing * 100));
 
 		ctrlr.addToolListener(this);
+		newTool (0, null); // Just to figure out visibility
 	}
 
 	public void newTool(int tool, CPBrushInfo toolInfo) {
+		JComponent [] brush_controls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
+				bleedSlider, spacingSlider, scatteringSlider, smoothingSlider, tipCombo, brushPreview};
+		JComponent [] flood_fill_controls = {colorDistanceSlider};
+		for (JComponent jc : brush_controls)
+			jc.setVisible (false);
+
+		for (JComponent jc : flood_fill_controls)
+			jc.setVisible (false);
+
+		switch (controller.getCurMode ())
+		{
+		case CPController.M_DRAW:
+			for (JComponent jc : brush_controls)
+				jc.setVisible (true);
+			break;
+		case CPController.M_FLOODFILL:
+			for (JComponent jc : flood_fill_controls)
+				jc.setVisible (true);
+			break;
+		}
+
+		if (toolInfo == null)
+			return;
+
+		if (controller.getColorDistance () != colorDistanceSlider.value)
+			colorDistanceSlider.setValue(controller.getColorDistance ());
+
 		if (toolInfo.alpha != alphaSlider.value) {
 			alphaSlider.setValue(toolInfo.alpha);
 		}
@@ -301,6 +339,19 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 		public void onValueChange() {
 			controller.setAlpha(value);
 			title = "Opacity: " + value;
+		}
+	}
+
+	class CPColorDistanceSlider extends CPSlider {
+
+		public CPColorDistanceSlider() {
+			super(255 * 4);
+			minValue = 0;
+		}
+
+		public void onValueChange() {
+			controller.setColorDistance (value);
+			title = "Color distance: " + value;
 		}
 	}
 

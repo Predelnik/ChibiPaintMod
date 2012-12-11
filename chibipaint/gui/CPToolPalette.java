@@ -43,6 +43,8 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPRectSelection");
+		if (controller.getCurMode() == CPController.M_RECT_SELECTION)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 1, 1);
 		add(button);
@@ -50,6 +52,8 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPMoveTool");
+		if (controller.getCurMode() == CPController.M_MOVE_TOOL)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 2, 1);
 		add(button);
@@ -57,6 +61,8 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPFloodFill");
+		if (controller.getCurMode() == CPController.M_FLOODFILL)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 29, 1);
 		add(button);
@@ -65,6 +71,8 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPRotateCanvas");
 		button.setCPActionCommandDouble("CPResetCanvasRotation");
+		if (controller.getCurMode() == CPController.M_ROTATE_CANVAS)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 5, 1);
 		add(button);
@@ -72,6 +80,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPPencil");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_PENCIL)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 6, 1);
 		add(button);
@@ -79,7 +90,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPPen");
-		button.setSelected(true);
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_PEN)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 7, 1);
 		add(button);
@@ -87,6 +100,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPAirbrush");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_AIRBRUSH)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 18, 1);
 		add(button);
@@ -94,6 +110,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPWater");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_WATER)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 8, 1);
 		add(button);
@@ -101,6 +120,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPEraser");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_ERASER)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 9, 1);
 		add(button);
@@ -108,6 +130,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPSoftEraser");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_SOFTERASER)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 24, 1);
 		add(button);
@@ -115,6 +140,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPSmudge");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_SMUDGE)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 28, 1);
 		add(button);
@@ -122,6 +150,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPBlender");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_BLENDER)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 16, 1);
 		add(button);
@@ -129,6 +160,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPDodge");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_DODGE)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 17, 1);
 		add(button);
@@ -136,6 +170,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPBurn");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_BURN)
+			button.setSelected (true);
 
 		button = new CPIconButton(icons, 32, 32, 23, 1);
 		add(button);
@@ -143,6 +180,9 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		button.addCPActionListener(controller);
 		button.addCPActionListener(this);
 		button.setCPActionCommand("CPBlur");
+		if (   controller.getCurMode() == CPController.M_DRAW
+				&& controller.getCurBrush() == CPController.T_BLUR)
+			button.setSelected (true);
 
 	}
 

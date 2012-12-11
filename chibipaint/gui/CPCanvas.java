@@ -810,6 +810,10 @@ CPArtwork.ICPArtworkListener {
 			case KeyEvent.VK_0:
 				controller.setAlpha(255);
 				break;
+			case KeyEvent.VK_OPEN_BRACKET:
+				if (controller.getBrushInfo().curSize < 200.0f)
+					controller.getBrushInfo().curSize += 1.0f;
+				break;
 			}
 		}
 	}
@@ -1352,7 +1356,7 @@ CPArtwork.ICPArtworkListener {
 			Point2D.Float pf = coordToDocument(p);
 
 			if (artwork.isPointWithin(pf.x, pf.y)) {
-				artwork.floodFill(pf.x, pf.y);
+				artwork.floodFill(pf.x, pf.y, controller.getColorDistance());
 				repaint();
 			}
 

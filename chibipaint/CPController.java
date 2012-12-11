@@ -45,8 +45,8 @@ public abstract class CPController implements ActionListener {
 	public CPCanvas canvas;
 
 	CPBrushInfo[] tools;
-	int curBrush = T_PENCIL;
-	int curMode = M_DRAW;
+	private int curBrush = T_PENCIL;
+	private int curMode = M_DRAW;
 
 	private LinkedList<ICPColorListener> colorListeners = new LinkedList();
 	private LinkedList<ICPToolListener> toolListeners = new LinkedList();
@@ -81,6 +81,9 @@ public abstract class CPController implements ActionListener {
 	public static final int M_MOVE_TOOL = 3;
 	public static final int M_ROTATE_CANVAS = 4;
 	public static final int M_MAX = 5;
+
+	// Setting for other modes than draw (probably should do different class for them)
+	private int colorDistance;
 
 	// Image loader cache
 	private Map<String, Image> imageCache = new HashMap<String, Image>();
@@ -179,37 +182,38 @@ public abstract class CPController implements ActionListener {
 	}
 
 	public void setBrushSize(int size) {
-		tools[curBrush].size = Math.max(1, Math.min(200, size));
+		tools[getCurBrush()].size = Math.max(1, Math.min(200, size));
 		callToolListeners();
 	}
 
 	public int getBrushSize() {
-		return tools[curBrush].size;
+		return tools[getCurBrush()].size;
 	}
 
 	public void setAlpha(int alpha) {
-		tools[curBrush].alpha = alpha;
+		tools[getCurBrush()].alpha = alpha;
 		callToolListeners();
 	}
 
 	public int getAlpha() {
-		return tools[curBrush].alpha;
+		return tools[getCurBrush()].alpha;
 	}
 
 	public void setTool(int tool) {
 		setMode(M_DRAW);
-		curBrush = tool;
+		setCurBrush(tool);
 		artwork.setBrush(tools[tool]);
 		callToolListeners();
 	}
 
 	public CPBrushInfo getBrushInfo() {
-		return tools[curBrush];
+		return tools[getCurBrush()];
 	}
 
 	public void setMode(int mode) {
-		curMode = mode;
+		setCurMode(mode);
 		callModeListeners();
+		callToolListeners(); // For updating mode settings if they exist
 	}
 
 	/*
@@ -304,15 +308,15 @@ public abstract class CPController implements ActionListener {
 		// Stroke modes
 
 		if (e.getActionCommand().equals("CPFreeHand")) {
-			tools[curBrush].strokeMode = CPBrushInfo.SM_FREEHAND;
+			tools[getCurBrush()].strokeMode = CPBrushInfo.SM_FREEHAND;
 			callToolListeners();
 		}
 		if (e.getActionCommand().equals("CPLine")) {
-			tools[curBrush].strokeMode = CPBrushInfo.SM_LINE;
+			tools[getCurBrush()].strokeMode = CPBrushInfo.SM_LINE;
 			callToolListeners();
 		}
 		if (e.getActionCommand().equals("CPBezier")) {
-			tools[curBrush].strokeMode = CPBrushInfo.SM_BEZIER;
+			tools[getCurBrush()].strokeMode = CPBrushInfo.SM_BEZIER;
 			callToolListeners();
 		}
 
@@ -506,7 +510,7 @@ public abstract class CPController implements ActionListener {
 
 	public void callToolListeners() {
 		for (ICPToolListener l : toolListeners) {
-			l.newTool(curBrush, tools[curBrush]);
+			l.newTool(getCurBrush(), tools[getCurBrush()]);
 		}
 	}
 
@@ -520,7 +524,7 @@ public abstract class CPController implements ActionListener {
 
 	public void callModeListeners() {
 		for (ICPModeListener l : modeListeners) {
-			l.modeChange(curMode);
+			l.modeChange(getCurMode());
 		}
 	}
 
@@ -654,5 +658,29 @@ public abstract class CPController implements ActionListener {
 
 	public boolean isRunningAsApplication() {
 		return this instanceof CPControllerApplication;
+	}
+
+	public int getCurMode() {
+		return curMode;
+	}
+
+	public void setCurMode(int curMode) {
+		this.curMode = curMode;
+	}
+
+	public int getColorDistance() {
+		return colorDistance;
+	}
+
+	public void setColorDistance(int colorDistance) {
+		this.colorDistance = colorDistance;
+	}
+
+	public int getCurBrush() {
+		return curBrush;
+	}
+
+	public void setCurBrush(int curBrush) {
+		this.curBrush = curBrush;
 	}
 }

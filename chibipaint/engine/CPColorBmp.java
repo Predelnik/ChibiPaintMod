@@ -265,7 +265,28 @@ public class CPColorBmp extends CPBitmap {
 		}
 	}
 
-	public void floodFill(int x, int y, int color, CPLayer useDataFrom) {
+	// we building metric in which our new color will always be counted as not near (so it passed in farAwayColor parameter)
+	public boolean is_colors_near (int color_1, int color_2, int mask, int distance, int farAwayColor)
+	{
+		int dist = 0;
+		if (color_1 == farAwayColor && color_2 == farAwayColor)
+			return true;
+		if (color_1 == farAwayColor)
+			return false;
+		if (color_2 == farAwayColor)
+			return false;
+
+		for (int i = 0; i < 4; i++)
+		{
+			dist += (Math.abs((color_1 & 0xFF) - (color_2 & 0xFF))) & (mask & 0xFF);
+			color_1 = color_1 >> 8;
+		color_2 = color_2 >> 8;
+		mask = mask >> 8;
+		}
+		return dist <= distance;
+	}
+
+	public void floodFill(int x, int y, int color, CPLayer useDataFrom, int distance) {
 		if (!isInside(x, y)) {
 			return;
 		}
@@ -315,15 +336,15 @@ public class CPColorBmp extends CPBitmap {
 			int lineOffset = line.y * width;
 
 			int left = line.x1, next;
-			while (left >= clip.left && (data[left + lineOffset] & colorMask) == oldColor
-					&& (useDataFrom.data[left + lineOffset] & dataColorMask) == dataOldColor)
+			while (left >= clip.left && is_colors_near (data[left + lineOffset], oldColor, colorMask, distance, color)
+					&& is_colors_near (useDataFrom.data[left + lineOffset], dataOldColor, dataColorMask, distance, color))
 			{
 				data[left + lineOffset] = color;
 				left--;
 			}
 			if (left >= line.x1) {
-				while (    left <= line.x2 && ((data[left + lineOffset] & colorMask) != oldColor
-						|| (useDataFrom.data[left + lineOffset] & dataColorMask) != dataOldColor)
+				while (    left <= line.x2 && (!is_colors_near (data[left + lineOffset], oldColor, colorMask, distance, color)
+						|| !is_colors_near (useDataFrom.data[left + lineOffset], dataOldColor, dataColorMask, distance, color))
 						) {
 					left++;
 				}
@@ -341,8 +362,8 @@ public class CPColorBmp extends CPBitmap {
 
 			do {
 				data[left + lineOffset] = color;
-				while (next < clip.right && (data[next + lineOffset] & colorMask) == oldColor
-						&& (useDataFrom.data[next + lineOffset] & dataColorMask) == dataOldColor) {
+				while (next < clip.right && is_colors_near (data[next + lineOffset], oldColor, colorMask, distance, color)
+						&& is_colors_near (useDataFrom.data[next + lineOffset], dataOldColor, dataColorMask, distance, color)) {
 					data[next + lineOffset] = color;
 					next++;
 				}
@@ -353,8 +374,8 @@ public class CPColorBmp extends CPBitmap {
 				}
 
 				left = next + 1;
-				while (left <= line.x2 && ((data[left + lineOffset] & colorMask) != oldColor
-						|| (useDataFrom.data[left + lineOffset] & dataColorMask) != dataOldColor)) {
+				while (left <= line.x2 && (!is_colors_near (data[left + lineOffset], oldColor, colorMask, distance, color)
+						|| !is_colors_near (useDataFrom.data[left + lineOffset], dataOldColor, dataColorMask, distance, color))) {
 					left++;
 				}
 

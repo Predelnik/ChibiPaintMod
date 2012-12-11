@@ -490,8 +490,8 @@ public class CPControllerApplication extends CPController {
 	void saveControllerSettings() {
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node("chibipaintmod");
-		preferences.putInt ("Mode", curMode);
-		preferences.putInt ("Brush", curBrush);
+		preferences.putInt ("Mode", getCurMode());
+		preferences.putInt ("Brush", getCurBrush());
 		for (int i = 0; i < T_MAX; i++) {
 			preferences.putInt("Tool " + String.valueOf(i) + " - Type",
 					tools[i].type);
@@ -519,12 +519,22 @@ public class CPControllerApplication extends CPController {
 		}
 	}
 
+	void loadUrgentSettings() {
+		// Settings that should be loaded before gui to avoid rewriting a lots of code
+		Preferences userRoot = Preferences.userRoot();
+		Preferences preferences = userRoot.node("chibipaintmod");
+		setMode (preferences.getInt ("Mode", getCurMode()));
+		if (getCurMode() == M_DRAW)
+			setTool (preferences.getInt ("Brush", getCurBrush()));
+	}
+
 	void loadControllerSettings() {
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node("chibipaintmod");
-		setMode (preferences.getInt ("Mode", curMode));
-		if (curMode == M_DRAW)
-			setTool (preferences.getInt ("Brush", curBrush));
+
+		setMode (preferences.getInt ("Mode", getCurMode())); // Note these settings reading two times
+		if (getCurMode() == M_DRAW)					         // Because we should set them one more time after enabling
+			setTool (preferences.getInt ("Brush", getCurBrush())); // of some canvas listeners
 
 		for (int i = 0; i < T_MAX; i++) {
 			tools[i].type = preferences.getInt("Tool " + String.valueOf(i)
