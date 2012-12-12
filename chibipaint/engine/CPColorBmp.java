@@ -268,7 +268,7 @@ public class CPColorBmp extends CPBitmap {
 	// we building metric in which our new color will always be counted as not near (so it passed in farAwayColor parameter)
 	public boolean is_colors_near (int color_1, int color_2, int mask, int distance, int farAwayColor)
 	{
-		int dist = 0;
+		int[] dist = new int[4];
 		if (color_1 == farAwayColor && color_2 == farAwayColor)
 			return true;
 		if (color_1 == farAwayColor)
@@ -276,14 +276,14 @@ public class CPColorBmp extends CPBitmap {
 		if (color_2 == farAwayColor)
 			return false;
 
-		for (int i = 0; i < 4; i++)
-		{
-			dist += (Math.abs((color_1 & 0xFF) - (color_2 & 0xFF))) & (mask & 0xFF);
+		for (int i = 0; i < 4; i++) {
+			dist[i] = (Math.abs((color_1 & 0xFF) - (color_2 & 0xFF))) & (mask & 0xFF);
 			color_1 = color_1 >> 8;
 		color_2 = color_2 >> 8;
 		mask = mask >> 8;
 		}
-		return dist <= distance;
+
+		return Math.max(dist[3], (dist[0] + dist[1] + dist[2]) * (1.0 / 3.0)) <= distance;
 	}
 
 	public void floodFill(int x, int y, int color, CPLayer useDataFrom, int distance) {

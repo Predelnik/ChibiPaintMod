@@ -345,7 +345,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 	class CPColorDistanceSlider extends CPSlider {
 
 		public CPColorDistanceSlider() {
-			super(255 * 4);
+			super(255);
 			minValue = 0;
 		}
 
