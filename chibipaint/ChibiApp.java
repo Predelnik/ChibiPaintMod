@@ -39,6 +39,7 @@ public class ChibiApp extends JFrame {
 	private static final long serialVersionUID = 1L;
 	CPControllerApplication controller;
 	CPMainGUI mainGUI;
+	boolean appIsBusy = false;
 
 	// Returns if it is ok to continue operation
 	boolean confirmDialog ()
@@ -89,6 +90,10 @@ public class ChibiApp extends JFrame {
 
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
+				while (appIsBusy) // Waiting while it would be safe exit (all changes saved)
+				{
+				}
+
 				if (!confirmDialog ())
 					return;
 
@@ -177,5 +182,9 @@ public class ChibiApp extends JFrame {
 		controller.canvas.loadCanvasSettings ();
 
 		setJMenuBar(mainGUI.getMenuBar());
+	}
+
+	public void setAppIsBusy(boolean value) {
+		appIsBusy = value;
 	}
 }

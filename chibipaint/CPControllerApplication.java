@@ -407,18 +407,10 @@ public class CPControllerApplication extends CPController {
 
 				preferences.put(recent_file_string(0),
 						selectedFile.getAbsolutePath());
-
-				// Adding name to frame title
-				setCurrentFile(selectedFile);
-
-				if (action == action_save_load.ACTION_SAVE) {
-					((ChibiApp) mainFrame).resetMainMenu();
-					setLatestAction(artwork.getUndoList().size() > 0 ? artwork
-							.getUndoList().getFirst() : null, artwork
-							.getRedoList().size() > 0 ? artwork.getRedoList()
-									.getFirst() : null);
-				}
 			}
+
+			if (action == action_save_load.ACTION_SAVE) // settting that app is busy so program won't exit until saving is done
+				((ChibiApp) mainFrame).setAppIsBusy (true);
 
 			switch (action) {
 			case ACTION_LOAD:
@@ -482,6 +474,19 @@ public class CPControllerApplication extends CPController {
 				}
 				break;
 			}
+
+			// Adding name to frame title
+			setCurrentFile(selectedFile);
+
+			if (action == action_save_load.ACTION_SAVE) {
+				((ChibiApp) mainFrame).resetMainMenu();
+				setLatestAction(artwork.getUndoList().size() > 0 ? artwork
+						.getUndoList().getFirst() : null, artwork
+						.getRedoList().size() > 0 ? artwork.getRedoList()
+								.getFirst() : null);
+				((ChibiApp) mainFrame).setAppIsBusy (false);
+			}
+
 			return true;
 		}
 		return false;
