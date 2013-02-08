@@ -186,5 +186,10 @@ public class ChibiApp extends JFrame {
 
 	public void setAppIsBusy(boolean value) {
 		appIsBusy = value;
+		controller.updateTitle ();
+	}
+
+	public boolean getAppIsBusy() {
+		return appIsBusy;
 	}
 }

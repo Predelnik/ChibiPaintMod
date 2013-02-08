@@ -94,13 +94,17 @@ public class CPControllerApplication extends CPController {
 		((ChibiApp) mainFrame).recreateEverything(newArtwork, file);
 	}
 
-	private void updateTitle() {
+	public void updateTitle() {
 		String titleString;
 		titleString = (changed ? "*" : "");
 		if (currentFile != null)
 			titleString += currentFile.getName() + " - ChibiPaintMod";
 		else
 			titleString += "Untitled - ChibiPaintMod";
+
+		// TODO: probably add some good visible progress bar
+		if (((ChibiApp) mainFrame).getAppIsBusy ())
+			titleString += " (Saving...)";
 		mainFrame.setTitle(titleString);
 	}
 
@@ -423,7 +427,9 @@ public class CPControllerApplication extends CPController {
 			}
 
 			if (action == action_save_load.ACTION_SAVE) // settting that app is busy so program won't exit until saving is done
+			{
 				((ChibiApp) mainFrame).setAppIsBusy (true);
+			}
 
 			switch (action) {
 			case ACTION_LOAD:
