@@ -277,7 +277,7 @@ public class CPXcfFile {
 							pos++;
 						pos--; // getting back where we were still identical / in array boundaries
 						// writing (pos - curPos + 1) identical bytes, 2 cases
-						if (pos - curPos + 1 <= 126) // short run of identical bytes
+						if (pos - curPos <= 126) // short run of identical bytes
 						{
 							os.write (pos - curPos); // -1, cause value will be repeated n+1 times actually
 							os.write (arr[curPos]);
