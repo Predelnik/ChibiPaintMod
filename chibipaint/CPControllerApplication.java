@@ -37,6 +37,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPChibiFile;
 import chibipaint.engine.CPUndo;
+import chibipaint.engine.CPXcfFile;
 import chibipaint.gui.CPMainGUI;
 
 public class CPControllerApplication extends CPController {
@@ -55,6 +56,10 @@ public class CPControllerApplication extends CPController {
 
 		if (e.getActionCommand().equals("CPSaveChi")) {
 			saveChi();
+		}
+
+		if (e.getActionCommand().equals("CPExportXcf")) {
+			saveXcf();
 		}
 
 		if (e.getActionCommand().equals("CPSave")) {
@@ -216,7 +221,7 @@ public class CPControllerApplication extends CPController {
 	}
 
 	public enum save_file_type {
-		PNG_FILE, CHI_FILE
+		PNG_FILE, CHI_FILE, XCF_FILE
 	};
 
 	public enum action_save_load {
@@ -225,6 +230,11 @@ public class CPControllerApplication extends CPController {
 
 	public boolean savePng() {
 		return saveLoadImageFile(save_file_type.PNG_FILE,
+				action_save_load.ACTION_SAVE, "");
+	}
+
+	public boolean saveXcf() {
+		return saveLoadImageFile(save_file_type.XCF_FILE,
 				action_save_load.ACTION_SAVE, "");
 	}
 
@@ -279,13 +289,15 @@ public class CPControllerApplication extends CPController {
 				if (getDialogType() == SAVE_DIALOG) {
 					String filePath = f.getPath();
 					String ext = "";
+					// TODO: rework this ifs to less terrible state
 					if (this.getChoosableFileFilters() [0].toString() == "ChibiPaint Files(*.chi)") {
 						ext = ".chi";
 					}
-					else
+					else if (this.getChoosableFileFilters() [0].toString() == "PNG Files(*.png)")
 					{
 						ext = ".png";
-					}
+					} else
+						ext = ".xcf";
 
 					if (!filePath.toLowerCase().endsWith(ext)) {
 						f = new File(filePath + ext);
@@ -326,6 +338,13 @@ public class CPControllerApplication extends CPController {
 									currentFile.getName().lastIndexOf('.'))));
 
 				break;
+			case XCF_FILE:
+				filter = new FileNameExtensionFilter("XCF Files(*.xcf)", "xcf");
+				if (currentFile != null)
+					fc.setSelectedFile(new File(currentFile.getName()
+							.substring(0,
+									currentFile.getName().lastIndexOf('.'))));
+				break;
 			}
 			fc.setAcceptAllFileFilterUsed(false);
 			fc.addChoosableFileFilter(filter);
@@ -358,6 +377,9 @@ public class CPControllerApplication extends CPController {
 					break;
 				case PNG_FILE:
 					ext = ".png";
+					break;
+				case XCF_FILE:
+					ext =".xcf";
 					break;
 				}
 
@@ -420,8 +442,7 @@ public class CPControllerApplication extends CPController {
 					try {
 						fos = new FileInputStream(selectedFile);
 					} catch (FileNotFoundException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						return false;
 					}
 					try {
 						CPArtwork artwork = CPChibiFile.read(fos);
@@ -437,12 +458,16 @@ public class CPControllerApplication extends CPController {
 					try {
 						fos.close();
 					} catch (IOException e2) {
-						// TODO Auto-generated catch block
-						e2.printStackTrace();
+						return false;
 					}
 					break;
 				case PNG_FILE:
 					// Do nothing for now
+					// TODO: add png reading (import)
+					break;
+				case XCF_FILE:
+					// Do nothing for now
+					// TODO: add xcf reading (import)
 					break;
 				}
 				break;
@@ -454,6 +479,22 @@ public class CPControllerApplication extends CPController {
 					CPChibiFile.write(chibiFileStream, artwork);
 					data = chibiFileStream.toByteArray();
 					break;
+				case XCF_FILE:
+					// For now Xcf works only with FileOutputStream
+					// TODO: unify this stuff
+					FileOutputStream fos;
+					try {
+						fos = new FileOutputStream(selectedFile);
+					} catch (FileNotFoundException e2) {
+						return false;
+					}
+					try {
+						CPXcfFile.write(fos, artwork);
+						fos.close();
+					} catch (IOException e) {
+						return false;
+					}
+					return true;
 				case PNG_FILE:
 					data = getPngData(canvas.img);
 					break;

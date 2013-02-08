@@ -125,12 +125,20 @@ public class CPMainGUI {
 
 			menu.add(new JSeparator());
 
+			// TODO: probably create menu with submenus named: export, import...
 			menuItem = new JMenuItem("Export as .png File...", KeyEvent.VK_E);
 			menuItem.getAccessibleContext().setAccessibleDescription(
 					"Save .png File");
 			menuItem.setActionCommand("CPSavePng");
 			menuItem.addActionListener(listener);
 			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+			menu.add(menuItem);
+
+			menuItem = new JMenuItem("Export as .xcf File...");
+			menuItem.getAccessibleContext().setAccessibleDescription(
+					"Save .xcf File");
+			menuItem.setActionCommand("CPExportXcf");
+			menuItem.addActionListener(listener);
 			menu.add(menuItem);
 
 			menu.add(new JSeparator());
