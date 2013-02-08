@@ -267,6 +267,8 @@ public class CPControllerApplication extends CPController {
 		return "Recent File[" + i + "]";
 	}
 
+	static String ext = "";
+
 	private boolean saveLoadImageFile(save_file_type type,
 			action_save_load action, String file_name) {
 
@@ -276,6 +278,17 @@ public class CPControllerApplication extends CPController {
 		String directoryName = preferences.get("lastDirectory", "");
 		File dir = new File(directoryName);
 
+		switch (type) {
+		case CHI_FILE:
+			ext = ".chi";
+			break;
+		case PNG_FILE:
+			ext = ".png";
+			break;
+		case XCF_FILE:
+			ext =".xcf";
+			break;
+		}
 
 		final JFileChooser fc = new JFileChooser(dir) {
 			/**
@@ -288,16 +301,6 @@ public class CPControllerApplication extends CPController {
 				File f = getSelectedFile();
 				if (getDialogType() == SAVE_DIALOG) {
 					String filePath = f.getPath();
-					String ext = "";
-					// TODO: rework this ifs to less terrible state
-					if (this.getChoosableFileFilters() [0].toString() == "ChibiPaint Files(*.chi)") {
-						ext = ".chi";
-					}
-					else if (this.getChoosableFileFilters() [0].toString() == "PNG Files(*.png)")
-					{
-						ext = ".png";
-					} else
-						ext = ".xcf";
 
 					if (!filePath.toLowerCase().endsWith(ext)) {
 						f = new File(filePath + ext);
@@ -370,18 +373,6 @@ public class CPControllerApplication extends CPController {
 
 			if (action == action_save_load.ACTION_SAVE) {
 				String filePath = selectedFile.getPath();
-				String ext = "";
-				switch (type) {
-				case CHI_FILE:
-					ext = ".chi";
-					break;
-				case PNG_FILE:
-					ext = ".png";
-					break;
-				case XCF_FILE:
-					ext =".xcf";
-					break;
-				}
 
 				if (!filePath.toLowerCase().endsWith(ext)) {
 					selectedFile = new File(filePath + ext);
