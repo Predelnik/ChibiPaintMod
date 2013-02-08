@@ -491,7 +491,9 @@ public class CPControllerApplication extends CPController {
 					try {
 						CPXcfFile.write(fos, artwork);
 						fos.close();
+						((ChibiApp) mainFrame).setAppIsBusy (false);
 					} catch (IOException e) {
+						((ChibiApp) mainFrame).setAppIsBusy (false);
 						return false;
 					}
 					return true;
@@ -504,15 +506,17 @@ public class CPControllerApplication extends CPController {
 					fos = new FileOutputStream(selectedFile);
 				} catch (FileNotFoundException e1) {
 					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					((ChibiApp) mainFrame).setAppIsBusy (false);
+					return false;
 				}
 				try {
 					fos.write(data);
 					fos.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					((ChibiApp) mainFrame).setAppIsBusy (false);
+					return false;
 				}
+				((ChibiApp) mainFrame).setAppIsBusy (false);
 				break;
 			}
 
