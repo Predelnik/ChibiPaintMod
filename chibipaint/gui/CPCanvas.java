@@ -190,7 +190,7 @@ CPArtwork.ICPArtworkListener {
 		if (!oldJTabletUsed)
 		{
 			TabletListener eventHandler = new TabletAdapter() {
-				public synchronized void cursorMoved(TabletEvent e) {
+				public void cursorMoved(TabletEvent e) {
 					cursorX = e.getX ();
 					cursorY = e.getY ();
 					TabletDevice device = e.getDevice();
@@ -202,13 +202,8 @@ CPArtwork.ICPArtworkListener {
 
 					activeMode.cursorMoveAction ();
 				};
-				public void cursorEntered(TabletEvent e) {
-					cursorIn = true;
-				}
 
 				public void cursorExited(TabletEvent e) {
-					cursorIn = false;
-					repaint();
 				}
 
 				public void cursorPressed(TabletEvent e) {
@@ -236,8 +231,24 @@ CPArtwork.ICPArtworkListener {
 				}
 
 			};
+			// This stuff is to fix bug with not disappearing brush preview while moving cursor on widgets while
+			// using tablet
+			// It's bug of nature unknown to me, that's why I fixed it in a little confusing kind of way.
+			// TODO: Maybe fix it a better.
 			TabletManager manager = TabletManager.getDefaultManager();
 			manager.addTabletListener(this, eventHandler);
+			addMouseListener(new MouseAdapter() {
+				public void mouseExited(MouseEvent me) {
+					cursorIn = false;
+					brushPreview = false;
+					repaint ();
+				}
+				public void mouseEntered(MouseEvent me) {
+					brushPreview = true;
+					cursorIn = true;
+				}
+			}
+					);
 		}
 	}
 
@@ -1052,9 +1063,9 @@ CPArtwork.ICPArtworkListener {
 			if (brushPreview && curSelectedMode == curDrawMode) {
 				brushPreview = false;
 
-				Rectangle r = getBrushPreviewOval(false);
+				Rectangle r;
+				r = getBrushPreviewOval(false);
 				g2d.drawOval(r.x, r.y, r.width, r.height);
-
 				r.grow(2, 2);
 				oldPreviewRect = oldPreviewRect != null ? r.union(oldPreviewRect) : r;
 			}
@@ -1062,7 +1073,7 @@ CPArtwork.ICPArtworkListener {
 
 		public void cursorMoveAction () {
 			Point p = new Point (cursorX, cursorY);
-			if (!spacePressed) {
+			if (!spacePressed && cursorIn) {
 				brushPreview = true;
 
 				Rectangle r = getBrushPreviewOval(false);
