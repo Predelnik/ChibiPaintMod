@@ -1030,6 +1030,8 @@ CPArtwork.ICPArtworkListener {
 
 				if (!artwork.getActiveLayer().visible && curSelectedMode != rotateCanvasMode
 						&& curSelectedMode != rectSelectionMode) {
+					brushPreview = false;
+					repaintBrushPreview ();
 					return; // don't draw on a hidden layer
 				}
 				repaintBrushPreview();
