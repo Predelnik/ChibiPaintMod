@@ -19,13 +19,18 @@
 
  */
 
-package chibipaint.engine;
+package chibipaint.file;
 
 import java.io.*;
 import java.util.*;
 import java.util.zip.*;
 
-public class CPChibiFile {
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import chibipaint.engine.CPArtwork;
+import chibipaint.engine.CPLayer;
+
+public class CPChibiFile extends CPAbstractFile {
 
 	protected static final byte CHIB[] = { 67, 72, 73, 66 };
 	protected static final byte IOEK[] = { 73, 79, 69, 75 };
@@ -33,7 +38,18 @@ public class CPChibiFile {
 	protected static final byte LAYR[] = { 76, 65, 89, 82 };
 	protected static final byte ZEND[] = { 90, 69, 78, 68 };
 
-	static public boolean write(OutputStream os, CPArtwork a) {
+	@Override
+	public boolean isNative ()
+	{
+		return true; // One and only
+	}
+	@Override
+	public FileNameExtensionFilter fileFilter ()
+	{
+		return new FileNameExtensionFilter ("ChibiPaint Files(*.chi)", "chi");
+	}
+	@Override
+	public boolean write(OutputStream os, CPArtwork a) {
 		try {
 			writeMagic(os);
 			os.flush();
@@ -44,7 +60,7 @@ public class CPChibiFile {
 
 			writeHeader(dos, a);
 
-			for (Object l : a.layers) {
+			for (Object l : a.getLayersVector()) {
 				writeLayer(dos, (CPLayer) l);
 			}
 
@@ -113,7 +129,8 @@ public class CPChibiFile {
 		writeIntArray(os, l.data);
 	}
 
-	static public CPArtwork read(InputStream is) {
+	@Override
+	public CPArtwork read(InputStream is) {
 		try {
 			if (!readMagic(is)) {
 				return null; // not a ChibiPaint file
@@ -131,7 +148,7 @@ public class CPChibiFile {
 			}
 
 			CPArtwork a = new CPArtwork(header.width, header.height);
-			a.layers.remove(0); // FIXME: it would be better not to have created it in the first place
+			a.getLayersVector().remove(0); // FIXME: it would be better not to have created it in the first place
 
 			while (true) {
 				chunk = new CPChibiChunk(iis);
@@ -169,11 +186,11 @@ public class CPChibiFile {
 		l.name = new String(title, "UTF-8");
 
 		realSkip(is, offset - 20 - titleLength);
-		readIntArray(is, l.data, l.width * l.height);
+		readIntArray(is, l.data, l.getWidth() * l.getHeight());
 
-		a.layers.add(l);
+		a.getLayersVector().add(l);
 
-		realSkip(is, chunk.chunkSize - offset - l.width * l.height * 4);
+		realSkip(is, chunk.chunkSize - offset - l.getWidth() * l.getHeight() * 4);
 	}
 
 	static private void readIntArray(InputStream is, int[] intArray, int size) throws IOException {
@@ -261,6 +278,11 @@ public class CPChibiFile {
 
 			realSkip(is, chunk.chunkSize - 16);
 		}
+	}
+
+	@Override
+	public String ext() {
+		return "CHI";
 	}
 
 }

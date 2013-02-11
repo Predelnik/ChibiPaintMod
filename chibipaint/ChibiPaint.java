@@ -30,6 +30,7 @@ import javax.imageio.*;
 import javax.swing.*;
 
 import chibipaint.engine.*;
+import chibipaint.file.CPChibiFile;
 import chibipaint.gui.*;
 
 public class ChibiPaint extends JApplet {
@@ -102,7 +103,8 @@ public class ChibiPaint extends JApplet {
 				URLConnection connec = url.openConnection();
 				connec.setUseCaches(false); // Bypassing the cache is important
 
-				artwork = CPChibiFile.read(connec.getInputStream());
+				CPChibiFile file = new CPChibiFile ();
+				artwork = file.read(connec.getInputStream());
 				w = artwork.width;
 				h = artwork.height;
 			} catch (Exception ignored) {

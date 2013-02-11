@@ -30,6 +30,7 @@ import java.util.prefs.Preferences;
 import javax.swing.*;
 
 import chibipaint.*;
+import chibipaint.file.CPAbstractFile;
 
 public class CPMainGUI {
 
@@ -125,24 +126,6 @@ public class CPMainGUI {
 
 			menu.add(new JSeparator());
 
-			// TODO: probably create menu with submenus named: export, import...
-			menuItem = new JMenuItem("Export as .png File...", KeyEvent.VK_E);
-			menuItem.getAccessibleContext().setAccessibleDescription(
-					"Save .png File");
-			menuItem.setActionCommand("CPSavePng");
-			menuItem.addActionListener(listener);
-			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
-			menu.add(menuItem);
-
-			menuItem = new JMenuItem("Export as .xcf File...");
-			menuItem.getAccessibleContext().setAccessibleDescription(
-					"Save .xcf File");
-			menuItem.setActionCommand("CPExportXcf");
-			menuItem.addActionListener(listener);
-			menu.add(menuItem);
-
-			menu.add(new JSeparator());
-
 			menuItem = new JMenuItem("Save", KeyEvent.VK_S);
 			menuItem.getAccessibleContext().setAccessibleDescription(
 					"Save File");
@@ -154,7 +137,7 @@ public class CPMainGUI {
 			menuItem = new JMenuItem("Save as...", KeyEvent.VK_A);
 			menuItem.getAccessibleContext().setAccessibleDescription(
 					"Save .chi File");
-			menuItem.setActionCommand("CPSaveChi");
+			menuItem.setActionCommand("CPSaveCHI");
 			menuItem.addActionListener(listener);
 			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
 			menu.add(menuItem);
@@ -162,7 +145,7 @@ public class CPMainGUI {
 			menuItem = new JMenuItem("Open...", KeyEvent.VK_L);
 			menuItem.getAccessibleContext().setAccessibleDescription(
 					"Open .chi File");
-			menuItem.setActionCommand("CPLoadChi");
+			menuItem.setActionCommand("CPLoadCHI");
 			menuItem.addActionListener(listener);
 			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
 			menu.add(menuItem);
@@ -191,6 +174,52 @@ public class CPMainGUI {
 
 			if (recent_file_num > 0)
 				menu.add (submenu);
+
+			menu.addSeparator();
+
+			String []supportedExts = CPAbstractFile.getSupportedExtensions();
+			submenu = new JMenu("Import");
+			CPAbstractFile file;
+			for (int i = 0; i < supportedExts.length; i++)
+			{
+				file = CPAbstractFile.fromExtension(supportedExts[i]);
+				if (file.isNative())
+					continue;
+
+				menuItem = new JMenuItem(supportedExts[i].toUpperCase() + " File...");
+				menuItem.getAccessibleContext().setAccessibleDescription("Import " + supportedExts[i].toUpperCase() + "Files");
+				menuItem.setActionCommand("CPLoad" + supportedExts[i].toUpperCase());
+				menuItem.addActionListener(listener);
+				submenu.add(menuItem);
+			}
+
+			menu.add (submenu);
+
+			submenu = new JMenu("Export");
+			for (int i = 0; i < supportedExts.length; i++)
+			{
+				file = CPAbstractFile.fromExtension(supportedExts[i]);
+				if (file.isNative())
+					continue;
+
+				menuItem = new JMenuItem(supportedExts[i].toUpperCase() + " File...");
+				menuItem.getAccessibleContext().setAccessibleDescription("Export " + supportedExts[i].toUpperCase() + "Files");
+				menuItem.setActionCommand("CPSave" + supportedExts[i].toUpperCase());
+				menuItem.addActionListener(listener);
+				submenu.add(menuItem);
+			}
+
+			menu.add (submenu);
+
+			menu.addSeparator ();
+
+			menuItem = new JMenuItem("Exit", KeyEvent.VK_E);
+			menuItem.getAccessibleContext().setAccessibleDescription(
+					"Exit the application");
+			menuItem.setActionCommand("CPExit");
+			menuItem.addActionListener(listener);
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
+			menu.add(menuItem);
 		}
 
 		//

@@ -23,7 +23,6 @@ package chibipaint;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -35,10 +34,8 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import chibipaint.engine.CPArtwork;
-import chibipaint.engine.CPChibiFile;
 import chibipaint.engine.CPUndo;
-import chibipaint.engine.CPXcfFile;
-import chibipaint.gui.CPMainGUI;
+import chibipaint.file.CPAbstractFile;
 
 public class CPControllerApplication extends CPController {
 
@@ -50,25 +47,20 @@ public class CPControllerApplication extends CPController {
 	boolean changed;
 
 	public void actionPerformed(ActionEvent e) {
-		if (e.getActionCommand().equals("CPSavePng")) {
-			savePng();
+		// Let's generate appropriate command reaction for everything
+		String[] supportedExts = CPAbstractFile.getSupportedExtensions();
+		for (int i = 0; i < supportedExts.length; i++)
+		{
+			if (e.getActionCommand().equals ("CPSave" + supportedExts[i].toUpperCase()))
+				saveLoadImageFile (supportedExts[i], action_save_load.ACTION_SAVE, "");
+
+			if (e.getActionCommand().equals ("CPLoad" + supportedExts[i].toUpperCase()))
+				saveLoadImageFile (supportedExts[i], action_save_load.ACTION_LOAD, "");
 		}
 
-		if (e.getActionCommand().equals("CPSaveChi")) {
-			saveChi();
-		}
-
-		if (e.getActionCommand().equals("CPExportXcf")) {
-			saveXcf();
-		}
-
-		if (e.getActionCommand().equals("CPSave")) {
-			save();
-		}
-
-		if (e.getActionCommand().equals("CPLoadChi")) {
-			loadChi();
-		}
+		// Here we explicitly point that chi extension is native though, it's a little bit bad
+		if (e.getActionCommand().equals ("CPSave"))
+			save ();
 
 		if (e.getActionCommand().equals("CPNew")) {
 			newDialog();
@@ -80,6 +72,11 @@ public class CPControllerApplication extends CPController {
 			openRecent(num);
 		}
 		super.actionPerformed(e);
+	}
+
+	public boolean save ()
+	{
+		return saveLoadImageFile ("chi", action_save_load.ACTION_SAVE, getCurrentFile () != null ? getCurrentFile ().getAbsolutePath () : "");
 	}
 
 	public CPControllerApplication(JFrame mainFrame) {
@@ -182,7 +179,7 @@ public class CPControllerApplication extends CPController {
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node("chibipaintmod");
 		String recentFileName = preferences.get(recent_file_string(index), "");
-		saveLoadImageFile(Saveload_file_type.CHI_FILE,
+		saveLoadImageFile("CHI",
 				action_save_load.ACTION_LOAD, recentFileName);
 	}
 
@@ -224,75 +221,24 @@ public class CPControllerApplication extends CPController {
 		}
 	}
 
-	public enum Saveload_file_type {
-		PNG_FILE, CHI_FILE, XCF_FILE
-	};
-
 	public enum action_save_load {
 		ACTION_SAVE, ACTION_LOAD
 	}
-
-	public boolean savePng() {
-		return saveLoadImageFile(Saveload_file_type.PNG_FILE,
-				action_save_load.ACTION_SAVE, "");
-	}
-
-	public boolean saveXcf() {
-		return saveLoadImageFile(Saveload_file_type.XCF_FILE,
-				action_save_load.ACTION_SAVE, "");
-	}
-
-	public boolean save() {
-		if (getCurrentFile() != null)
-		{
-			if (!changed) // Nothing to do in that case
-				return true;
-
-			return saveLoadImageFile(Saveload_file_type.CHI_FILE,
-					action_save_load.ACTION_SAVE, getCurrentFile()
-					.getAbsolutePath());
-		}
-		else
-			return saveLoadImageFile(Saveload_file_type.CHI_FILE,
-					action_save_load.ACTION_SAVE, "");
-	}
-
-	public boolean saveChi() {
-		return saveLoadImageFile(Saveload_file_type.CHI_FILE,
-				action_save_load.ACTION_SAVE, "");
-	}
-
-	public boolean loadChi() {
-		return saveLoadImageFile(Saveload_file_type.CHI_FILE,
-				action_save_load.ACTION_LOAD, "");
-	}
-
 	static String recent_file_string(int i) {
 		return "Recent File[" + i + "]";
 	}
 
-	static String ext = "";
-
-	private boolean saveLoadImageFile(Saveload_file_type type,
+	// file_name used only in recent files handling, very scarce use actually
+	private boolean saveLoadImageFile(final String ext, // Extension characterizes type of file
 			action_save_load action, String file_name) {
+
+		CPAbstractFile file = CPAbstractFile.fromExtension (ext);
 
 		int returnVal = JFileChooser.CANCEL_OPTION;
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node("chibipaintmod");
 		String directoryName = preferences.get("lastDirectory", "");
 		File dir = new File(directoryName);
-
-		switch (type) {
-		case CHI_FILE:
-			ext = ".chi";
-			break;
-		case PNG_FILE:
-			ext = ".png";
-			break;
-		case XCF_FILE:
-			ext =".xcf";
-			break;
-		}
 
 		final JFileChooser fc = new JFileChooser(dir) {
 			/**
@@ -307,7 +253,7 @@ public class CPControllerApplication extends CPController {
 					String filePath = f.getPath();
 
 					if (!filePath.toLowerCase().endsWith(ext)) {
-						f = new File(filePath + ext);
+						f = new File(filePath + "." + ext);
 					}
 					if (f.exists())
 					{
@@ -332,26 +278,12 @@ public class CPControllerApplication extends CPController {
 		if (file_name == "") {
 
 			FileNameExtensionFilter filter = null;
-			switch (type) {
-			case CHI_FILE:
-				filter = new FileNameExtensionFilter("ChibiPaint Files(*.chi)",
-						"chi");
-				break;
-			case PNG_FILE:
-				filter = new FileNameExtensionFilter("PNG Files(*.png)", "png");
-				if (currentFile != null)
-					fc.setSelectedFile(new File(currentFile.getName()
-							.substring(0,
-									currentFile.getName().lastIndexOf('.'))));
-
-				break;
-			case XCF_FILE:
-				filter = new FileNameExtensionFilter("XCF Files(*.xcf)", "xcf");
-				if (currentFile != null)
-					fc.setSelectedFile(new File(currentFile.getName()
-							.substring(0,
-									currentFile.getName().lastIndexOf('.'))));
-				break;
+			filter = file.fileFilter ();
+			if (!file.isNative() && currentFile != null)
+			{
+				fc.setSelectedFile(new File(currentFile.getName()
+						.substring(0,
+								currentFile.getName().lastIndexOf('.'))));
 			}
 			fc.setAcceptAllFileFilterUsed(false);
 			fc.addChoosableFileFilter(filter);
@@ -379,13 +311,11 @@ public class CPControllerApplication extends CPController {
 				String filePath = selectedFile.getPath();
 
 				if (!filePath.toLowerCase().endsWith(ext)) {
-					selectedFile = new File(filePath + ext);
+					selectedFile = new File(filePath + "." + ext);
 				}
 			}
 
 			preferences.put("lastDirectory", selectedFile.getParent());
-			byte[] data = null;
-
 			// Writing file to recent
 
 			if (action == action_save_load.ACTION_LOAD
@@ -400,7 +330,7 @@ public class CPControllerApplication extends CPController {
 				return false;
 			}
 
-			if (type == Saveload_file_type.CHI_FILE) {
+			if (file.isNative ()) {
 				Boolean found = false;
 				for (int i = 0; i < 10; i++) {
 					String file_name_from_list = preferences.get("Recent File["
@@ -433,106 +363,89 @@ public class CPControllerApplication extends CPController {
 
 			switch (action) {
 			case ACTION_LOAD:
-				switch (type) {
-				case CHI_FILE:
-					FileInputStream fos = null;
+				try {
+					FileInputStream fos;
 					try {
 						fos = new FileInputStream(selectedFile);
-					} catch (FileNotFoundException e1) {
+					} catch (FileNotFoundException e) {
 						return false;
 					}
-					try {
-						CPArtwork artwork = CPChibiFile.read(fos);
-						setLatestAction (null, null);
-						resetEverything(artwork, selectedFile);
-					} catch (OutOfMemoryError E) {
+					CPArtwork artwork = file.read(fos);
+					if (artwork == null)
+					{
 						JOptionPane
 						.showMessageDialog(
 								mainFrame,
-								"Sorry, not Enough Memory. Please restart the application or try to use lesser image size.");
-					}
-
-					try {
-						fos.close();
-					} catch (IOException e2) {
+								"Sorry, but this type of action is probably unsupported");
 						return false;
 					}
-					break;
-				case PNG_FILE:
-					// Do nothing for now
-					// TODO: add png reading (import)
-					break;
-				case XCF_FILE:
-					// Do nothing for now
-					// TODO: add xcf reading (import)
-					break;
+					try {
+						fos.close();
+					} catch (IOException e) {
+						return false;
+					}
+					setLatestAction (null, null);
+					resetEverything(artwork, selectedFile);
+				}
+				catch (OutOfMemoryError E) {
+					JOptionPane
+					.showMessageDialog(
+							mainFrame,
+							"Sorry, not Enough Memory. Please restart the application or try to use lesser image size.");
+					return false;
 				}
 				break;
 			case ACTION_SAVE:
-				switch (type) {
-				case CHI_FILE:
-					ByteArrayOutputStream chibiFileStream = new ByteArrayOutputStream(
-							1024);
-					CPChibiFile.write(chibiFileStream, artwork);
-					data = chibiFileStream.toByteArray();
-					break;
-				case XCF_FILE:
-					// For now Xcf works only with FileOutputStream
-					// TODO: unify this stuff
-					FileOutputStream fos;
-					try {
-						fos = new FileOutputStream(selectedFile);
-					} catch (FileNotFoundException e2) {
-						return false;
-					}
-					try {
-						CPXcfFile.write(fos, artwork);
-						fos.close();
-						((ChibiApp) mainFrame).setAppIsBusy (false);
-					} catch (IOException e) {
-						((ChibiApp) mainFrame).setAppIsBusy (false);
-						return false;
-					}
-					return true;
-				case PNG_FILE:
-					data = getPngData(canvas.img);
-					break;
-				}
-				FileOutputStream fos = null;
+				FileOutputStream fos;
 				try {
 					fos = new FileOutputStream(selectedFile);
-				} catch (FileNotFoundException e1) {
-					// TODO Auto-generated catch block
-					((ChibiApp) mainFrame).setAppIsBusy (false);
+				} catch (FileNotFoundException e2) {
 					return false;
 				}
 				try {
-					fos.write(data);
+					boolean result = file.write(fos, artwork);
+					if (!result)
+					{
+						JOptionPane
+						.showMessageDialog(
+								mainFrame,
+								"Sorry, but this type of action is probably unsupported");
+						((ChibiApp) mainFrame).setAppIsBusy (false);
+						return false;
+					}
 					fos.close();
+					((ChibiApp) mainFrame).setAppIsBusy (false);
 				} catch (IOException e) {
 					((ChibiApp) mainFrame).setAppIsBusy (false);
 					return false;
 				}
-				((ChibiApp) mainFrame).setAppIsBusy (false);
 				break;
 			}
 
 			// Adding name to frame title
-			if (type == Saveload_file_type.CHI_FILE)
-			setCurrentFile(selectedFile);
+			if (file.isNative ())
+			{
+				setCurrentFile(selectedFile);
 
-			if (action == action_save_load.ACTION_SAVE) {
-				((ChibiApp) mainFrame).resetMainMenu();
-				setLatestAction(artwork.getUndoList().size() > 0 ? artwork
-						.getUndoList().getFirst() : null, artwork
-						.getRedoList().size() > 0 ? artwork.getRedoList()
-								.getFirst() : null);
-				((ChibiApp) mainFrame).setAppIsBusy (false);
+				if (action == action_save_load.ACTION_SAVE) {
+					((ChibiApp) mainFrame).resetMainMenu();
+					setLatestAction(artwork.getUndoList().size() > 0 ? artwork
+							.getUndoList().getFirst() : null, artwork
+							.getRedoList().size() > 0 ? artwork.getRedoList()
+									.getFirst() : null);
+					((ChibiApp) mainFrame).setAppIsBusy (false);
+				}
+			}
+			else if (action == action_save_load.ACTION_LOAD) // If native file is loaded image should turn to untitled
+			{
+
+				setCurrentFile (null);
+				setLatestAction (null, null);
 			}
 
 			return true;
 		}
-		return false;
+		return true; // Actually that's ok behaviour, just cancel was pressed
 	}
 
 	void saveControllerSettings() {

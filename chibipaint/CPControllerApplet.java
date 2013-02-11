@@ -30,6 +30,7 @@ import java.net.*;
 import javax.swing.*;
 
 import chibipaint.engine.*;
+import chibipaint.file.CPChibiFile;
 
 public class CPControllerApplet extends CPController {
 
@@ -90,7 +91,8 @@ public class CPControllerApplet extends CPController {
 
 		// The ChibiPaint file data
 		ByteArrayOutputStream chibiFileStream = new ByteArrayOutputStream(1024);
-		CPChibiFile.write(chibiFileStream, artwork);
+		CPChibiFile file = new CPChibiFile ();
+		file.write(chibiFileStream, artwork);
 		byte[] chibiData = chibiFileStream.toByteArray();
 
 		boolean sendLayers;
@@ -107,7 +109,7 @@ public class CPControllerApplet extends CPController {
 								+ "Choose 'Yes' to send both files. (recommended)\n"
 								+ "Choose 'No' to send the finished picture only.\n"
 								+ "Choose 'Cancel' if you wish to continue editing your picture without sending it.\n\n",
-						"Send Oekaki", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+								"Send Oekaki", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 
 		if (choice == JOptionPane.YES_OPTION) {
 			sendLayers = true;
