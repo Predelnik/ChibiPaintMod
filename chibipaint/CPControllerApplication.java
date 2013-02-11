@@ -182,7 +182,7 @@ public class CPControllerApplication extends CPController {
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node("chibipaintmod");
 		String recentFileName = preferences.get(recent_file_string(index), "");
-		saveLoadImageFile(save_file_type.CHI_FILE,
+		saveLoadImageFile(Saveload_file_type.CHI_FILE,
 				action_save_load.ACTION_LOAD, recentFileName);
 	}
 
@@ -224,7 +224,7 @@ public class CPControllerApplication extends CPController {
 		}
 	}
 
-	public enum save_file_type {
+	public enum Saveload_file_type {
 		PNG_FILE, CHI_FILE, XCF_FILE
 	};
 
@@ -233,12 +233,12 @@ public class CPControllerApplication extends CPController {
 	}
 
 	public boolean savePng() {
-		return saveLoadImageFile(save_file_type.PNG_FILE,
+		return saveLoadImageFile(Saveload_file_type.PNG_FILE,
 				action_save_load.ACTION_SAVE, "");
 	}
 
 	public boolean saveXcf() {
-		return saveLoadImageFile(save_file_type.XCF_FILE,
+		return saveLoadImageFile(Saveload_file_type.XCF_FILE,
 				action_save_load.ACTION_SAVE, "");
 	}
 
@@ -248,22 +248,22 @@ public class CPControllerApplication extends CPController {
 			if (!changed) // Nothing to do in that case
 				return true;
 
-			return saveLoadImageFile(save_file_type.CHI_FILE,
+			return saveLoadImageFile(Saveload_file_type.CHI_FILE,
 					action_save_load.ACTION_SAVE, getCurrentFile()
 					.getAbsolutePath());
 		}
 		else
-			return saveLoadImageFile(save_file_type.CHI_FILE,
+			return saveLoadImageFile(Saveload_file_type.CHI_FILE,
 					action_save_load.ACTION_SAVE, "");
 	}
 
 	public boolean saveChi() {
-		return saveLoadImageFile(save_file_type.CHI_FILE,
+		return saveLoadImageFile(Saveload_file_type.CHI_FILE,
 				action_save_load.ACTION_SAVE, "");
 	}
 
 	public boolean loadChi() {
-		return saveLoadImageFile(save_file_type.CHI_FILE,
+		return saveLoadImageFile(Saveload_file_type.CHI_FILE,
 				action_save_load.ACTION_LOAD, "");
 	}
 
@@ -273,7 +273,7 @@ public class CPControllerApplication extends CPController {
 
 	static String ext = "";
 
-	private boolean saveLoadImageFile(save_file_type type,
+	private boolean saveLoadImageFile(Saveload_file_type type,
 			action_save_load action, String file_name) {
 
 		int returnVal = JFileChooser.CANCEL_OPTION;
@@ -400,7 +400,7 @@ public class CPControllerApplication extends CPController {
 				return false;
 			}
 
-			if (type == save_file_type.CHI_FILE) {
+			if (type == Saveload_file_type.CHI_FILE) {
 				Boolean found = false;
 				for (int i = 0; i < 10; i++) {
 					String file_name_from_list = preferences.get("Recent File["
@@ -518,6 +518,7 @@ public class CPControllerApplication extends CPController {
 			}
 
 			// Adding name to frame title
+			if (type == Saveload_file_type.CHI_FILE)
 			setCurrentFile(selectedFile);
 
 			if (action == action_save_load.ACTION_SAVE) {
