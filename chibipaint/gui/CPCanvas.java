@@ -25,16 +25,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.*;
+import java.lang.reflect.Method;
 import java.util.prefs.Preferences;
 
 import javax.swing.*;
 
-import cello.jtablet.TabletDevice;
-import cello.jtablet.TabletManager;
-import cello.jtablet.event.TabletAdapter;
-import cello.jtablet.event.TabletEvent;
-import cello.jtablet.event.TabletListener;
-import cello.jtablet.installer.JTabletExtension;
 import chibipaint.*;
 import chibipaint.engine.*;
 import chibipaint.util.*;
@@ -42,6 +37,11 @@ import chibipaint.util.*;
 public class CPCanvas extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener,
 ComponentListener, KeyListener, CPController.ICPToolListener, CPController.ICPModeListener,
 CPArtwork.ICPArtworkListener {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	CPController controller;
 
@@ -65,9 +65,11 @@ CPArtwork.ICPArtworkListener {
 	boolean applyToAllLayers = false;
 	boolean interpolation = false;
 
-	int cursorX, cursorY;
-	int modifiers;
-	int button;
+	private int cursorX;
+
+	private int cursorY;
+	private int modifiers;
+	private int button;
 
 	boolean brushPreview = false;
 	Rectangle oldPreviewRect;
@@ -75,7 +77,7 @@ CPArtwork.ICPArtworkListener {
 	Cursor defaultCursor, hideCursor, moveCursor, crossCursor;
 	boolean cursorIn;
 
-	boolean dontStealFocus = false;
+	private boolean dontStealFocus = false;
 
 	// Grid options
 
@@ -101,7 +103,7 @@ CPArtwork.ICPArtworkListener {
 
 	CPMode curDrawMode = drawingModes[CPBrushInfo.SM_FREEHAND];
 	CPMode curSelectedMode = curDrawMode;
-	CPMode activeMode = defaultMode;
+	private CPMode activeMode = defaultMode;
 
 	// Container with scrollbars
 	JPanel container;
@@ -110,7 +112,7 @@ CPArtwork.ICPArtworkListener {
 	// Are we using old JTable or 1.2
 	boolean oldJTabletUsed;
 
-	float lastPressure;
+	private float lastPressure;
 
 	public void setArtwork(CPArtwork artwork) {
 		this.artwork = artwork;
@@ -164,7 +166,24 @@ CPArtwork.ICPArtworkListener {
 		 * escapeAction);
 		 */
 
-		oldJTabletUsed = !JTabletExtension.checkCompatibility(this, "1.2.0");
+		Class<?> JTabletExtensionClass;
+		try {
+			JTabletExtensionClass = Class.forName ("cello.jtablet.installer.JTabletExtension");
+			try {
+				Class<?>[] params = new Class[2];
+				params[0] = Component.class;
+				params[1] = String.class;
+				Method checkCompatibility = JTabletExtensionClass.getMethod("checkCompatibility", params);
+				oldJTabletUsed = ! (((Boolean) checkCompatibility.invoke(JTabletExtensionClass, this, "1.2.0")).booleanValue ());
+			}
+			catch (Exception e)
+			{
+				System.out.format("Error during loading of JTablet 1.2");
+				System.exit (1);
+			}
+		} catch (ClassNotFoundException e) {
+			oldJTabletUsed = true;
+		}
 
 		// register as a listener for Mouse & MouseMotion events
 		if (oldJTabletUsed) // Otherwise listening of these events would be done by JTablet itself
@@ -189,54 +208,12 @@ CPArtwork.ICPArtworkListener {
 
 		if (!oldJTabletUsed)
 		{
-			TabletListener eventHandler = new TabletAdapter() {
-				public void cursorMoved(TabletEvent e) {
-					cursorX = e.getX ();
-					cursorY = e.getY ();
-					TabletDevice device = e.getDevice();
-					lastPressure = (device == null || device.getPressureSupport() != TabletDevice.Support.YES)  ? 1.0f : e.getPressure ();
 
-					if (!dontStealFocus) {
-						requestFocusInWindow();
-					}
-
-					activeMode.cursorMoveAction ();
-				};
-
-				public void cursorExited(TabletEvent e) {
-				}
-
-				public void cursorPressed(TabletEvent e) {
-					modifiers = e.getModifiersEx();
-					cursorX = e.getX ();
-					cursorY = e.getY ();
-					button = e.getButton ();
-					requestFocusInWindow();
-					activeMode.cursorPressAction();
-				}
-
-				public void cursorDragged(TabletEvent e) {
-					cursorX = e.getX();
-					cursorY = e.getY();
-					TabletDevice device = e.getDevice();
-					lastPressure = (device == null || device.getPressureSupport() != TabletDevice.Support.YES)  ? 1.0f : e.getPressure ();
-
-
-					activeMode.cursorDragAction ();
-				}
-
-				public void cursorReleased(TabletEvent e) {
-					button = e.getButton ();
-					activeMode.cursorReleaseAction ();
-				}
-
-			};
 			// This stuff is to fix bug with not disappearing brush preview while moving cursor on widgets while
 			// using tablet
 			// It's bug of nature unknown to me, that's why I fixed it in a little confusing kind of way.
 			// TODO: Maybe fix it a better.
-			TabletManager manager = TabletManager.getDefaultManager();
-			manager.addTabletListener(this, eventHandler);
+			CPTablet2.connectToCanvas(this);
 			addMouseListener(new MouseAdapter() {
 				public void mouseExited(MouseEvent me) {
 					cursorIn = false;
@@ -247,8 +224,7 @@ CPArtwork.ICPArtworkListener {
 					brushPreview = true;
 					cursorIn = true;
 				}
-			}
-					);
+			});
 		}
 	}
 
@@ -449,7 +425,7 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		// Additional drawing by the current mode
-		activeMode.paint(g2d);
+		getActiveMode().paint(g2d);
 
 		// This bit of code is used to test repaint areas
 		/*
@@ -497,35 +473,35 @@ CPArtwork.ICPArtworkListener {
 	}
 
 	public void mousePressed(MouseEvent e) {
-		modifiers = e.getModifiersEx();
-		cursorX = e.getX ();
-		cursorY = e.getY ();
-		button = e.getButton ();
+		setModifiers(e.getModifiersEx());
+		setCursorX(e.getX ());
+		setCursorY(e.getY ());
+		setButton(e.getButton ());
 		requestFocusInWindow();
-		activeMode.cursorPressAction ();
+		getActiveMode().cursorPressAction ();
 	}
 
 	public void mouseDragged(MouseEvent e) {
-		cursorX = e.getX();
-		cursorY = e.getY();
-		lastPressure = CPTablet.getRef ().getPressure ();
-		activeMode.cursorDragAction ();
+		setCursorX(e.getX());
+		setCursorY(e.getY());
+		setLastPressure(CPTablet.getRef ().getPressure ());
+		getActiveMode().cursorDragAction ();
 	}
 
 	public void mouseReleased(MouseEvent e) {
-		button = e.getButton ();
-		activeMode.cursorReleaseAction ();
+		setButton(e.getButton ());
+		getActiveMode().cursorReleaseAction ();
 	}
 
 	public void mouseMoved(MouseEvent e) {
-		cursorX = e.getX();
-		cursorY = e.getY();
-		lastPressure = CPTablet.getRef ().getPressure ();
+		setCursorX(e.getX());
+		setCursorY(e.getY());
+		setLastPressure(CPTablet.getRef ().getPressure ());
 
-		if (!dontStealFocus) {
+		if (!isDontStealFocus()) {
 			requestFocusInWindow();
 		}
-		activeMode.cursorMoveAction();
+		getActiveMode().cursorMoveAction();
 		CPTablet.getRef().mouseDetect();
 	}
 
@@ -538,9 +514,9 @@ CPArtwork.ICPArtworkListener {
 			factor = 1.15f;
 		}
 
-		Point2D.Float pf = coordToDocument(new Point2D.Float(cursorX, cursorY));
+		Point2D.Float pf = coordToDocument(new Point2D.Float(getCursorX(), getCursorY()));
 		if (artwork.isPointWithin(pf.x, pf.y)) {
-			zoomOnPoint(getZoom() * factor, cursorX, cursorY);
+			zoomOnPoint(getZoom() * factor, getCursorX(), getCursorY());
 		} else {
 			zoomOnPoint(getZoom() * factor, offsetX + (int) (artwork.width * zoom / 2), offsetY
 					+ (int) (artwork.height * zoom / 2));
@@ -767,8 +743,8 @@ CPArtwork.ICPArtworkListener {
 		// TODO: Disable ability to turn on PressureSize for M_SMUDGE and M_OIL
 		if  (controller.getBrushInfo().paintMode == CPBrushInfo.M_SMUDGE || controller.getBrushInfo().paintMode == CPBrushInfo.M_OIL)
 			calcPressure = false;
-		int bSize = (int) (controller.getBrushSize() * zoom * (calcPressure && controller.getBrushInfo().pressureSize ? lastPressure : 1.0));
-		return new Rectangle(cursorX - bSize / 2, cursorY - bSize / 2, bSize, bSize);
+		int bSize = (int) (controller.getBrushSize() * zoom * (calcPressure && controller.getBrushInfo().pressureSize ? getLastPressure() : 1.0));
+		return new Rectangle(getCursorX() - bSize / 2, getCursorY() - bSize / 2, bSize, bSize);
 	}
 
 	//
@@ -836,7 +812,7 @@ CPArtwork.ICPArtworkListener {
 		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 			spacePressed = true;
 			repaintBrushPreview();
-			if (activeMode == defaultMode) {
+			if (getActiveMode() == defaultMode) {
 				setCursor(moveCursor);
 			}
 		}
@@ -908,7 +884,7 @@ CPArtwork.ICPArtworkListener {
 	public void keyReleased(KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 			spacePressed = false;
-			if (activeMode == defaultMode) {
+			if (getActiveMode() == defaultMode) {
 				setCursor(defaultCursor);
 			}
 		}
@@ -985,7 +961,63 @@ CPArtwork.ICPArtworkListener {
 	// base class for the different modes
 	//
 
-	abstract class CPMode {
+	public int getCursorX() {
+		return cursorX;
+	}
+
+	public void setCursorX(int cursorX) {
+		this.cursorX = cursorX;
+	}
+
+	public int getCursorY() {
+		return cursorY;
+	}
+
+	public void setCursorY(int cursorY) {
+		this.cursorY = cursorY;
+	}
+
+	public float getLastPressure() {
+		return lastPressure;
+	}
+
+	public void setLastPressure(float lastPressure) {
+		this.lastPressure = lastPressure;
+	}
+
+	public boolean isDontStealFocus() {
+		return dontStealFocus;
+	}
+
+	public void setDontStealFocus(boolean dontStealFocus) {
+		this.dontStealFocus = dontStealFocus;
+	}
+
+	public CPMode getActiveMode() {
+		return activeMode;
+	}
+
+	public void setActiveMode(CPMode activeMode) {
+		this.activeMode = activeMode;
+	}
+
+	public int getModifiers() {
+		return modifiers;
+	}
+
+	public void setModifiers(int modifiers) {
+		this.modifiers = modifiers;
+	}
+
+	public int getButton() {
+		return button;
+	}
+
+	public void setButton(int button) {
+		this.button = button;
+	}
+
+	public abstract class CPMode {
 
 		// Mouse Input
 
@@ -1025,8 +1057,8 @@ CPArtwork.ICPArtworkListener {
 
 		public void cursorPressAction () {
 			// FIXME: replace the moveToolMode hack by a new and improved system
-			if (!spacePressed && button == MouseEvent.BUTTON1
-					&& (((modifiers & InputEvent.ALT_DOWN_MASK) == 0) || curSelectedMode == moveToolMode)) {
+			if (!spacePressed && getButton() == MouseEvent.BUTTON1
+					&& (((getModifiers() & InputEvent.ALT_DOWN_MASK) == 0) || curSelectedMode == moveToolMode)) {
 
 				if (!artwork.getActiveLayer().visible && curSelectedMode != rotateCanvasMode
 						&& curSelectedMode != rectSelectionMode) {
@@ -1036,27 +1068,27 @@ CPArtwork.ICPArtworkListener {
 				}
 				repaintBrushPreview();
 
-				activeMode = curSelectedMode;
-				activeMode.cursorPressAction ();
+				setActiveMode(curSelectedMode);
+				getActiveMode().cursorPressAction ();
 			} else if (!spacePressed
-					&& (button == MouseEvent.BUTTON3 || (button == MouseEvent.BUTTON1 && ((
-							modifiers & InputEvent.ALT_DOWN_MASK) == InputEvent.ALT_DOWN_MASK)))) {
+					&& (getButton() == MouseEvent.BUTTON3 || (getButton() == MouseEvent.BUTTON1 && ((
+							getModifiers() & InputEvent.ALT_DOWN_MASK) == InputEvent.ALT_DOWN_MASK)))) {
 				repaintBrushPreview();
 
-				activeMode = colorPickerMode;
-				activeMode.cursorPressAction ();
-			} else if ((button == MouseEvent.BUTTON2 || spacePressed)
-					&& ((modifiers & InputEvent.ALT_DOWN_MASK) == 0)) {
+				setActiveMode(colorPickerMode);
+				getActiveMode().cursorPressAction ();
+			} else if ((getButton() == MouseEvent.BUTTON2 || spacePressed)
+					&& ((getModifiers() & InputEvent.ALT_DOWN_MASK) == 0)) {
 				repaintBrushPreview();
 
-				activeMode = moveCanvasMode;
-				activeMode.cursorPressAction ();
-			} else if ((button == MouseEvent.BUTTON2 || spacePressed)
-					&& ((modifiers & InputEvent.ALT_DOWN_MASK) == InputEvent.ALT_DOWN_MASK)) {
+				setActiveMode(moveCanvasMode);
+				getActiveMode().cursorPressAction ();
+			} else if ((getButton() == MouseEvent.BUTTON2 || spacePressed)
+					&& ((getModifiers() & InputEvent.ALT_DOWN_MASK) == InputEvent.ALT_DOWN_MASK)) {
 				repaintBrushPreview();
 
-				activeMode = rotateCanvasMode;
-				activeMode.cursorPressAction ();
+				setActiveMode(rotateCanvasMode);
+				getActiveMode().cursorPressAction ();
 			}
 
 		}
@@ -1074,7 +1106,7 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorMoveAction () {
-			Point p = new Point (cursorX, cursorY);
+			Point p = new Point (getCursorX(), getCursorY());
 			if (!spacePressed && cursorIn) {
 				brushPreview = true;
 
@@ -1109,19 +1141,19 @@ CPArtwork.ICPArtworkListener {
 		Point2D.Float smoothMouse = new Point2D.Float(0, 0);
 
 		public void cursorPressAction () {
-			if (!dragLeft && button == MouseEvent.BUTTON1) {
-				Point p = new Point (cursorX, cursorY);
+			if (!dragLeft && getButton() == MouseEvent.BUTTON1) {
+				Point p = new Point (getCursorX(), getCursorY());
 				Point2D.Float pf = coordToDocument(p);
 
 				dragLeft = true;
-				artwork.beginStroke(pf.x, pf.y, lastPressure);
+				artwork.beginStroke(pf.x, pf.y, getLastPressure());
 
 				smoothMouse = (Point2D.Float) pf.clone();
 			}
 		}
 
 		public void cursorDragAction () {
-			Point p = new Point (cursorX, cursorY);
+			Point p = new Point (getCursorX(), getCursorY());
 			Point2D.Float pf = coordToDocument(p);
 
 			float smoothing = Math.min(.999f, (float) Math.pow(controller.getBrushInfo().smoothing, .3));
@@ -1130,7 +1162,7 @@ CPArtwork.ICPArtworkListener {
 			smoothMouse.y = (1f - smoothing) * pf.y + smoothing * smoothMouse.y;
 
 			if (dragLeft) {
-				artwork.continueStroke(smoothMouse.x, smoothMouse.y, lastPressure);
+				artwork.continueStroke(smoothMouse.x, smoothMouse.y, getLastPressure());
 			}
 
 			brushPreview = true;
@@ -1152,11 +1184,11 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorReleaseAction() {
-			if (dragLeft && button == MouseEvent.BUTTON1) {
+			if (dragLeft && getButton() == MouseEvent.BUTTON1) {
 				dragLeft = false;
 				artwork.endStroke();
 
-				activeMode = defaultMode; // yield control to the default mode
+				setActiveMode(defaultMode); // yield control to the default mode
 			}
 		}
 
@@ -1183,8 +1215,8 @@ CPArtwork.ICPArtworkListener {
 		Point dragLineFrom, dragLineTo;
 
 		public void cursorPressAction () {
-			if (!dragLine && button == MouseEvent.BUTTON1) {
-				Point p = new Point (cursorX, cursorY);
+			if (!dragLine && getButton() == MouseEvent.BUTTON1) {
+				Point p = new Point (getCursorX(), getCursorY());
 
 				dragLine = true;
 				dragLineFrom = dragLineTo = (Point) p.clone();
@@ -1192,7 +1224,7 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorDragAction() {
-			Point p = new Point (cursorX, cursorY);
+			Point p = new Point (getCursorX(), getCursorY());
 
 			Rectangle r = new Rectangle(Math.min(dragLineFrom.x, dragLineTo.x), Math.min(dragLineFrom.y, dragLineTo.y),
 					Math.abs(dragLineFrom.x - dragLineTo.x) + 1, Math.abs(dragLineFrom.y - dragLineTo.y) + 1);
@@ -1203,8 +1235,8 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorReleaseAction () {
-			if (dragLine && button == MouseEvent.BUTTON1) {
-				Point p = new Point (cursorX, cursorY);
+			if (dragLine && getButton() == MouseEvent.BUTTON1) {
+				Point p = new Point (getCursorX(), getCursorY());
 				Point2D.Float pf = coordToDocument(p);
 
 				dragLine = false;
@@ -1219,7 +1251,7 @@ CPArtwork.ICPArtworkListener {
 								- dragLineTo.y) + 1);
 				repaint(r.x, r.y, r.width, r.height);
 
-				activeMode = defaultMode; // yield control to the default mode
+				setActiveMode(defaultMode); // yield control to the default mode
 			}
 		}
 
@@ -1247,9 +1279,9 @@ CPArtwork.ICPArtworkListener {
 		Point2D.Float dragBezierP0, dragBezierP1, dragBezierP2, dragBezierP3;
 
 		public void cursorPressAction () {
-			Point2D.Float p = coordToDocument(new Point (cursorX, cursorY));
+			Point2D.Float p = coordToDocument(new Point (getCursorX(), getCursorY()));
 
-			if (!dragBezier && !spacePressed && button == MouseEvent.BUTTON1) {
+			if (!dragBezier && !spacePressed && getButton() == MouseEvent.BUTTON1) {
 				dragBezier = true;
 				dragBezierMode = 0;
 				dragBezierP0 = dragBezierP1 = dragBezierP2 = dragBezierP3 = (Point2D.Float) p.clone();
@@ -1257,7 +1289,7 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorDragAction() {
-			Point2D.Float p = coordToDocument(new Point (cursorX, cursorY));
+			Point2D.Float p = coordToDocument(new Point (getCursorX(), getCursorY()));
 
 			if (dragBezier && dragBezierMode == 0) {
 				dragBezierP2 = dragBezierP3 = (Point2D.Float) p.clone();
@@ -1266,7 +1298,7 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorReleaseAction () {
-			if (dragBezier && button == MouseEvent.BUTTON1) {
+			if (dragBezier && getButton() == MouseEvent.BUTTON1) {
 				if (dragBezierMode == 0) {
 					dragBezierMode = 1;
 				} else if (dragBezierMode == 1) {
@@ -1301,13 +1333,13 @@ CPArtwork.ICPArtworkListener {
 					artwork.endStroke();
 					repaint();
 
-					activeMode = defaultMode; // yield control to the default mode
+					setActiveMode(defaultMode); // yield control to the default mode
 				}
 			}
 		}
 
 		public void cursorMoveAction () {
-			Point2D.Float p_document = coordToDocument(new Point (cursorX, cursorY));
+			Point2D.Float p_document = coordToDocument(new Point (getCursorX(), getCursorY()));
 
 			if (dragBezier && dragBezierMode == 1) {
 				dragBezierP1 = (Point2D.Float) p_document.clone();
@@ -1360,10 +1392,10 @@ CPArtwork.ICPArtworkListener {
 		int mouseButton;
 
 		public void cursorPressAction () {
-			Point p = new Point (cursorX, cursorY);
+			Point p = new Point (getCursorX(), getCursorY());
 			Point2D.Float pf = coordToDocument(p);
 
-			mouseButton = button;
+			mouseButton = getButton();
 
 			if (artwork.isPointWithin(pf.x, pf.y)) {
 				controller.setCurColorRgb(artwork.colorPicker(pf.x, pf.y));
@@ -1373,7 +1405,7 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorDragAction() {
-			Point p = new Point (cursorX, cursorY);
+			Point p = new Point (getCursorX(), getCursorY());
 			Point2D.Float pf = coordToDocument(p);
 
 			if (artwork.isPointWithin(pf.x, pf.y)) {
@@ -1382,9 +1414,9 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorReleaseAction () {
-			if (button == mouseButton) {
+			if (getButton() == mouseButton) {
 				setCursor(defaultCursor);
-				activeMode = defaultMode; // yield control to the default mode
+				setActiveMode(defaultMode); // yield control to the default mode
 			}
 		}
 	}
@@ -1401,13 +1433,13 @@ CPArtwork.ICPArtworkListener {
 		int dragMoveButton;
 
 		public void cursorPressAction () {
-			Point p = new Point (cursorX, cursorY);
+			Point p = new Point (getCursorX(), getCursorY());
 
-			if (!dragMiddle && (button == MouseEvent.BUTTON2 || spacePressed)) {
+			if (!dragMiddle && (getButton() == MouseEvent.BUTTON2 || spacePressed)) {
 				repaintBrushPreview();
 
 				dragMiddle = true;
-				dragMoveButton = button;
+				dragMoveButton = getButton();
 				dragMoveX = p.x;
 				dragMoveY = p.y;
 				dragMoveOffset = getOffset();
@@ -1417,7 +1449,7 @@ CPArtwork.ICPArtworkListener {
 
 		public void cursorDragAction() {
 			if (dragMiddle) {
-				Point p = new Point (cursorX, cursorY);
+				Point p = new Point (getCursorX(), getCursorY());
 
 				setOffset(dragMoveOffset.x + p.x - dragMoveX, offsetY = dragMoveOffset.y + p.y - dragMoveY);
 				repaint();
@@ -1425,11 +1457,11 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorReleaseAction () {
-			if (dragMiddle && button == dragMoveButton) {
+			if (dragMiddle && getButton() == dragMoveButton) {
 				dragMiddle = false;
 				setCursor(defaultCursor);
 
-				activeMode = defaultMode; // yield control to the default mode
+				setActiveMode(defaultMode); // yield control to the default mode
 			}
 		}
 	}
@@ -1441,7 +1473,7 @@ CPArtwork.ICPArtworkListener {
 	class CPFloodFillMode extends CPMode {
 
 		public void cursorPressAction () {
-			Point p = new Point (cursorX, cursorY);
+			Point p = new Point (getCursorX(), getCursorY());
 			Point2D.Float pf = coordToDocument(p);
 
 			if (artwork.isPointWithin(pf.x, pf.y)) {
@@ -1449,7 +1481,7 @@ CPArtwork.ICPArtworkListener {
 				repaint();
 			}
 
-			activeMode = defaultMode; // yield control to the default mode
+			setActiveMode(defaultMode); // yield control to the default mode
 		}
 
 		public void cursorDragAction() {
@@ -1471,7 +1503,7 @@ CPArtwork.ICPArtworkListener {
 		CPRect curRect = new CPRect();
 
 		public void cursorPressAction () {
-			Point p = coordToDocumentInt(new Point (cursorX, cursorY));
+			Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
 
 			curRect.makeEmpty();
 			firstClick = p;
@@ -1480,8 +1512,8 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorDragAction() {
-			Point p = coordToDocumentInt(new Point (cursorX, cursorY));
-			boolean square = (modifiers & InputEvent.SHIFT_MASK) != 0;
+			Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
+			boolean square = (getModifiers() & InputEvent.SHIFT_MASK) != 0;
 			int squareDist = Math.max(Math.abs(p.x - firstClick.x), Math.abs(p.y - firstClick.y));
 
 			if (p.x >= firstClick.x) {
@@ -1506,7 +1538,7 @@ CPArtwork.ICPArtworkListener {
 		public void cursorReleaseAction () {
 			artwork.rectangleSelection(curRect);
 
-			activeMode = defaultMode; // yield control to the default mode
+			setActiveMode(defaultMode); // yield control to the default mode
 			repaint();
 		}
 
@@ -1527,10 +1559,10 @@ CPArtwork.ICPArtworkListener {
 		Point firstClick;
 
 		public void cursorPressAction () {
-			Point p = coordToDocumentInt(new Point (cursorX, cursorY));
+			Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
 			firstClick = p;
 
-			artwork.beginPreviewMode((modifiers & InputEvent.ALT_MASK) != 0);
+			artwork.beginPreviewMode((getModifiers() & InputEvent.ALT_MASK) != 0);
 
 			// FIXME: The following hack avoids a slight display glitch
 			// if the whole move tool mess is fixed it probably won't be necessary anymore
@@ -1538,14 +1570,14 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		public void cursorDragAction() {
-			Point p = coordToDocumentInt(new Point (cursorX, cursorY));
+			Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
 			artwork.move(p.x - firstClick.x, p.y - firstClick.y);
 			repaint();
 		}
 
 		public void cursorReleaseAction () {
 			artwork.endPreviewMode();
-			activeMode = defaultMode; // yield control to the default mode
+			setActiveMode(defaultMode); // yield control to the default mode
 			repaint();
 		}
 
@@ -1564,7 +1596,7 @@ CPArtwork.ICPArtworkListener {
 		boolean dragged;
 
 		public void cursorPressAction () {
-			Point p = new Point (cursorX, cursorY);
+			Point p = new Point (getCursorX(), getCursorY());
 			firstClick = (Point) p.clone();
 
 			initAngle = getRotation();
@@ -1578,7 +1610,7 @@ CPArtwork.ICPArtworkListener {
 		public void cursorDragAction() {
 			dragged = true;
 
-			Point p = new Point (cursorX, cursorY);
+			Point p = new Point (getCursorX(), getCursorY());
 			Dimension d = getSize();
 			Point2D.Float center = new Point2D.Float(d.width / 2.f, d.height / 2.f);
 
@@ -1600,7 +1632,7 @@ CPArtwork.ICPArtworkListener {
 				resetRotation();
 			}
 
-			activeMode = defaultMode; // yield control to the default mode
+			setActiveMode(defaultMode); // yield control to the default mode
 		}
 	}
 

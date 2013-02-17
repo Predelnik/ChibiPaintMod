@@ -400,11 +400,11 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 
 		public void focusGained(FocusEvent e) {
 			// FIXME: hack to avoid losing the focus to the main canvas
-			controller.canvas.dontStealFocus = true;
+			controller.canvas.setDontStealFocus(true);
 		}
 
 		public void focusLost(FocusEvent e) {
-			controller.canvas.dontStealFocus = false;
+			controller.canvas.setDontStealFocus(false);
 			renameAndHide();
 		}
 
