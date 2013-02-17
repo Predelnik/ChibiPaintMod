@@ -41,7 +41,7 @@ public class CPPalette extends JComponent {
 		this.container = container;
 	}
 
-	public ICPPaletteContainer getContainer() {
+	public ICPPaletteContainer getPaletteContainer() {
 		return container;
 	}
 }

@@ -24,7 +24,6 @@ package chibitest;
 import java.util.*;
 
 import chibipaint.engine.*;
-import chibipaint.engine.CPBrushManager.*;
 import chibipaint.util.*;
 
 public class CPBenchmark {
@@ -51,7 +50,7 @@ public class CPBenchmark {
 		CPLayer l1 = new CPLayer(testW, testH), l2 = new CPLayer(testW, testH);
 
 		System.out
-				.println("Benchmarking layer blending " + testW + "x" + testH + ", iterations=" + iterations + "\n\n");
+		.println("Benchmarking layer blending " + testW + "x" + testH + ", iterations=" + iterations + "\n\n");
 
 		boolean fa = false;
 
@@ -172,6 +171,7 @@ public class CPBenchmark {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	static void prepareLayers(CPLayer l1, CPLayer l2, int mode) {
 		random(l1, l1.getSize());
 		random(l2, l2.getSize());

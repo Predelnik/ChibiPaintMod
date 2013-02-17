@@ -22,7 +22,6 @@
 package chibipaint.gui;
 
 import java.awt.event.*;
-import java.io.File;
 import java.util.*;
 import java.util.prefs.Preferences;
 
@@ -35,9 +34,9 @@ public class CPPaletteManager implements ContainerListener {
 	CPController controller;
 	private JDesktopPane jdp;
 
-	private Map<String, CPPalette> palettes = new HashMap();
-	List<CPPaletteFrame> paletteFrames = new Vector();
-	List<CPPaletteFrame> hiddenFrames = new Vector();
+	private Map<String, CPPalette> palettes = new HashMap<String, CPPalette>();
+	List<CPPaletteFrame> paletteFrames = new Vector<CPPaletteFrame>();
+	List<CPPaletteFrame> hiddenFrames = new Vector<CPPaletteFrame>();
 
 	interface ICPPaletteContainer {
 
@@ -52,7 +51,7 @@ public class CPPaletteManager implements ContainerListener {
 
 	class CPPaletteFrame extends JInternalFrame implements ICPPaletteContainer {
 
-		private List<CPPalette> list = new Vector();
+		private List<CPPalette> list = new Vector<CPPalette>();
 
 		public CPPaletteFrame(CPPalette palette) {
 			super("", true, true, false, false); // resizable/closable frame
@@ -76,7 +75,7 @@ public class CPPaletteManager implements ContainerListener {
 		}
 
 		public List<CPPalette> getPalettesList() {
-			return new Vector(list);
+			return new Vector<CPPalette>(list);
 		}
 	}
 
@@ -200,7 +199,7 @@ public class CPPaletteManager implements ContainerListener {
 
 	public void showPalette(CPPalette palette, boolean show) {
 		// FIXME: this will need to be replaced by something more generic
-		CPPaletteFrame frame = (CPPaletteFrame) palette.getContainer();
+		CPPaletteFrame frame = (CPPaletteFrame) palette.getPaletteContainer();
 		if (frame == null) {
 			return;
 		}
@@ -255,21 +254,21 @@ public class CPPaletteManager implements ContainerListener {
 	public void loadPalettesSettings ()
 	{
 		Preferences userRoot = Preferences.userRoot();
-	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		Preferences preferences = userRoot.node( "chibipaintmod" );
 		for (CPPaletteFrame frame : paletteFrames)
+		{
+			for (CPPalette pal : frame.getPalettesList())
 			{
-				for (CPPalette pal : frame.getPalettesList())
-					{
-						int x_value = preferences.getInt(pal.title + "(x pos)", -1);
-						int y_value = preferences.getInt(pal.title + "(y pos)", -1);
-						boolean visibility =  preferences.getBoolean(pal.title + "(visibility)", true);
+				int x_value = preferences.getInt(pal.title + "(x pos)", -1);
+				int y_value = preferences.getInt(pal.title + "(y pos)", -1);
+				boolean visibility =  preferences.getBoolean(pal.title + "(visibility)", true);
 
-						showPalette (pal, visibility);
+				showPalette (pal, visibility);
 
-						if (x_value != -1 && y_value != -1)
-							frame.setLocation (x_value, y_value);
-					}
+				if (x_value != -1 && y_value != -1)
+					frame.setLocation (x_value, y_value);
 			}
+		}
 
 		if (preferences.getBoolean ("Palettes Hidden", false))
 			togglePalettes ();
@@ -278,16 +277,16 @@ public class CPPaletteManager implements ContainerListener {
 	public void savePalettesSettings ()
 	{
 		Preferences userRoot = Preferences.userRoot();
-	    Preferences preferences = userRoot.node( "chibipaintmod" );
+		Preferences preferences = userRoot.node( "chibipaintmod" );
 		for (CPPaletteFrame frame : paletteFrames)
+		{
+			for (CPPalette pal : frame.getPalettesList())
 			{
-				for (CPPalette pal : frame.getPalettesList())
-					{
-					    preferences.putInt(pal.title + "(x pos)", frame.getX());
-					    preferences.putInt(pal.title + "(y pos)", frame.getY());
-					    preferences.putBoolean(pal.title + "(visibility)", frame.isVisible () || hiddenFrames.contains(frame));
-					}
+				preferences.putInt(pal.title + "(x pos)", frame.getX());
+				preferences.putInt(pal.title + "(y pos)", frame.getY());
+				preferences.putBoolean(pal.title + "(visibility)", frame.isVisible () || hiddenFrames.contains(frame));
 			}
+		}
 
 		preferences.putBoolean ("Palettes Hidden", !hiddenFrames.isEmpty());
 	}

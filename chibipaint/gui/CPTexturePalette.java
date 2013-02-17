@@ -34,9 +34,9 @@ import chibipaint.engine.*;
 
 public class CPTexturePalette extends CPPalette {
 
-	Vector<CPGreyBmp> textures = new Vector();
+	Vector<CPGreyBmp> textures = new Vector<CPGreyBmp>();
 	CPGreyBmp selectedTexture, processedTexture;
-	
+
 	CPOptionsPanel optionsPanel;
 	boolean mirror=false, inverse=false;
 	float brightness=0f, contrast=0f;
@@ -46,7 +46,7 @@ public class CPTexturePalette extends CPPalette {
 		title = "Textures";
 
 		makeProceduralTextures();
-		
+
 		loadTextures("textures32.png", 32, 32, 2);
 
 		setLayout(new BorderLayout());
@@ -165,38 +165,38 @@ public class CPTexturePalette extends CPPalette {
 		}
 		return texture;
 	}
-	
+
 	void selectTexture(CPGreyBmp texture) {
 		selectedTexture = texture;
 		processTexture();
 	}
-	
+
 	void processTexture() {
 		if (selectedTexture != null) {
 			processedTexture = new CPGreyBmp(selectedTexture);
-			
+
 			if (mirror) {
 				processedTexture.mirrorHorizontally();
 			}
 
 			CPLookUpTable lut = new CPLookUpTable(brightness, contrast);
-			
+
 			if (inverse) {
 				lut.inverse();
 			}
-			
+
 			processedTexture.applyLUT(lut);
 		}
 		else {
 			processedTexture = null;
 		}
-		
+
 		controller.getArtwork().brushManager.setTexture(processedTexture);
 		if (optionsPanel != null) {
 			optionsPanel.repaint();
 		}
 	}
-	
+
 	Image createTextureImage(CPGreyBmp texture, int width, int height) {
 		int[] buffer = new int[width * height];
 		for (int i = 0; i < width * height; i++) {
@@ -205,7 +205,7 @@ public class CPTexturePalette extends CPPalette {
 		}
 		return createImage(new MemoryImageSource(width, height, buffer, 0, width));
 	}
-	
+
 	class CPTextureButton extends JButton {
 
 		private static final int width = 32;
@@ -254,7 +254,7 @@ public class CPTexturePalette extends CPPalette {
 			selectTexture(texture);
 		}
 	}
-	
+
 	class CPOptionsPanel extends JPanel {
 		final static int width = 120;
 		final static int height = 200;
@@ -264,12 +264,12 @@ public class CPTexturePalette extends CPPalette {
 		private JCheckBox cbMirror;
 		private CPSlider slBrightness;
 		private CPSlider slContrast;
-		
+
 		public CPOptionsPanel() {
-			
+
 			Box vb = Box.createVerticalBox();
 			vb.setBorder(BorderFactory.createEmptyBorder(80, 5, 5, 5));
-			
+
 			cbInverse = new JCheckBox("Inverse");
 			cbInverse.setAlignmentX(Component.LEFT_ALIGNMENT);
 			cbInverse.addActionListener( new AbstractAction() {
@@ -279,7 +279,7 @@ public class CPTexturePalette extends CPPalette {
 				}
 			});
 			vb.add(cbInverse);
-			
+
 			cbMirror = new JCheckBox("Mirror");
 			cbMirror.setAlignmentX(Component.LEFT_ALIGNMENT);
 			cbMirror.addActionListener( new AbstractAction() {
@@ -305,7 +305,7 @@ public class CPTexturePalette extends CPPalette {
 			b.add(slBrightness);
 			b.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			vb.add(b);
-			
+
 
 			slContrast = new CPSlider(200) {
 				public void onValueChange() {
@@ -322,7 +322,7 @@ public class CPTexturePalette extends CPPalette {
 			b.add(slContrast);
 			b.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			vb.add(b);
-			
+
 			JButton resetButton = new JButton("reset");
 			resetButton.setPreferredSize(new Dimension(40, 16));
 			resetButton.addActionListener(new AbstractAction() {
@@ -350,10 +350,10 @@ public class CPTexturePalette extends CPPalette {
 			super.paintComponent(g);
 
 			Graphics2D g2d = (Graphics2D) g.create();
-			
+
 			int previewX = (width - previewSize) / 2;
 			int previewY = 10;
-			
+
 			g2d.draw(new Rectangle(previewX-3, previewY-3, previewSize+5, previewSize+5));
 			if (processedTexture != null) {
 				g2d.drawImage(createTextureImage(processedTexture, previewSize, previewSize), previewX, previewY, null);
@@ -361,7 +361,7 @@ public class CPTexturePalette extends CPPalette {
 				g2d.setColor(Color.white);
 				g2d.fill(new Rectangle(previewX, previewY, previewSize, previewSize));
 			}
-			
+
 		}
 
 	}

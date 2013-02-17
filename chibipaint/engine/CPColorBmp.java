@@ -23,7 +23,6 @@ package chibipaint.engine;
 
 import java.util.*;
 
-import chibipaint.engine.CPColorBmp.CPFillLine;
 import chibipaint.util.*;
 
 //
@@ -327,7 +326,7 @@ public class CPColorBmp extends CPBitmap {
 
 		CPRect clip = new CPRect(width, height);
 		while (!stack.isEmpty()) {
-			CPFillLine line = (CPFillLine) stack.removeFirst();
+			CPFillLine line = stack.removeFirst();
 
 			if (line.y < clip.top || line.y >= clip.bottom) {
 				continue;

@@ -32,7 +32,7 @@ public class CPIconButton extends JComponent implements MouseListener {
 	Image icons;
 	int iconW, iconH, iconIndex, border;
 	String actionCommand, actionCommandDoubleClick = null;
-	LinkedList actionListeners = new LinkedList();
+	LinkedList<ActionListener> actionListeners = new LinkedList<ActionListener>();
 
 	boolean mouseOver = false, mousePressed = false, selected = false;
 	boolean onClickDown = false;

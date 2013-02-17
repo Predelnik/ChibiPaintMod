@@ -26,7 +26,6 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
-import chibipaint.*;
 import chibipaint.engine.*;
 import chibipaint.CPController;
 

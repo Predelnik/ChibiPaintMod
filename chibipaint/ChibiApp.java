@@ -23,7 +23,6 @@ package chibipaint;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.File;
 import java.util.prefs.Preferences;
 
 import javax.swing.*;
@@ -53,10 +52,7 @@ public class ChibiApp extends JFrame {
 									JOptionPane.YES_NO_CANCEL_OPTION);
 			switch(result){
 			case JOptionPane.YES_OPTION:
-				if (this.controller.save ())
-					return true;
-				else
-					return false;
+				return this.controller.save ();
 			case JOptionPane.NO_OPTION:
 				break;
 			case JOptionPane.CLOSED_OPTION:
@@ -153,13 +149,13 @@ public class ChibiApp extends JFrame {
 		});
 	}
 
-	public void recreateEverything(CPArtwork artwork, File file)
+	public void recreateEverything(CPArtwork artwork)
 	{
 		mainGUI.getPaletteManager ().savePalettesSettings ();
 		controller.canvas.saveCanvasSettings ();
 		controller.saveControllerSettings ();
 
-		controller.canvas.KillCanvas (); // Kinda disconnecting previous canvas from everything
+		controller.canvas.KillCanvas (); // Kind of disconnecting previous canvas from everything
 		controller.canvas.setArtwork (null);
 		controller.artwork = null;
 		mainGUI.recreateMenuBar ();

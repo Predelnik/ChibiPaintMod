@@ -28,6 +28,7 @@ import java.io.*;
 import java.util.*;
 import javax.imageio.*;
 import javax.swing.*;
+
 import chibipaint.engine.*;
 import chibipaint.gui.*;
 import chibipaint.util.*;
@@ -48,11 +49,11 @@ public abstract class CPController implements ActionListener {
 	private int curBrush = T_PENCIL;
 	private int curMode = M_DRAW;
 
-	private LinkedList<ICPColorListener> colorListeners = new LinkedList();
-	private LinkedList<ICPToolListener> toolListeners = new LinkedList();
-	private LinkedList<ICPModeListener> modeListeners = new LinkedList();
-	private LinkedList<ICPViewListener> viewListeners = new LinkedList();
-	private LinkedList<ICPEventListener> cpEventListeners = new LinkedList();
+	private LinkedList<ICPColorListener> colorListeners = new LinkedList<ICPColorListener>();
+	private LinkedList<ICPToolListener> toolListeners = new LinkedList<ICPToolListener>();
+	private LinkedList<ICPModeListener> modeListeners = new LinkedList<ICPModeListener>();
+	private LinkedList<ICPViewListener> viewListeners = new LinkedList<ICPViewListener>();
+	private LinkedList<ICPEventListener> cpEventListeners = new LinkedList<ICPEventListener>();
 
 	//
 	// Definition of all the standard tools available
@@ -84,9 +85,6 @@ public abstract class CPController implements ActionListener {
 
 	// Setting for other modes than draw (probably should do different class for them)
 	private int colorDistance;
-
-	// Image loader cache
-	private Map<String, Image> imageCache = new HashMap<String, Image>();
 
 	protected CPMainGUI mainGUI;
 

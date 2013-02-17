@@ -87,8 +87,8 @@ public class CPControllerApplication extends CPController {
 		return mainFrame;
 	}
 
-	public void resetEverything(CPArtwork newArtwork, File file) {
-		((ChibiApp) mainFrame).recreateEverything(newArtwork, file);
+	public void resetEverything(CPArtwork newArtwork) {
+		((ChibiApp) mainFrame).recreateEverything(newArtwork);
 	}
 
 	public void updateTitle() {
@@ -211,7 +211,7 @@ public class CPControllerApplication extends CPController {
 						.getText()), Integer.valueOf(heightNum.getText()));
 				setCurrentFile(null);
 				setLatestAction (null, null);
-				resetEverything(new_artwork, null);
+				resetEverything(new_artwork);
 			} catch (OutOfMemoryError E) {
 				JOptionPane
 				.showMessageDialog(
@@ -385,7 +385,7 @@ public class CPControllerApplication extends CPController {
 						return false;
 					}
 					setLatestAction (null, null);
-					resetEverything(artwork, selectedFile);
+					resetEverything(artwork);
 				}
 				catch (OutOfMemoryError E) {
 					JOptionPane

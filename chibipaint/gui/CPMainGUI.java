@@ -43,7 +43,7 @@ public class CPMainGUI {
 	private JPanel bg;
 
 	// FIXME: replace this hack by something better
-	Map<String, JCheckBoxMenuItem> paletteItems = new HashMap();
+	Map<String, JCheckBoxMenuItem> paletteItems = new HashMap<String, JCheckBoxMenuItem>();
 
 	public CPMainGUI(CPController controller) {
 		this.controller = controller;
@@ -87,7 +87,7 @@ public class CPMainGUI {
 
 	void createCanvasGUI(JComponent c) {
 		CPCanvas canvas = new CPCanvas(controller);
-		setBg(canvas.getContainer());
+		setBg(canvas.getCanvasContainer());
 
 		c.add(getBg());
 		canvas.grabFocus();

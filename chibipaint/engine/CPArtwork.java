@@ -52,7 +52,7 @@ public class CPArtwork {
 		void layerChange(CPArtwork artwork);
 	}
 
-	private LinkedList<ICPArtworkListener> artworkListeners = new LinkedList();
+	private LinkedList<ICPArtworkListener> artworkListeners = new LinkedList<ICPArtworkListener>();
 
 	// Clipboard
 
@@ -105,7 +105,7 @@ public class CPArtwork {
 		this.width = width;
 		this.height = height;
 
-		setLayers(new Vector());
+		setLayers(new Vector<CPLayer>());
 
 		CPLayer defaultLayer = new CPLayer(width, height);
 		defaultLayer.name = getDefaultLayerName();
@@ -125,8 +125,8 @@ public class CPArtwork {
 
 		fusion = new CPLayer(width, height);
 
-		setUndoList(new LinkedList());
-		redoList = new LinkedList();
+		setUndoList(new LinkedList<CPUndo>());
+		redoList = new LinkedList<CPUndo>();
 	}
 
 	public long getDocMemoryUsed() {
@@ -689,7 +689,7 @@ public class CPArtwork {
 								dstRect.getWidth() * 2 / 6)), Math.max(1, Math.min(wxMaxSampleRadius, dstRect
 										.getHeight() * 2 / 6)));
 
-				previousSamples = new LinkedList();
+				previousSamples = new LinkedList<CPColorFloat>();
 				for (int i = 0; i < wcMemory; i++) {
 					previousSamples.addLast(startColor);
 				}
@@ -865,8 +865,7 @@ public class CPArtwork {
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
 				int srcOffset = srcRect.left + by * w;
-				int dstOffset = dstRect.left + j * width;
-				for (int i = dstRect.left; i < dstRect.right; i++, srcOffset++, dstOffset++) {
+				for (int i = dstRect.left; i < dstRect.right; i++, srcOffset++) {
 					int color2 = buffer[srcOffset];
 					int alpha2 = (color2 >>> 24);
 
@@ -933,7 +932,7 @@ public class CPArtwork {
 				smudgeAccumBuffer(srcRect, dstRect, brushBuffer, dab.width, 0);
 			} else {
 				smudgeAccumBuffer(srcRect, dstRect, brushBuffer, dab.width, dab.alpha);
-				smudgePasteBuffer(srcRect, dstRect, brushBuffer, dab.brush, dab.width, dab.alpha);
+				smudgePasteBuffer(srcRect, dstRect, brushBuffer, dab.brush, dab.width);
 
 				if (lockAlpha) {
 					restoreAlpha(dstRect);
@@ -1032,7 +1031,7 @@ public class CPArtwork {
 			}
 		}
 
-		private void smudgePasteBuffer(CPRect srcRect, CPRect dstRect, int[] buffer, byte[] brush, int w, int alpha) {
+		private void smudgePasteBuffer(CPRect srcRect, CPRect dstRect, int[] buffer, byte[] brush, int w) {
 			int[] undoData = undoBuffer.data;
 
 			int by = srcRect.top;
@@ -1140,13 +1139,13 @@ public class CPArtwork {
 			}
 		}
 		if (!redoList.isEmpty()) {
-			redoList = new LinkedList();
+			redoList = new LinkedList<CPUndo>();
 		}
 	}
 
 	public void clearHistory() {
-		setUndoList(new LinkedList());
-		redoList = new LinkedList();
+		setUndoList(new LinkedList<CPUndo>());
+		redoList = new LinkedList<CPUndo>();
 
 		Runtime r = Runtime.getRuntime();
 		r.gc();
@@ -2138,11 +2137,13 @@ public class CPArtwork {
 		Vector<CPLayer> oldLayers;
 		int oldActiveLayer;
 
+		@SuppressWarnings("unchecked")
 		public CPUndoMergeAllLayers() {
 			oldLayers = (Vector<CPLayer>) getLayersVector().clone();
 			oldActiveLayer = getActiveLayerNb();
 		}
 
+		@SuppressWarnings("unchecked")
 		public void undo() {
 			setLayers((Vector<CPLayer>) oldLayers.clone());
 			setActiveLayer(oldActiveLayer);

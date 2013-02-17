@@ -254,7 +254,7 @@ CPArtwork.ICPArtworkListener {
 	// Container and ScrollBars
 	// //////////////////////////////////////////////////////////////////////////////////////
 
-	public JPanel getContainer() {
+	public JPanel getCanvasContainer() {
 		if (container != null) {
 			return container;
 		}
@@ -1039,6 +1039,7 @@ CPArtwork.ICPArtworkListener {
 		}
 
 		// GUI drawing
+		@SuppressWarnings("unused")
 		public void paint(Graphics2D g2d) {
 		}
 

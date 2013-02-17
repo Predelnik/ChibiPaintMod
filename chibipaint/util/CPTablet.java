@@ -42,7 +42,7 @@ public class CPTablet {
 
 	public CPTablet() {
 		try {
-			Class tabletClass = Class.forName("cello.tablet.JTablet");
+			Class<?> tabletClass = Class.forName("cello.tablet.JTablet");
 			tablet = tabletClass.newInstance();
 
 			mPoll = tabletClass.getMethod("poll", (Class[]) null);

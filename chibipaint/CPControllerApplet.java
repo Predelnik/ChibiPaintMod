@@ -29,7 +29,6 @@ import java.net.*;
 
 import javax.swing.*;
 
-import chibipaint.engine.*;
 import chibipaint.file.CPChibiFile;
 
 public class CPControllerApplet extends CPController {

@@ -30,7 +30,7 @@ public class CPXcfFile extends CPAbstractFile {
 			writeInt (fos, a.height); // image height
 			writeInt (fos, 0); // RGB Color - mode, other modes don't concern us
 			// Image properties
-			writeProperties (fos, a);
+			writeProperties (fos);
 			// LayerLinks
 			int[] layerLinks = new int[a.getLayersVector().size ()];
 			int layerLinksPoisiton = (int) fos.getChannel ().position ();
@@ -91,7 +91,7 @@ public class CPXcfFile extends CPAbstractFile {
 
 	// End of todo
 
-	static public void writeProperties(FileOutputStream fos, CPArtwork a) throws IOException {
+	static public void writeProperties(FileOutputStream fos) throws IOException {
 		// Compression, using default one - RLE
 		writeInt (fos, 17); // PROP_COMPRESSION
 		writeInt (fos, 1); // payload size

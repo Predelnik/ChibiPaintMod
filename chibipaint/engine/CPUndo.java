@@ -27,7 +27,9 @@ abstract public class CPUndo {
 
 	abstract public void redo();
 
-	public boolean merge(CPUndo u) {
+	@SuppressWarnings("unused")
+	public boolean merge(CPUndo u)
+	{
 		return false;
 	}
 
@@ -35,7 +37,9 @@ abstract public class CPUndo {
 		return false;
 	}
 
-	public long getMemoryUsed(boolean undone, Object param) {
+	@SuppressWarnings("unused")
+	public long getMemoryUsed(boolean undone, Object param)
+	{
 		return 0;
 	}
 
