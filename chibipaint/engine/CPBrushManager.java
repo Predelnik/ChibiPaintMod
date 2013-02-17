@@ -157,7 +157,7 @@ public class CPBrushManager {
 		return brushAA;
 	}
 
-	byte[] buildBrush(byte[] brush, CPBrushInfo brushInfo) {
+	static byte[] buildBrush(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 		float sqrRadius = (brushInfo.curSize / 2) * (brushInfo.curSize / 2);
@@ -178,17 +178,17 @@ public class CPBrushManager {
 				float sqrDist = dx * dx + dy * dy;
 
 				if (sqrDist <= sqrRadius) {
-					brush[offset++] = (byte) 0xff;
+					brushArg[offset++] = (byte) 0xff;
 				} else {
-					brush[offset++] = 0;
+					brushArg[offset++] = 0;
 				}
 			}
 		}
 
-		return brush;
+		return brushArg;
 	}
 
-	byte[] buildBrushAA(byte[] brush, CPBrushInfo brushInfo) {
+	static byte[] buildBrushAA(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 		float sqrRadius = (brushInfo.curSize / 2) * (brushInfo.curSize / 2);
@@ -210,9 +210,9 @@ public class CPBrushManager {
 				float sqrDist = dx * dx + dy * dy;
 
 				if (sqrDist <= sqrRadiusInner) {
-					brush[offset++] = (byte) 0xff;
+					brushArg[offset++] = (byte) 0xff;
 				} else if (sqrDist > sqrRadiusOuter) {
-					brush[offset++] = 0;
+					brushArg[offset++] = 0;
 				} else {
 					int count = 0;
 					for (int oj = 0; oj < 4; oj++) {
@@ -228,15 +228,15 @@ public class CPBrushManager {
 							}
 						}
 					}
-					brush[offset++] = (byte) Math.min(count * 16, 255);
+					brushArg[offset++] = (byte) Math.min(count * 16, 255);
 				}
 			}
 		}
 
-		return brush;
+		return brushArg;
 	}
 
-	byte[] buildBrushSquare(byte[] brush, CPBrushInfo brushInfo) {
+	static byte[] buildBrushSquare(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 
@@ -256,17 +256,17 @@ public class CPBrushManager {
 				float dy = Math.abs(y * cosA + x * sinA);
 
 				if (dx <= sizeX && dy <= sizeY) {
-					brush[offset++] = (byte) 0xff;
+					brushArg[offset++] = (byte) 0xff;
 				} else {
-					brush[offset++] = 0;
+					brushArg[offset++] = 0;
 				}
 			}
 		}
 
-		return brush;
+		return brushArg;
 	}
 
-	byte[] buildBrushSquareAA(byte[] brush, CPBrushInfo brushInfo) {
+	static byte[] buildBrushSquareAA(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 
@@ -292,9 +292,9 @@ public class CPBrushManager {
 				float dy = Math.abs(y * cosA + x * sinA);
 
 				if (dx <= sizeXInner && dy <= sizeYInner) {
-					brush[offset++] = (byte) 0xff;
+					brushArg[offset++] = (byte) 0xff;
 				} else if (dx > sizeXOuter || dy > sizeYOuter) {
-					brush[offset++] = 0;
+					brushArg[offset++] = 0;
 				} else {
 					int count = 0;
 					for (int oj = 0; oj < 4; oj++) {
@@ -309,15 +309,15 @@ public class CPBrushManager {
 							}
 						}
 					}
-					brush[offset++] = (byte) Math.min(count * 16, 255);
+					brushArg[offset++] = (byte) Math.min(count * 16, 255);
 				}
 			}
 		}
 
-		return brush;
+		return brushArg;
 	}
 
-	byte[] buildBrushSoft(byte[] brush, CPBrushInfo brushInfo) {
+	static byte[] buildBrushSoft(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 		float sqrRadius = (brushInfo.curSize / 2) * (brushInfo.curSize / 2);
@@ -338,14 +338,14 @@ public class CPBrushManager {
 				float sqrDist = dx * dx + dy * dy;
 
 				if (sqrDist <= sqrRadius) {
-					brush[offset++] = (byte) (255 * (1 - (sqrDist / sqrRadius)));
+					brushArg[offset++] = (byte) (255 * (1 - (sqrDist / sqrRadius)));
 				} else {
-					brush[offset++] = 0;
+					brushArg[offset++] = 0;
 				}
 			}
 		}
 
-		return brush;
+		return brushArg;
 	}
 
 	void applyTexture(CPBrushDab dab, float textureAmount) {

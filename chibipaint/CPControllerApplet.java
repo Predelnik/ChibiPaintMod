@@ -46,6 +46,7 @@ public class CPControllerApplet extends CPController {
 		return applet;
 	}
 
+	@Override
 	public Component getDialogParent() {
 		if (floatingFrame != null) {
 			return floatingFrame;
@@ -68,6 +69,7 @@ public class CPControllerApplet extends CPController {
 		exitUrlTarget = applet.getParameter("exitUrlTarget");
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getActionCommand().equals("CPFloat")) {
 			applet.floatingMode();

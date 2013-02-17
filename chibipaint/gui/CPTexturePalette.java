@@ -127,7 +127,7 @@ public class CPTexturePalette extends CPPalette {
 		}
 	}
 
-	CPGreyBmp makeDotTexture(int size) {
+	static CPGreyBmp makeDotTexture(int size) {
 		CPGreyBmp texture = new CPGreyBmp(size, size);
 		for (int i = 1; i < size * size; i++) {
 			texture.data[i] = (byte) 255;
@@ -135,7 +135,7 @@ public class CPTexturePalette extends CPPalette {
 		return texture;
 	}
 
-	CPGreyBmp makeCheckerBoardTexture(int size) {
+	static CPGreyBmp makeCheckerBoardTexture(int size) {
 		int textureSize = 2*size;
 		CPGreyBmp texture = new CPGreyBmp(textureSize, textureSize);
 		for (int i = 0; i < textureSize; i++) {
@@ -146,7 +146,7 @@ public class CPTexturePalette extends CPPalette {
 		return texture;
 	}
 
-	CPGreyBmp makeVertLinesTexture(int lineSize, int size) {
+	static CPGreyBmp makeVertLinesTexture(int lineSize, int size) {
 		CPGreyBmp texture = new CPGreyBmp(size, size);
 		for (int i = 0; i < size * size; i++) {
 			if (i % size >= lineSize) {
@@ -156,7 +156,7 @@ public class CPTexturePalette extends CPPalette {
 		return texture;
 	}
 
-	CPGreyBmp makeHorizLinesTexture(int lineSize, int size) {
+	static CPGreyBmp makeHorizLinesTexture(int lineSize, int size) {
 		CPGreyBmp texture = new CPGreyBmp(size, size);
 		for (int i = 0; i < size * size; i++) {
 			if (i / size >= lineSize) {
@@ -215,6 +215,7 @@ public class CPTexturePalette extends CPPalette {
 			super("Test");
 		}
 
+		@Override
 		protected void paintComponent(Graphics g) {
 			Graphics2D g2d = (Graphics2D) g.create();
 
@@ -230,14 +231,17 @@ public class CPTexturePalette extends CPPalette {
 			}
 		}
 
+		@Override
 		public Dimension getPreferredSize() {
 			return new Dimension(width, height);
 		}
 
+		@Override
 		public Dimension getMaximumSize() {
 			return getPreferredSize();
 		}
 
+		@Override
 		public Dimension getMinimumSize() {
 			return getPreferredSize();
 		}
@@ -250,6 +254,7 @@ public class CPTexturePalette extends CPPalette {
 			this.texture = texture;
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			selectTexture(texture);
 		}
@@ -260,10 +265,10 @@ public class CPTexturePalette extends CPPalette {
 		final static int height = 200;
 		final static int previewSize = 64;
 
-		private JCheckBox cbInverse;
-		private JCheckBox cbMirror;
-		private CPSlider slBrightness;
-		private CPSlider slContrast;
+		JCheckBox cbInverse;
+		JCheckBox cbMirror;
+		CPSlider slBrightness;
+		CPSlider slContrast;
 
 		public CPOptionsPanel() {
 
@@ -273,6 +278,7 @@ public class CPTexturePalette extends CPPalette {
 			cbInverse = new JCheckBox("Inverse");
 			cbInverse.setAlignmentX(Component.LEFT_ALIGNMENT);
 			cbInverse.addActionListener( new AbstractAction() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					inverse = ((JCheckBox) e.getSource()).isSelected();
 					processTexture();
@@ -283,6 +289,7 @@ public class CPTexturePalette extends CPPalette {
 			cbMirror = new JCheckBox("Mirror");
 			cbMirror.setAlignmentX(Component.LEFT_ALIGNMENT);
 			cbMirror.addActionListener( new AbstractAction() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					mirror = ((JCheckBox) e.getSource()).isSelected();
 					processTexture();
@@ -291,6 +298,7 @@ public class CPTexturePalette extends CPPalette {
 			vb.add(cbMirror);
 
 			slBrightness = new CPSlider(200) {
+				@Override
 				public void onValueChange() {
 					brightness = (value - 100) / 100f;
 					title = "Brightness: " + (value - 100) + "%";
@@ -308,6 +316,7 @@ public class CPTexturePalette extends CPPalette {
 
 
 			slContrast = new CPSlider(200) {
+				@Override
 				public void onValueChange() {
 					contrast = (value - 100) / 100f;
 					title = "Contrast: " + (value - 100) + "%";
@@ -326,6 +335,7 @@ public class CPTexturePalette extends CPPalette {
 			JButton resetButton = new JButton("reset");
 			resetButton.setPreferredSize(new Dimension(40, 16));
 			resetButton.addActionListener(new AbstractAction() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (cbInverse.isSelected()) {
 						cbInverse.doClick();
@@ -342,10 +352,12 @@ public class CPTexturePalette extends CPPalette {
 			add(vb);
 		}
 
+		@Override
 		public Dimension getPreferredSize() {
 			return new Dimension(width, height);
 		}
 
+		@Override
 		protected void paintComponent(Graphics g) {
 			super.paintComponent(g);
 

@@ -95,6 +95,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 
 		resatSlider = new CPSlider(100) {
 
+			@Override
 			public void onValueChange() {
 				controller.getBrushInfo().resat = value / 100f;
 				controller.callToolListeners();
@@ -107,6 +108,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 
 		bleedSlider = new CPSlider(100) {
 
+			@Override
 			public void onValueChange() {
 				controller.getBrushInfo().bleed = value / 100f;
 				controller.callToolListeners();
@@ -119,6 +121,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 
 		spacingSlider = new CPSlider(100) {
 
+			@Override
 			public void onValueChange() {
 				controller.getBrushInfo().spacing = value / 100f;
 				controller.callToolListeners();
@@ -131,6 +134,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 
 		scatteringCB = new CPCheckBox() {
 
+			@Override
 			public void onValueChange() {
 				controller.getBrushInfo().pressureScattering = state;
 				controller.callToolListeners();
@@ -142,6 +146,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 
 		scatteringSlider = new CPSlider(1000) {
 
+			@Override
 			public void onValueChange() {
 				controller.getBrushInfo().scattering = value / 100f;
 				controller.callToolListeners();
@@ -154,6 +159,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 
 		smoothingSlider = new CPSlider(100) {
 
+			@Override
 			public void onValueChange() {
 				controller.getBrushInfo().smoothing = value / 100f;
 				controller.callToolListeners();
@@ -182,6 +188,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 		newTool (0, null); // Just to figure out visibility
 	}
 
+	@Override
 	public void newTool(int tool, CPBrushInfo toolInfo) {
 		JComponent [] brush_controls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
 				bleedSlider, spacingSlider, scatteringSlider, smoothingSlider, tipCombo, brushPreview};
@@ -255,6 +262,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 		}
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == tipCombo) {
 			controller.getBrushInfo().type = tipCombo.getSelectedIndex();
@@ -278,6 +286,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 			size = 16;
 		}
 
+		@Override
 		public void paint(Graphics g) {
 			g.drawOval(w / 2 - size / 2, h / 2 - size / 2, size, size);
 		}
@@ -293,33 +302,47 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 			controller.setBrushSize(size);
 		}
 
+		@Override
 		public void mouseEntered(MouseEvent e) {
+			// To implement interface
 		}
 
+		@Override
 		public void mouseExited(MouseEvent e) {
+			// To implement interface
 		}
 
+		@Override
 		public void mouseClicked(MouseEvent e) {
+			// To implement interface
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e) {
 			mouseSelect(e);
 		}
 
+		@Override
 		public void mouseReleased(MouseEvent e) {
+			// To implement interface
 		}
 
+		@Override
 		public void mouseMoved(MouseEvent e) {
+			// To implement interface
 		}
 
+		@Override
 		public void mouseDragged(MouseEvent e) {
 			mouseSelect(e);
 		}
 
+		@Override
 		public Dimension getPreferredSize() {
 			return new Dimension(w, h);
 		}
 
+		@Override
 		public void newTool(int tool, CPBrushInfo toolInfo) {
 			if (toolInfo.size != size) {
 				size = toolInfo.size;
@@ -335,6 +358,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 			minValue = 1;
 		}
 
+		@Override
 		public void onValueChange() {
 			controller.setAlpha(value);
 			title = "Opacity: " + value;
@@ -348,6 +372,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 			minValue = 0;
 		}
 
+		@Override
 		public void onValueChange() {
 			controller.setColorDistance (value);
 			title = "Color distance: " + value;
@@ -361,6 +386,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 			minValue = 1;
 		}
 
+		@Override
 		public void onValueChange() {
 			controller.setBrushSize(value);
 			title = "Brush Size: " + value;
@@ -375,6 +401,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 			addMouseListener(this);
 		}
 
+		@Override
 		public void paint(Graphics g) {
 			Dimension d = getSize();
 
@@ -392,27 +419,38 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 		}
 
 		public void onValueChange() {
+			// To implement interface
 		}
 
+		@Override
 		public void mouseClicked(MouseEvent e) {
+			// To implement interface
 		}
 
+		@Override
 		public void mouseEntered(MouseEvent e) {
+			// To implement interface
 		}
 
+		@Override
 		public void mouseExited(MouseEvent e) {
+			// To implement interface
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e) {
 			setValue(!state);
 		}
 
+		@Override
 		public void mouseReleased(MouseEvent e) {
+			// To implement interface
 		}
 	}
 
 	class CPAlphaCB extends CPCheckBox {
 
+		@Override
 		public void onValueChange() {
 			controller.getBrushInfo().pressureAlpha = state;
 			controller.callToolListeners();
@@ -421,6 +459,7 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 
 	class CPSizeCB extends CPCheckBox {
 
+		@Override
 		public void onValueChange() {
 			controller.getBrushInfo().pressureSize = state;
 			controller.callToolListeners();

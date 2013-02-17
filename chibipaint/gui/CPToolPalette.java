@@ -186,6 +186,7 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		Component[] components = getComponents();
 		for (Component c : components) {

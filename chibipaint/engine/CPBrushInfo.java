@@ -118,6 +118,7 @@ public class CPBrushInfo implements Cloneable {
 
 	}
 
+	@Override
 	public Object clone() {
 		try {
 			return super.clone();

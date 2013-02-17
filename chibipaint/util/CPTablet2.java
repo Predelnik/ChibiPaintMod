@@ -13,6 +13,7 @@ public class CPTablet2 {
 		try
 		{
 			TabletListener eventHandler = new TabletAdapter() {
+				@Override
 				public void cursorMoved(TabletEvent e) {
 					c.setCursorX(e.getX ());
 					c.setCursorY(e.getY ());
@@ -26,9 +27,11 @@ public class CPTablet2 {
 					c.getActiveMode().cursorMoveAction ();
 				};
 
+				@Override
 				public void cursorExited(TabletEvent e) {
 				}
 
+				@Override
 				public void cursorPressed(TabletEvent e) {
 					c.setModifiers(e.getModifiersEx());
 					c.setCursorX(e.getX ());
@@ -38,6 +41,7 @@ public class CPTablet2 {
 					c.getActiveMode().cursorPressAction();
 				}
 
+				@Override
 				public void cursorDragged(TabletEvent e) {
 					c.setCursorX(e.getX());
 					c.setCursorY(e.getY());
@@ -48,6 +52,7 @@ public class CPTablet2 {
 					c.getActiveMode().cursorDragAction ();
 				}
 
+				@Override
 				public void cursorReleased(TabletEvent e) {
 					c.setButton(e.getButton ());
 					c.getActiveMode().cursorReleaseAction ();

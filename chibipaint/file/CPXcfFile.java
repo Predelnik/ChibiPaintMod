@@ -18,6 +18,7 @@ public class CPXcfFile extends CPAbstractFile {
 
 
 
+	@Override
 	public boolean write(OutputStream os, CPArtwork a)
 	{
 		if (! (os instanceof FileOutputStream)) // For now only FileOutputStream supported for that kind of file
@@ -362,6 +363,7 @@ public class CPXcfFile extends CPAbstractFile {
 		fos.write (0); // zero-terminator byte for version
 	}
 
+	@Override
 	public CPArtwork read(InputStream is)
 	{
 		return null; // Warning - For now it's a stub

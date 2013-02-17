@@ -74,7 +74,7 @@ public class CPArtwork {
 
 	LinkedList<CPUndo> redoList;
 
-	private CPBrushInfo curBrush;
+	CPBrushInfo curBrush;
 
 	// FIXME: shouldn't be public
 	public CPBrushManager brushManager = new CPBrushManager();
@@ -295,6 +295,7 @@ public class CPArtwork {
 
 	abstract class CPBrushToolBase extends CPBrushTool {
 
+		@Override
 		public void beginStroke(float x, float y, float pressure) {
 			undoBuffer.copyFrom(curLayer);
 			undoArea.makeEmpty();
@@ -308,6 +309,7 @@ public class CPArtwork {
 			paintDab(x, y, pressure);
 		}
 
+		@Override
 		public void continueStroke(float x, float y, float pressure) {
 			float dist = (float) Math.sqrt(((lastX - x) * (lastX - x) + (lastY - y) * (lastY - y)));
 			float spacing = Math.max(curBrush.minSpacing, curBrush.curSize * curBrush.spacing);
@@ -328,6 +330,7 @@ public class CPArtwork {
 			}
 		}
 
+		@Override
 		public void endStroke() {
 			undoArea.clip(getSize());
 			if (!undoArea.isEmpty()) {
@@ -337,7 +340,8 @@ public class CPArtwork {
 			brushBuffer = null;
 		}
 
-		void paintDab(float x, float y, float pressure) {
+		void paintDab(float xArg, float yArg, float pressure) {
+			float x = xArg, y = yArg;
 			curBrush.applyPressure(pressure);
 			if (curBrush.scattering > 0f) {
 				x += rnd.nextGaussian() * curBrush.curScattering / 4f;
@@ -373,6 +377,7 @@ public class CPArtwork {
 
 	class CPBrushToolSimpleBrush extends CPBrushToolBase {
 
+		@Override
 		void paintDabImplementation(CPRect srcRect, CPRect dstRect, CPBrushDab dab) {
 			// FIXME: there should be no reference to a specific tool here
 			// create a new brush parameter instead
@@ -387,6 +392,7 @@ public class CPArtwork {
 			}
 		}
 
+		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.data;
 			int[] undoData = undoBuffer.data;
@@ -481,6 +487,7 @@ public class CPArtwork {
 
 	class CPBrushToolEraser extends CPBrushToolSimpleBrush {
 
+		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.data;
 			int[] undoData = undoBuffer.data;
@@ -503,6 +510,7 @@ public class CPArtwork {
 
 	class CPBrushToolDodge extends CPBrushToolSimpleBrush {
 
+		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.data;
 			int[] undoData = undoBuffer.data;
@@ -540,6 +548,7 @@ public class CPArtwork {
 
 	class CPBrushToolBurn extends CPBrushToolSimpleBrush {
 
+		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.data;
 			int[] undoData = undoBuffer.data;
@@ -582,6 +591,7 @@ public class CPArtwork {
 
 	class CPBrushToolBlur extends CPBrushToolSimpleBrush {
 
+		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.data;
 			int[] undoData = undoBuffer.data;
@@ -639,6 +649,7 @@ public class CPArtwork {
 	// as a simple alpha layer
 	class CPBrushToolDirectBrush extends CPBrushToolSimpleBrush {
 
+		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.data;
 			int[] undoData = undoBuffer.data;
@@ -676,12 +687,14 @@ public class CPArtwork {
 
 		LinkedList<CPColorFloat> previousSamples;
 
+		@Override
 		public void beginStroke(float x, float y, float pressure) {
 			previousSamples = null;
 
 			super.beginStroke(x, y, pressure);
 		}
 
+		@Override
 		void paintDabImplementation(CPRect srcRect, CPRect dstRect, CPBrushDab dab) {
 			if (previousSamples == null) {
 				CPColorFloat startColor = sampleColor((dstRect.left + dstRect.right) / 2,
@@ -802,6 +815,7 @@ public class CPArtwork {
 
 	class CPBrushToolOil extends CPBrushToolDirectBrush {
 
+		@Override
 		void paintDabImplementation(CPRect srcRect, CPRect dstRect, CPBrushDab dab) {
 			if (brushBuffer == null) {
 				brushBuffer = new int[dab.width * dab.height];
@@ -926,6 +940,7 @@ public class CPArtwork {
 
 	class CPBrushToolSmudge extends CPBrushToolDirectBrush {
 
+		@Override
 		void paintDabImplementation(CPRect srcRect, CPRect dstRect, CPBrushDab dab) {
 			if (brushBuffer == null) {
 				brushBuffer = new int[dab.width * dab.height];
@@ -944,7 +959,9 @@ public class CPArtwork {
 			}
 		}
 
+		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
+			// Don't know what should be there
 		}
 
 		private void smudgeAccumBuffer(CPRect srcRect, CPRect dstRect, int[] buffer, int w, int alpha) {
@@ -1125,7 +1142,7 @@ public class CPArtwork {
 		return !redoList.isEmpty();
 	}
 
-	private void addUndo(CPUndo undo) {
+	void addUndo(CPUndo undo) {
 		if (getUndoList().isEmpty() || !(getUndoList().getFirst()).merge(undo)) {
 			if (getUndoList().size() >= maxUndo) {
 				getUndoList().removeLast();
@@ -1372,7 +1389,7 @@ public class CPArtwork {
 		moveLayerReal(from, to);
 	}
 
-	private void moveLayerReal(int from, int to) {
+	void moveLayerReal(int from, int to) {
 		CPLayer layer = getLayersVector().remove(from);
 		if (to <= from) {
 			getLayersVector().add(to, layer);
@@ -1662,9 +1679,10 @@ public class CPArtwork {
 		setSelection(newSelection);
 	}
 
-	public void beginPreviewMode(boolean copy) {
+	public void beginPreviewMode(boolean copyArg) {
 		// !!!! awful awful hack !!! will break as soon as CPMultiUndo is used for other things
 		// FIXME: ASAP!
+		boolean copy = copyArg;
 		if (!copy && !getUndoList().isEmpty() && redoList.isEmpty() && (getUndoList().getFirst() instanceof CPMultiUndo)
 				&& (((CPMultiUndo) getUndoList().getFirst()).undoes[0] instanceof CPUndoPaint)
 				&& ((CPUndoPaint) ((CPMultiUndo) getUndoList().getFirst()).undoes[0]).layer == getActiveLayerNb()) {
@@ -1709,7 +1727,8 @@ public class CPArtwork {
 	int movePrevX, movePrevY, movePrevX2, movePrevY2;
 	boolean moveModeCopy, prevModeCopy;
 
-	public void move(int offsetX, int offsetY) {
+	public void move(int offsetXArg, int offsetYArg) {
+		int offsetX = offsetXArg, offsetY = offsetYArg;
 		CPRect srcRect;
 
 		offsetX += movePrevX;
@@ -1887,16 +1906,19 @@ public class CPArtwork {
 			undoArea.makeEmpty();
 		}
 
+		@Override
 		public void undo() {
 			getLayer(layer).setRectXOR(data, rect);
 			invalidateFusion(rect);
 		}
 
+		@Override
 		public void redo() {
 			getLayer(layer).setRectXOR(data, rect);
 			invalidateFusion(rect);
 		}
 
+		@Override
 		public long getMemoryUsed(boolean undone, Object param) {
 			return data.length * 4;
 		}
@@ -1917,6 +1939,7 @@ public class CPArtwork {
 			undoBufferAll = null; // Hope gc will be a good boy
 		}
 
+		@Override
 		public void undo() {
 			for (int i = 0; i < getLayersVector().size (); i++)
 				getLayer(i).setRectXOR(data.elementAt(i), rect);
@@ -1924,6 +1947,7 @@ public class CPArtwork {
 			invalidateFusion(rect);
 		}
 
+		@Override
 		public void redo() {
 			for (int i = 0; i < getLayersVector().size (); i++)
 				getLayer(i).setRectXOR(data.elementAt(i), rect);
@@ -1931,6 +1955,7 @@ public class CPArtwork {
 			invalidateFusion(rect);
 		}
 
+		@Override
 		public long getMemoryUsed(boolean undone, Object param) {
 			return (data.size () != 0) ? data.size () * data.elementAt(0).length * 4 : 0;
 		}
@@ -1947,18 +1972,21 @@ public class CPArtwork {
 			this.newVis = newVis;
 		}
 
+		@Override
 		public void redo() {
 			getLayer(layer).visible = newVis;
 			invalidateFusion();
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void undo() {
 			getLayer(layer).visible = oldVis;
 			invalidateFusion();
 			callListenersLayerChange();
 		}
 
+		@Override
 		public boolean merge(CPUndo u) {
 			if (u instanceof CPUndoLayerVisible && layer == ((CPUndoLayerVisible) u).layer) {
 				newVis = ((CPUndoLayerVisible) u).newVis;
@@ -1967,6 +1995,7 @@ public class CPArtwork {
 			return false;
 		}
 
+		@Override
 		public boolean noChange() {
 			return oldVis == newVis;
 		}
@@ -1980,6 +2009,7 @@ public class CPArtwork {
 			this.layer = layer;
 		}
 
+		@Override
 		public void undo() {
 			getLayersVector().remove(layer + 1);
 			setActiveLayer(layer);
@@ -1987,6 +2017,7 @@ public class CPArtwork {
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void redo() {
 			CPLayer newLayer = new CPLayer(width, height);
 			newLayer.name = getDefaultLayerName();
@@ -2018,6 +2049,7 @@ public class CPArtwork {
 			}
 		}
 
+		@Override
 		public void undo() {
 			for (int i = 0; i < getLayersVector().size (); i++)
 				getLayersVector().elementAt (i).visible = mask.elementAt(i);
@@ -2042,6 +2074,7 @@ public class CPArtwork {
 			this.layer = layer;
 		}
 
+		@Override
 		public void undo() {
 			getLayersVector().remove(layer + 1);
 			setActiveLayer(layer);
@@ -2049,6 +2082,7 @@ public class CPArtwork {
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void redo() {
 			String copySuffix = " Copy";
 
@@ -2075,6 +2109,7 @@ public class CPArtwork {
 			this.layerObj = layerObj;
 		}
 
+		@Override
 		public void undo() {
 			getLayersVector().add(layer, layerObj);
 			setActiveLayer(layer);
@@ -2082,6 +2117,7 @@ public class CPArtwork {
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void redo() {
 			getLayersVector().remove(layer);
 			setActiveLayer(layer < getLayersVector().size() ? layer : layer - 1);
@@ -2089,6 +2125,7 @@ public class CPArtwork {
 			callListenersLayerChange();
 		}
 
+		@Override
 		public long getMemoryUsed(boolean undone, Object param) {
 			return undone ? 0 : width * height * 4;
 		}
@@ -2107,6 +2144,7 @@ public class CPArtwork {
 			layerTop = getLayersVector().elementAt(layer);
 		}
 
+		@Override
 		public void undo() {
 			getLayersVector().elementAt(layer - 1).copyFrom(layerBottom);
 			getLayersVector().add(layer, layerTop);
@@ -2118,6 +2156,7 @@ public class CPArtwork {
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void redo() {
 			layerBottom = new CPLayer(width, height);
 			layerBottom.copyFrom(getLayersVector().elementAt(layer - 1));
@@ -2127,6 +2166,7 @@ public class CPArtwork {
 			mergeDown(false);
 		}
 
+		@Override
 		public long getMemoryUsed(boolean undone, Object param) {
 			return undone ? 0 : width * height * 4 * 2;
 		}
@@ -2143,6 +2183,7 @@ public class CPArtwork {
 			oldActiveLayer = getActiveLayerNb();
 		}
 
+		@Override
 		@SuppressWarnings("unchecked")
 		public void undo() {
 			setLayers((Vector<CPLayer>) oldLayers.clone());
@@ -2152,10 +2193,12 @@ public class CPArtwork {
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void redo() {
 			mergeAllLayers(false);
 		}
 
+		@Override
 		public long getMemoryUsed(boolean undone, Object param) {
 			return undone ? 0 : oldLayers.size() * width * height * 4;
 		}
@@ -2170,6 +2213,7 @@ public class CPArtwork {
 			this.to = to;
 		}
 
+		@Override
 		public void undo() {
 			if (to <= from) {
 				moveLayerReal(to, from + 1);
@@ -2178,6 +2222,7 @@ public class CPArtwork {
 			}
 		}
 
+		@Override
 		public void redo() {
 			moveLayerReal(from, to);
 		}
@@ -2194,18 +2239,21 @@ public class CPArtwork {
 			this.layer = layer;
 		}
 
+		@Override
 		public void undo() {
 			getLayer(layer).setAlpha(from);
 			invalidateFusion();
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void redo() {
 			getLayer(layer).setAlpha(to);
 			invalidateFusion();
 			callListenersLayerChange();
 		}
 
+		@Override
 		public boolean merge(CPUndo u) {
 			if (u instanceof CPUndoLayerAlpha && layer == ((CPUndoLayerAlpha) u).layer) {
 				to = ((CPUndoLayerAlpha) u).to;
@@ -2214,6 +2262,7 @@ public class CPArtwork {
 			return false;
 		}
 
+		@Override
 		public boolean noChange() {
 			return from == to;
 		}
@@ -2230,18 +2279,21 @@ public class CPArtwork {
 			this.layer = layer;
 		}
 
+		@Override
 		public void undo() {
 			getLayer(layer).setBlendMode(from);
 			invalidateFusion();
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void redo() {
 			getLayer(layer).setBlendMode(to);
 			invalidateFusion();
 			callListenersLayerChange();
 		}
 
+		@Override
 		public boolean merge(CPUndo u) {
 			if (u instanceof CPUndoLayerMode && layer == ((CPUndoLayerMode) u).layer) {
 				to = ((CPUndoLayerMode) u).to;
@@ -2250,6 +2302,7 @@ public class CPArtwork {
 			return false;
 		}
 
+		@Override
 		public boolean noChange() {
 			return from == to;
 		}
@@ -2266,16 +2319,19 @@ public class CPArtwork {
 			this.layer = layer;
 		}
 
+		@Override
 		public void undo() {
 			getLayer(layer).name = from;
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void redo() {
 			getLayer(layer).name = to;
 			callListenersLayerChange();
 		}
 
+		@Override
 		public boolean merge(CPUndo u) {
 			if (u instanceof CPUndoLayerRename && layer == ((CPUndoLayerRename) u).layer) {
 				to = ((CPUndoLayerRename) u).to;
@@ -2284,6 +2340,7 @@ public class CPArtwork {
 			return false;
 		}
 
+		@Override
 		public boolean noChange() {
 			return from.equals(to);
 		}
@@ -2298,18 +2355,22 @@ public class CPArtwork {
 			this.to = (CPRect) to.clone();
 		}
 
+		@Override
 		public void undo() {
 			setSelection(from);
 		}
 
+		@Override
 		public void redo() {
 			setSelection(to);
 		}
 
+		@Override
 		public boolean merge(CPUndo u) {
 			return false;
 		}
 
+		@Override
 		public boolean noChange() {
 			return from.equals(to);
 		}
@@ -2324,22 +2385,26 @@ public class CPArtwork {
 			this.undoes = undoes;
 		}
 
+		@Override
 		public void undo() {
 			for (int i = undoes.length - 1; i >= 0; i--) {
 				undoes[i].undo();
 			}
 		}
 
+		@Override
 		public void redo() {
 			for (int i = 0; i < undoes.length; i++) {
 				undoes[i].redo();
 			}
 		}
 
+		@Override
 		public boolean merge(CPUndo u) {
 			return false;
 		}
 
+		@Override
 		public boolean noChange() {
 			boolean noChange = true;
 			for (int i = 0; i < undoes.length; i++) {
@@ -2348,6 +2413,7 @@ public class CPArtwork {
 			return noChange;
 		}
 
+		@Override
 		public long getMemoryUsed(boolean undone, Object param) {
 			long total = 0;
 			for (CPUndo undo : undoes) {
@@ -2371,6 +2437,7 @@ public class CPArtwork {
 			this.selection = (CPRect) selection.clone();
 		}
 
+		@Override
 		public void undo() {
 			setActiveLayer(layer);
 			curLayer.pasteBitmap(clipboard.bmp, x, y);
@@ -2378,6 +2445,7 @@ public class CPArtwork {
 			invalidateFusion();
 		}
 
+		@Override
 		public void redo() {
 			setActiveLayer(layer);
 			CPRect r = bmp.getSize();
@@ -2387,6 +2455,7 @@ public class CPArtwork {
 			invalidateFusion();
 		}
 
+		@Override
 		public long getMemoryUsed(boolean undone, Object param) {
 			return bmp == param ? 0 : bmp.width * bmp.height * 4;
 		}
@@ -2404,6 +2473,7 @@ public class CPArtwork {
 			this.selection = (CPRect) selection.clone();
 		}
 
+		@Override
 		public void undo() {
 			getLayersVector().remove(layer + 1);
 			setActiveLayer(layer);
@@ -2413,11 +2483,13 @@ public class CPArtwork {
 			callListenersLayerChange();
 		}
 
+		@Override
 		public void redo() {
 			setActiveLayer(layer);
 			pasteClip(false, clip);
 		}
 
+		@Override
 		public long getMemoryUsed(boolean undone, Object param) {
 			return clip.bmp == param ? 0 : clip.bmp.width * clip.bmp.height * 4;
 		}

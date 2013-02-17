@@ -139,11 +139,13 @@ public class CPChibiFile extends CPAbstractFile {
 			InflaterInputStream iis = new InflaterInputStream(is);
 			CPChibiChunk chunk = new CPChibiChunk(iis);
 			if (!chunk.is(HEAD)) {
+				iis.close();
 				return null; // not a valid file
 			}
 
 			CPChibiHeader header = new CPChibiHeader(iis, chunk);
 			if ((header.version >>> 16) > 0) {
+				iis.close();
 				return null; // the file version is higher than what we can deal with, bail out
 			}
 
@@ -163,6 +165,7 @@ public class CPChibiFile extends CPAbstractFile {
 			}
 
 			a.setActiveLayer(0);
+			iis.close();
 			return a;
 
 		} catch (IOException e) {
@@ -261,8 +264,8 @@ public class CPChibiFile extends CPAbstractFile {
 			chunkSize = readInt(is);
 		}
 
-		private boolean is(byte[] chunkType) {
-			return Arrays.equals(this.chunkType, chunkType);
+		boolean is(byte[] chunkTypeArg) {
+			return Arrays.equals(this.chunkType, chunkTypeArg);
 		}
 	}
 

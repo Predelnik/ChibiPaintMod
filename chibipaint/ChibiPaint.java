@@ -46,18 +46,22 @@ public class ChibiPaint extends JApplet {
 	JPanel floatingPlaceholder;
 	JFrame floatingFrame;
 
+	@Override
 	public void init() {
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 
+				@Override
 				public void run() {
 					createApplet();
 				}
 			});
 		} catch (Exception e) {
+			return; // Something went wrong
 		}
 	}
 
+	@Override
 	public void destroy() {
 
 		// The following bit of voodoo prevents the Java plugin
@@ -76,7 +80,7 @@ public class ChibiPaint extends JApplet {
 		mainGUI = null;
 	}
 
-	private void createApplet() {
+	void createApplet() {
 		controller = new CPControllerApplet(this);
 		controller.setArtwork(createArtwork());
 
@@ -108,6 +112,7 @@ public class ChibiPaint extends JApplet {
 				w = artwork.width;
 				h = artwork.height;
 			} catch (Exception ignored) {
+				// Ignored
 			}
 		}
 
@@ -126,6 +131,7 @@ public class ChibiPaint extends JApplet {
 				w = loadImage.getWidth(null);
 				h = loadImage.getHeight(null);
 			} catch (Exception ignored) {
+				// Ignord
 			}
 		}
 
@@ -151,6 +157,7 @@ public class ChibiPaint extends JApplet {
 			try {
 				grabber.grabPixels();
 			} catch (InterruptedException e) {
+				// Ignored
 			}
 		}
 
@@ -160,7 +167,7 @@ public class ChibiPaint extends JApplet {
 	void createFloatingPlaceholder() {
 		// Build the panel that will be displayed in the applet when user switches to floating mode
 		floatingPlaceholder = new JPanel(new BorderLayout());
-		JLabel label = new JLabel("ChibiPaint is running in floating mode.\n\nDO NOT CLOSE THIS WINDOW!", JLabel.CENTER);
+		JLabel label = new JLabel("ChibiPaint is running in floating mode.\n\nDO NOT CLOSE THIS WINDOW!", SwingConstants.CENTER);
 		label.setFont(new Font("Serif", Font.PLAIN, 16));
 		floatingPlaceholder.add(label);
 	}
@@ -171,7 +178,7 @@ public class ChibiPaint extends JApplet {
 
 			JFrame.setDefaultLookAndFeelDecorated(false);
 			floatingFrame = new CPFloatingFrame();
-			floatingFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+			floatingFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 			floatingFrame.setSize(800, 600);
 
 			setContentPane(floatingPlaceholder);
@@ -207,6 +214,7 @@ public class ChibiPaint extends JApplet {
 			super("ChibiPaint");
 			addWindowListener(new WindowAdapter() {
 
+				@Override
 				public void windowClosing(WindowEvent e) {
 					floatingMode();
 				}

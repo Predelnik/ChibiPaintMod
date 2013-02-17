@@ -59,6 +59,7 @@ public class CPColorPalette extends CPPalette implements chibipaint.CPController
 		controller.addColorListener(this);
 	}
 
+	@Override
 	public void newColor(CPColor color) {
 		if (!curColor.isEqual(color)) {
 			curColor.copyFrom(color);
@@ -122,10 +123,12 @@ public class CPColorPalette extends CPPalette implements chibipaint.CPController
 			}
 		}
 
+		@Override
 		public void update(Graphics g) {
 			paint(g);
 		}
 
+		@Override
 		public void paint(Graphics g) {
 			if (needRefresh) {
 				makeBitmap();
@@ -152,29 +155,37 @@ public class CPColorPalette extends CPPalette implements chibipaint.CPController
 			controller.setCurColor(color);
 		}
 
+		@Override
 		public void mouseEntered(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseExited(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseClicked(MouseEvent e) {
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e) {
 			mouseSelect(e);
 		}
 
+		@Override
 		public void mouseReleased(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseMoved(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseDragged(MouseEvent e) {
 			mouseSelect(e);
 		}
 
+		@Override
 		public Dimension getPreferredSize() {
 			return new Dimension(w, h);
 		}
@@ -218,10 +229,12 @@ public class CPColorPalette extends CPPalette implements chibipaint.CPController
 			}
 		}
 
+		@Override
 		public void update(Graphics g) {
 			paint(g);
 		}
 
+		@Override
 		public void paint(Graphics g) {
 			img.flush();
 			g.drawImage(img, 0, 0, Color.red, null);
@@ -243,34 +256,42 @@ public class CPColorPalette extends CPPalette implements chibipaint.CPController
 			}
 		}
 
+		@Override
 		public void mouseEntered(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseExited(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseClicked(MouseEvent e) {
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e) {
 			mouseSelect(e);
 		}
 
+		@Override
 		public void mouseReleased(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseMoved(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseDragged(MouseEvent e) {
 			mouseSelect(e);
 		}
 
-		private void setHue(int h) {
+		void setHue(int h) {
 			hue = h;
 			repaint();
 		}
 
+		@Override
 		public Dimension getPreferredSize() {
 			return new Dimension(w, h);
 		}
@@ -280,10 +301,12 @@ public class CPColorPalette extends CPPalette implements chibipaint.CPController
 
 		int color;
 
+		@Override
 		public void update(Graphics g) {
 			paint(g);
 		}
 
+		@Override
 		public void paint(Graphics g) {
 			Dimension d = getSize();
 			g.setColor(new Color(color));

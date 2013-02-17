@@ -94,7 +94,7 @@ public class CPMainGUI {
 	}
 
 	public JMenuBar createMainMenu(ActionListener listener) {
-		JMenuBar menuBar = new JMenuBar();
+		JMenuBar menuBarLocal = new JMenuBar();
 		JMenu menu, submenu;
 		JMenuItem menuItem;
 
@@ -103,7 +103,7 @@ public class CPMainGUI {
 		//
 		menu = new JMenu("File");
 		menu.setMnemonic(KeyEvent.VK_F);
-		menuBar.add(menu);
+		menuBarLocal.add(menu);
 
 
 		if (controller.isRunningAsApplet ()) {
@@ -228,7 +228,7 @@ public class CPMainGUI {
 
 		menu = new JMenu("Edit");
 		menu.setMnemonic(KeyEvent.VK_E);
-		menuBar.add(menu);
+		menuBarLocal.add(menu);
 
 		menuItem = new JMenuItem("Undo", KeyEvent.VK_U);
 		menuItem.getAccessibleContext().setAccessibleDescription("Undoes the most recent action");
@@ -298,7 +298,7 @@ public class CPMainGUI {
 
 		menu = new JMenu("Layers");
 		menu.setMnemonic(KeyEvent.VK_L);
-		menuBar.add(menu);
+		menuBarLocal.add(menu);
 
 		menuItem = new JMenuItem("Show / Hide All Layers", KeyEvent.VK_A);
 		menuItem.getAccessibleContext().setAccessibleDescription("Toggle All Layers Visibility");
@@ -345,7 +345,7 @@ public class CPMainGUI {
 		//
 		menu = new JMenu("Effects");
 		menu.setMnemonic(KeyEvent.VK_E);
-		menuBar.add(menu);
+		menuBarLocal.add(menu);
 
 		menuItem = new JMenuItem("Clear", KeyEvent.VK_C);
 		menuItem.getAccessibleContext().setAccessibleDescription("Clears the selected area");
@@ -458,7 +458,7 @@ public class CPMainGUI {
 
 		menu = new JMenu("View");
 		menu.setMnemonic(KeyEvent.VK_V);
-		menuBar.add(menu);
+		menuBarLocal.add(menu);
 
 		if (controller.isRunningAsApplet()) {
 			menuItem = new JMenuItem("Floating mode", KeyEvent.VK_F);
@@ -596,7 +596,7 @@ public class CPMainGUI {
 
 		menu = new JMenu("Help");
 		menu.setMnemonic(KeyEvent.VK_H);
-		menuBar.add(menu);
+		menuBarLocal.add(menu);
 
 		menuItem = new JMenuItem("About...", KeyEvent.VK_A);
 		menuItem.getAccessibleContext().setAccessibleDescription("Displays some information about ChibiPaint");
@@ -604,7 +604,7 @@ public class CPMainGUI {
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
 
-		return menuBar;
+		return menuBarLocal;
 	}
 
 	public void showPalette(String palette, boolean show) {
@@ -643,6 +643,7 @@ public class CPMainGUI {
 		public CPDesktop() {
 			addComponentListener(new ComponentAdapter() {
 
+				@Override
 				public void componentResized(ComponentEvent e) {
 					getBg().setSize(getSize());
 					getBg().validate();

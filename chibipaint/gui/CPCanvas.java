@@ -215,11 +215,13 @@ CPArtwork.ICPArtworkListener {
 			// TODO: Maybe fix it a better.
 			CPTablet2.connectToCanvas(this);
 			addMouseListener(new MouseAdapter() {
+				@Override
 				public void mouseExited(MouseEvent me) {
 					cursorIn = false;
 					brushPreview = false;
 					repaint ();
 				}
+				@Override
 				public void mouseEntered(MouseEvent me) {
 					brushPreview = true;
 					cursorIn = true;
@@ -246,6 +248,7 @@ CPArtwork.ICPArtworkListener {
 		initCanvas (ctrl);
 	}
 
+	@Override
 	public boolean isOpaque() {
 		return true;
 	}
@@ -268,12 +271,12 @@ CPArtwork.ICPArtworkListener {
 		gbc.weighty = 1.;
 		container.add(this, gbc);
 
-		vertScroll = new JScrollBar(JScrollBar.VERTICAL);
+		vertScroll = new JScrollBar(Adjustable.VERTICAL);
 		gbc = new GridBagConstraints();
 		gbc.fill = GridBagConstraints.VERTICAL;
 		container.add(vertScroll, gbc);
 
-		horizScroll = new JScrollBar(JScrollBar.HORIZONTAL);
+		horizScroll = new JScrollBar(Adjustable.HORIZONTAL);
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -282,6 +285,7 @@ CPArtwork.ICPArtworkListener {
 		updateScrollBars();
 
 		horizScroll.addAdjustmentListener(new AdjustmentListener() {
+			@Override
 			public void adjustmentValueChanged(AdjustmentEvent e) {
 				Point p = getOffset();
 				p.x = - e.getValue();
@@ -290,6 +294,7 @@ CPArtwork.ICPArtworkListener {
 		});
 
 		vertScroll.addAdjustmentListener(new AdjustmentListener() {
+			@Override
 			public void adjustmentValueChanged(AdjustmentEvent e) {
 				Point p = getOffset();
 				p.y = - e.getValue();
@@ -317,7 +322,7 @@ CPArtwork.ICPArtworkListener {
 	}
 
 
-	void updateScrollBar(JScrollBar scroll, int visMin, int visWidth, int viewSize, int offset) {
+	static void updateScrollBar(JScrollBar scroll, int visMin, int visWidth, int viewSize, int offset) {
 		if (visMin >= 0 && visMin + visWidth < viewSize) {
 			scroll.setEnabled(false);
 		} else {
@@ -336,10 +341,12 @@ CPArtwork.ICPArtworkListener {
 	// painting methods
 	// //////////////////////////////////////////////////////////////////////////////////////
 
+	@Override
 	public void update(Graphics g) {
 		paint(g);
 	}
 
+	@Override
 	public void paint(Graphics g) {
 		Graphics2D g2d = (Graphics2D) g;
 
@@ -385,7 +392,7 @@ CPArtwork.ICPArtworkListener {
 
 		// Redraw over the checkerboard border, removing a just a little bit of the image to avoid display problems
 		path.append(pathRect, false);
-		path.setWindingRule(GeneralPath.WIND_EVEN_ODD);
+		path.setWindingRule(Path2D.WIND_EVEN_ODD);
 		g2d.setColor(new Color(0x606060));
 		g2d.fill(path);
 
@@ -463,15 +470,18 @@ CPArtwork.ICPArtworkListener {
 	// Mouse input methods
 	//
 
+	@Override
 	public void mouseEntered(MouseEvent e) {
 		cursorIn = true;
 	}
 
+	@Override
 	public void mouseExited(MouseEvent e) {
 		cursorIn = false;
 		repaint();
 	}
 
+	@Override
 	public void mousePressed(MouseEvent e) {
 		setModifiers(e.getModifiersEx());
 		setCursorX(e.getX ());
@@ -481,6 +491,7 @@ CPArtwork.ICPArtworkListener {
 		getActiveMode().cursorPressAction ();
 	}
 
+	@Override
 	public void mouseDragged(MouseEvent e) {
 		setCursorX(e.getX());
 		setCursorY(e.getY());
@@ -488,11 +499,13 @@ CPArtwork.ICPArtworkListener {
 		getActiveMode().cursorDragAction ();
 	}
 
+	@Override
 	public void mouseReleased(MouseEvent e) {
 		setButton(e.getButton ());
 		getActiveMode().cursorReleaseAction ();
 	}
 
+	@Override
 	public void mouseMoved(MouseEvent e) {
 		setCursorX(e.getX());
 		setCursorY(e.getY());
@@ -505,6 +518,7 @@ CPArtwork.ICPArtworkListener {
 		CPTablet.getRef().mouseDetect();
 	}
 
+	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		float factor = 1;
 		if (e.getWheelRotation() > 0) {
@@ -597,21 +611,22 @@ CPArtwork.ICPArtworkListener {
 
 	// More advanced zoom methods
 
-	public void zoomOnCenter(float zoom) {
+	public void zoomOnCenter(float zoomArg) {
 		Dimension d = getSize();
-		zoomOnPoint(zoom, d.width / 2, d.height / 2);
+		zoomOnPoint(zoomArg, d.width / 2, d.height / 2);
 	}
 
-	public void zoomOnPoint(float zoom, int centerX, int centerY) {
-		zoom = Math.max(minZoom, Math.min(maxZoom, zoom));
-		if (getZoom() != zoom) {
+	public void zoomOnPoint(float zoomArg, int centerX, int centerY) {
+		float zoom_ = zoomArg;
+		zoom_ = Math.max(minZoom, Math.min(maxZoom, zoom_));
+		if (getZoom() != zoom_) {
 			Point offset = getOffset();
-			setOffset(offset.x + (int) ((centerX - offset.x) * (1 - zoom / getZoom())), offset.y
-					+ (int) ((centerY - offset.y) * (1 - zoom / getZoom())));
-			setZoom(zoom);
+			setOffset(offset.x + (int) ((centerX - offset.x) * (1 - zoom_ / getZoom())), offset.y
+					+ (int) ((centerY - offset.y) * (1 - zoom_ / getZoom())));
+			setZoom(zoom_);
 
 			CPController.CPViewInfo viewInfo = new CPController.CPViewInfo();
-			viewInfo.zoom = zoom;
+			viewInfo.zoom = zoom_;
 			viewInfo.offsetX = offsetX;
 			viewInfo.offsetY = offsetY;
 			controller.callViewListeners(viewInfo);
@@ -663,6 +678,7 @@ CPArtwork.ICPArtworkListener {
 		try {
 			transform.inverseTransform(p, result);
 		} catch (NoninvertibleTransformException ex) {
+			return result;
 		}
 
 		return result;
@@ -674,6 +690,7 @@ CPArtwork.ICPArtworkListener {
 		try {
 			transform.inverseTransform(p, result);
 		} catch (NoninvertibleTransformException ex) {
+			return new Point (0, 0);
 		}
 
 		return new Point((int) result.x, (int) result.y);
@@ -731,7 +748,7 @@ CPArtwork.ICPArtworkListener {
 		return r2;
 	}
 
-	private void repaintBrushPreview() {
+	void repaintBrushPreview() {
 		if (oldPreviewRect != null) {
 			Rectangle r = oldPreviewRect;
 			oldPreviewRect = null;
@@ -739,8 +756,9 @@ CPArtwork.ICPArtworkListener {
 		}
 	}
 
-	private Rectangle getBrushPreviewOval(boolean calcPressure) {
+	Rectangle getBrushPreviewOval(boolean calcPressureArg) {
 		// TODO: Disable ability to turn on PressureSize for M_SMUDGE and M_OIL
+		boolean calcPressure = calcPressureArg;
 		if  (controller.getBrushInfo().paintMode == CPBrushInfo.M_SMUDGE || controller.getBrushInfo().paintMode == CPBrushInfo.M_OIL)
 			calcPressure = false;
 		int bSize = (int) (controller.getBrushSize() * zoom * (calcPressure && controller.getBrushInfo().pressureSize ? getLastPressure() : 1.0));
@@ -751,6 +769,7 @@ CPArtwork.ICPArtworkListener {
 	// ChibiPaint interfaces methods
 	//
 
+	@Override
 	public void newTool(int tool, CPBrushInfo toolInfo) {
 		if (curSelectedMode == curDrawMode) {
 			curSelectedMode = drawingModes[toolInfo.strokeMode];
@@ -771,6 +790,7 @@ CPArtwork.ICPArtworkListener {
 		}
 	}
 
+	@Override
 	public void modeChange(int mode) {
 		switch (mode) {
 		case CPController.M_DRAW:
@@ -799,15 +819,18 @@ CPArtwork.ICPArtworkListener {
 	// misc overloaded and interface standard methods
 	//
 
+	@Override
 	public Dimension getPreferredSize() {
 		return new Dimension((int) (artwork.width * zoom), (int) (artwork.height * zoom));
 	}
 
+	@Override
 	public void componentResized(ComponentEvent e) {
 		centerCanvas();
 		repaint();
 	}
 
+	@Override
 	public void keyPressed(KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 			spacePressed = true;
@@ -881,6 +904,7 @@ CPArtwork.ICPArtworkListener {
 		}
 	}
 
+	@Override
 	public void keyReleased(KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
 			spacePressed = false;
@@ -890,6 +914,7 @@ CPArtwork.ICPArtworkListener {
 		}
 	}
 
+	@Override
 	public void keyTyped(KeyEvent e) {
 		switch (e.getKeyChar()) {
 		case '[':
@@ -901,32 +926,43 @@ CPArtwork.ICPArtworkListener {
 		}
 	}
 
+	@Override
 	public boolean isFocusable() {
 		return true;
 	}
 
 	// Unused interface methods
+	@Override
 	public void mouseClicked(MouseEvent e) {
+		// To implement interface
 	}
 
+	@Override
 	public void componentHidden(ComponentEvent e) {
+		// To implement interface
 	}
 
+	@Override
 	public void componentMoved(ComponentEvent e) {
+		// To implement interface
 	}
 
+	@Override
 	public void componentShown(ComponentEvent e) {
+		// To implement interface
 	}
 
-	public void updateRegion(CPArtwork artwork, CPRect region) {
+	@Override
+	public void updateRegion(CPArtwork artworkArg, CPRect region) {
 		updateRegion.union(region);
 
 		Rectangle r = getRefreshArea(region);
 		repaint(r.x, r.y, r.width, r.height);
 	}
 
-	// unused method
-	public void layerChange(CPArtwork artwork) {
+	@Override
+	public void layerChange(CPArtwork artworkArg) {
+		// unused method
 	}
 
 	public void showGrid(boolean show) {
@@ -1022,25 +1058,31 @@ CPArtwork.ICPArtworkListener {
 		// Mouse Input
 
 		public void cursorPressAction () {
+			// To not define actions for some functions in every case
 		}
 
 		public void cursorReleaseAction () {
+			// To not define actions for some functions in every case
 		}
 
 
 		public void cursorClickAction () {
+			// To not define actions for some functions in every case
 		}
 
 		public void cursorMoveAction ()
 		{
+			// To not define actions for some functions in every case
 		}
 
 		public void cursorDragAction () {
+			// To not define actions for some functions in every case
 		}
 
 		// GUI drawing
 		@SuppressWarnings("unused")
 		public void paint(Graphics2D g2d) {
+			// To not define actions for some functions in every case
 		}
 
 	}
@@ -1056,6 +1098,7 @@ CPArtwork.ICPArtworkListener {
 
 	class CPDefaultMode extends CPMode {
 
+		@Override
 		public void cursorPressAction () {
 			// FIXME: replace the moveToolMode hack by a new and improved system
 			if (!spacePressed && getButton() == MouseEvent.BUTTON1
@@ -1094,6 +1137,7 @@ CPArtwork.ICPArtworkListener {
 
 		}
 
+		@Override
 		public void paint(Graphics2D g2d) {
 			if (brushPreview && curSelectedMode == curDrawMode) {
 				brushPreview = false;
@@ -1106,6 +1150,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void cursorMoveAction () {
 			Point p = new Point (getCursorX(), getCursorY());
 			if (!spacePressed && cursorIn) {
@@ -1141,6 +1186,7 @@ CPArtwork.ICPArtworkListener {
 		boolean dragLeft = false;
 		Point2D.Float smoothMouse = new Point2D.Float(0, 0);
 
+		@Override
 		public void cursorPressAction () {
 			if (!dragLeft && getButton() == MouseEvent.BUTTON1) {
 				Point p = new Point (getCursorX(), getCursorY());
@@ -1153,6 +1199,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void cursorDragAction () {
 			Point p = new Point (getCursorX(), getCursorY());
 			Point2D.Float pf = coordToDocument(p);
@@ -1184,6 +1231,7 @@ CPArtwork.ICPArtworkListener {
 			repaint(r.x, r.y, r.width, r.height);
 		}
 
+		@Override
 		public void cursorReleaseAction() {
 			if (dragLeft && getButton() == MouseEvent.BUTTON1) {
 				dragLeft = false;
@@ -1193,6 +1241,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void paint(Graphics2D g2d) {
 			if (brushPreview && curSelectedMode == curDrawMode) {
 				brushPreview = false;
@@ -1215,6 +1264,7 @@ CPArtwork.ICPArtworkListener {
 		boolean dragLine = false;
 		Point dragLineFrom, dragLineTo;
 
+		@Override
 		public void cursorPressAction () {
 			if (!dragLine && getButton() == MouseEvent.BUTTON1) {
 				Point p = new Point (getCursorX(), getCursorY());
@@ -1224,6 +1274,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void cursorDragAction() {
 			Point p = new Point (getCursorX(), getCursorY());
 
@@ -1235,6 +1286,7 @@ CPArtwork.ICPArtworkListener {
 			repaint(r.x, r.y, r.width, r.height);
 		}
 
+		@Override
 		public void cursorReleaseAction () {
 			if (dragLine && getButton() == MouseEvent.BUTTON1) {
 				Point p = new Point (getCursorX(), getCursorY());
@@ -1256,6 +1308,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void paint(Graphics2D g2d) {
 			if (dragLine) {
 				g2d.drawLine(dragLineFrom.x, dragLineFrom.y, dragLineTo.x, dragLineTo.y);
@@ -1279,6 +1332,7 @@ CPArtwork.ICPArtworkListener {
 		int dragBezierMode; // 0 Initial drag, 1 first control point, 2 second point
 		Point2D.Float dragBezierP0, dragBezierP1, dragBezierP2, dragBezierP3;
 
+		@Override
 		public void cursorPressAction () {
 			Point2D.Float p = coordToDocument(new Point (getCursorX(), getCursorY()));
 
@@ -1289,6 +1343,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void cursorDragAction() {
 			Point2D.Float p = coordToDocument(new Point (getCursorX(), getCursorY()));
 
@@ -1298,6 +1353,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void cursorReleaseAction () {
 			if (dragBezier && getButton() == MouseEvent.BUTTON1) {
 				if (dragBezierMode == 0) {
@@ -1339,6 +1395,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void cursorMoveAction () {
 			Point2D.Float p_document = coordToDocument(new Point (getCursorX(), getCursorY()));
 
@@ -1353,6 +1410,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void paint(Graphics2D g2d) {
 			if (dragBezier) {
 				CPBezier bezier = new CPBezier();
@@ -1392,6 +1450,7 @@ CPArtwork.ICPArtworkListener {
 
 		int mouseButton;
 
+		@Override
 		public void cursorPressAction () {
 			Point p = new Point (getCursorX(), getCursorY());
 			Point2D.Float pf = coordToDocument(p);
@@ -1405,6 +1464,7 @@ CPArtwork.ICPArtworkListener {
 			setCursor(crossCursor);
 		}
 
+		@Override
 		public void cursorDragAction() {
 			Point p = new Point (getCursorX(), getCursorY());
 			Point2D.Float pf = coordToDocument(p);
@@ -1414,6 +1474,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void cursorReleaseAction () {
 			if (getButton() == mouseButton) {
 				setCursor(defaultCursor);
@@ -1433,6 +1494,7 @@ CPArtwork.ICPArtworkListener {
 		Point dragMoveOffset;
 		int dragMoveButton;
 
+		@Override
 		public void cursorPressAction () {
 			Point p = new Point (getCursorX(), getCursorY());
 
@@ -1448,6 +1510,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void cursorDragAction() {
 			if (dragMiddle) {
 				Point p = new Point (getCursorX(), getCursorY());
@@ -1457,6 +1520,7 @@ CPArtwork.ICPArtworkListener {
 			}
 		}
 
+		@Override
 		public void cursorReleaseAction () {
 			if (dragMiddle && getButton() == dragMoveButton) {
 				dragMiddle = false;
@@ -1473,6 +1537,7 @@ CPArtwork.ICPArtworkListener {
 
 	class CPFloodFillMode extends CPMode {
 
+		@Override
 		public void cursorPressAction () {
 			Point p = new Point (getCursorX(), getCursorY());
 			Point2D.Float pf = coordToDocument(p);
@@ -1483,12 +1548,6 @@ CPArtwork.ICPArtworkListener {
 			}
 
 			setActiveMode(defaultMode); // yield control to the default mode
-		}
-
-		public void cursorDragAction() {
-		}
-
-		public void cursorReleaseAction () {
 		}
 
 
@@ -1503,6 +1562,7 @@ CPArtwork.ICPArtworkListener {
 		Point firstClick;
 		CPRect curRect = new CPRect();
 
+		@Override
 		public void cursorPressAction () {
 			Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
 
@@ -1512,6 +1572,7 @@ CPArtwork.ICPArtworkListener {
 			repaint();
 		}
 
+		@Override
 		public void cursorDragAction() {
 			Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
 			boolean square = (getModifiers() & InputEvent.SHIFT_MASK) != 0;
@@ -1536,6 +1597,7 @@ CPArtwork.ICPArtworkListener {
 			repaint();
 		}
 
+		@Override
 		public void cursorReleaseAction () {
 			artwork.rectangleSelection(curRect);
 
@@ -1543,6 +1605,7 @@ CPArtwork.ICPArtworkListener {
 			repaint();
 		}
 
+		@Override
 		public void paint(Graphics2D g2d) {
 			if (!curRect.isEmpty()) {
 				g2d.draw(coordToDisplay(curRect));
@@ -1559,6 +1622,7 @@ CPArtwork.ICPArtworkListener {
 
 		Point firstClick;
 
+		@Override
 		public void cursorPressAction () {
 			Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
 			firstClick = p;
@@ -1570,12 +1634,14 @@ CPArtwork.ICPArtworkListener {
 			artwork.move(0, 0);
 		}
 
+		@Override
 		public void cursorDragAction() {
 			Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
 			artwork.move(p.x - firstClick.x, p.y - firstClick.y);
 			repaint();
 		}
 
+		@Override
 		public void cursorReleaseAction () {
 			artwork.endPreviewMode();
 			setActiveMode(defaultMode); // yield control to the default mode
@@ -1596,6 +1662,7 @@ CPArtwork.ICPArtworkListener {
 		AffineTransform initTransform;
 		boolean dragged;
 
+		@Override
 		public void cursorPressAction () {
 			Point p = new Point (getCursorX(), getCursorY());
 			firstClick = (Point) p.clone();
@@ -1608,6 +1675,7 @@ CPArtwork.ICPArtworkListener {
 			repaintBrushPreview();
 		}
 
+		@Override
 		public void cursorDragAction() {
 			dragged = true;
 
@@ -1628,6 +1696,7 @@ CPArtwork.ICPArtworkListener {
 			repaint();
 		}
 
+		@Override
 		public void cursorReleaseAction () {
 			if (!dragged) {
 				resetRotation();

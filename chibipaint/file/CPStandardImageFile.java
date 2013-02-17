@@ -18,6 +18,7 @@ import chibipaint.engine.CPArtwork;
 
 // Basically - class to support images supported by imageIO interface
 public abstract class CPStandardImageFile extends CPAbstractFile {
+	@Override
 	public abstract String ext ();
 	public abstract int imageTypeCorrection (int x);
 	@Override

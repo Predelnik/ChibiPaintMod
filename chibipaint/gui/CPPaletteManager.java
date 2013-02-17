@@ -60,6 +60,7 @@ public class CPPaletteManager implements ContainerListener {
 			setVisible(true);
 		}
 
+		@Override
 		public void addPalette(CPPalette palette) {
 			getContentPane().add(palette);
 			setTitle(palette.title);
@@ -68,12 +69,15 @@ public class CPPaletteManager implements ContainerListener {
 			list.add(palette);
 		}
 
+		@Override
 		public void removePalette(CPPalette palette) {
 		}
 
+		@Override
 		public void showPalette(CPPalette palette) {
 		}
 
+		@Override
 		public List<CPPalette> getPalettesList() {
 			return new Vector<CPPalette>(list);
 		}
@@ -217,9 +221,11 @@ public class CPPaletteManager implements ContainerListener {
 		controller.canvas.grabFocus();
 	}
 
+	@Override
 	public void componentAdded(ContainerEvent e) {
 	}
 
+	@Override
 	public void componentRemoved(ContainerEvent e) {
 		if (e.getChild() instanceof CPPaletteFrame) {
 			CPPaletteFrame frame = (CPPaletteFrame) e.getChild();

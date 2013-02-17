@@ -46,6 +46,7 @@ public class CPControllerApplication extends CPController {
 	boolean redoActionMayChange = false;
 	boolean changed;
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		// Let's generate appropriate command reaction for everything
 		String[] supportedExts = CPAbstractFile.getSupportedExtensions();
@@ -83,6 +84,7 @@ public class CPControllerApplication extends CPController {
 		this.mainFrame = mainFrame;
 	}
 
+	@Override
 	public Component getDialogParent() {
 		return mainFrame;
 	}
@@ -265,8 +267,8 @@ public class CPControllerApplication extends CPController {
 							super.approveSelection();
 							return;
 						case JOptionPane.NO_OPTION:
-							return;
 						case JOptionPane.CLOSED_OPTION:
+						default:
 							return;
 						}
 					}
@@ -370,13 +372,14 @@ public class CPControllerApplication extends CPController {
 					} catch (FileNotFoundException e) {
 						return false;
 					}
-					CPArtwork artwork = file.read(fos);
-					if (artwork == null)
+					CPArtwork tempArtwork = file.read(fos);
+					if (tempArtwork == null)
 					{
 						JOptionPane
 						.showMessageDialog(
 								mainFrame,
 								"Sorry, but this type of action is probably unsupported");
+						fos.close();
 						return false;
 					}
 					try {
@@ -385,13 +388,15 @@ public class CPControllerApplication extends CPController {
 						return false;
 					}
 					setLatestAction (null, null);
-					resetEverything(artwork);
+					resetEverything(tempArtwork);
 				}
 				catch (OutOfMemoryError E) {
 					JOptionPane
 					.showMessageDialog(
 							mainFrame,
 							"Sorry, not Enough Memory. Please restart the application or try to use lesser image size.");
+					return false;
+				} catch (IOException e) {
 					return false;
 				}
 				break;

@@ -65,7 +65,7 @@ public class CPLayer extends CPColorBmp {
 		}
 	}
 
-	public void makeLookUpTables() {
+	public static void makeLookUpTables() {
 
 		// V - V^2 table
 		softLightLUTSquare = new int[256];
@@ -277,21 +277,21 @@ public class CPLayer extends CPColorBmp {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
 				int color1 = data[off];
-				int alpha = (color1 >>> 24) * this.alpha / 100;
-				if (alpha == 0) {
+				int curAlpha = (color1 >>> 24) * this.alpha / 100;
+				if (curAlpha == 0) {
 					continue;
 				} else {
 					int color2 = fusion.data[off];
 					color1 = color1 ^ 0xffffffff;
 					fusion.data[off] = 0xff000000
 							| ((color2 >>> 16 & 0xff) - (color1 >>> 16 & 0xff)
-									* (color2 >>> 16 & 0xff) * alpha
+									* (color2 >>> 16 & 0xff) * curAlpha
 									/ (255 * 255)) << 16
 									| ((color2 >>> 8 & 0xff) - (color1 >>> 8 & 0xff)
-											* (color2 >>> 8 & 0xff) * alpha
+											* (color2 >>> 8 & 0xff) * curAlpha
 											/ (255 * 255)) << 8
 											| ((color2 & 0xff) - (color1 & 0xff)
-													* (color2 & 0xff) * alpha / (255 * 255));
+													* (color2 & 0xff) * curAlpha / (255 * 255));
 				}
 			}
 		}
@@ -305,21 +305,21 @@ public class CPLayer extends CPColorBmp {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
 				int color1 = data[off];
-				int alpha = (color1 >>> 24) * this.alpha / 100;
-				if (alpha == 0) {
+				int alphaLocal = (color1 >>> 24) * this.alpha / 100;
+				if (alphaLocal == 0) {
 					continue;
-				} else if (alpha == 255) {
+				} else if (alphaLocal == 255) {
 					fusion.data[off] = color1;
 				} else {
 					int color2 = fusion.data[off];
 
-					int invAlpha = 255 - alpha;
+					int invAlpha = 255 - alphaLocal;
 					fusion.data[off] = 0xff000000
-							| (((color1 >>> 16 & 0xff) * alpha + (color2 >>> 16 & 0xff)
+							| (((color1 >>> 16 & 0xff) * alphaLocal + (color2 >>> 16 & 0xff)
 									* invAlpha) / 255) << 16
-									| (((color1 >>> 8 & 0xff) * alpha + (color2 >>> 8 & 0xff)
+									| (((color1 >>> 8 & 0xff) * alphaLocal + (color2 >>> 8 & 0xff)
 											* invAlpha) / 255) << 8
-											| (((color1 & 0xff) * alpha + (color2 & 0xff)
+											| (((color1 & 0xff) * alphaLocal + (color2 & 0xff)
 													* invAlpha) / 255);
 				}
 			}
@@ -334,21 +334,21 @@ public class CPLayer extends CPColorBmp {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
 				int color1 = data[off];
-				int alpha = color1 >>> 24;
-		if (alpha == 0) {
+				int alphaLocal = color1 >>> 24;
+		if (alphaLocal == 0) {
 			continue;
-		} else if (alpha == 255) {
+		} else if (alphaLocal == 255) {
 			fusion.data[off] = color1;
 		} else {
 			int color2 = fusion.data[off];
 
-			int invAlpha = 255 - alpha;
+			int invAlpha = 255 - alphaLocal;
 			fusion.data[off] = 0xff000000
-					| (((color1 >>> 16 & 0xff) * alpha + (color2 >>> 16 & 0xff)
+					| (((color1 >>> 16 & 0xff) * alphaLocal + (color2 >>> 16 & 0xff)
 							* invAlpha) / 255) << 16
-							| (((color1 >>> 8 & 0xff) * alpha + (color2 >>> 8 & 0xff)
+							| (((color1 >>> 8 & 0xff) * alphaLocal + (color2 >>> 8 & 0xff)
 									* invAlpha) / 255) << 8
-									| (((color1 & 0xff) * alpha + (color2 & 0xff)
+									| (((color1 & 0xff) * alphaLocal + (color2 & 0xff)
 											* invAlpha) / 255);
 		}
 			}
@@ -363,17 +363,17 @@ public class CPLayer extends CPColorBmp {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
 				int color1 = data[off];
-				int alpha = (color1 >>> 24) * this.alpha / 100;
-				if (alpha == 0) {
+				int alphaLocal = (color1 >>> 24) * this.alpha / 100;
+				if (alphaLocal == 0) {
 					continue;
 				} else {
 					int color2 = fusion.data[off];
 
-					int r = Math.min(255, (color2 >>> 16 & 0xff) + alpha
+					int r = Math.min(255, (color2 >>> 16 & 0xff) + alphaLocal
 							* (color1 >>> 16 & 0xff) / 255);
-					int g = Math.min(255, (color2 >>> 8 & 0xff) + alpha
+					int g = Math.min(255, (color2 >>> 8 & 0xff) + alphaLocal
 							* (color1 >>> 8 & 0xff) / 255);
-					int b = Math.min(255, (color2 & 0xff) + alpha
+					int b = Math.min(255, (color2 & 0xff) + alphaLocal
 							* (color1 & 0xff) / 255);
 
 					fusion.data[off] = 0xff000000 | r << 16 | g << 8 | b;
@@ -1263,8 +1263,10 @@ public class CPLayer extends CPColorBmp {
 			switch (type) {
 			case 0:
 				v = (red + green + blue) / 3;
+				//$FALL-THROUGH$
 			case 1:
 				v = Math.max(Math.max(red, green), blue);
+				//$FALL-THROUGH$
 			case 2:
 				v = (Math.max(Math.max(red, green), blue) + Math.min(
 						Math.min(red, green), blue)) / 2;

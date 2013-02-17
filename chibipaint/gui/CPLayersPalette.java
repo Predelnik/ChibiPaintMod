@@ -148,6 +148,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 		controller.getArtwork().removeListener(this);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		CPArtwork artwork = controller.getArtwork();
 		if (e.getActionCommand().equals("CPAddLayer")) {
@@ -161,6 +162,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 		}
 	}
 
+	@Override
 	public void itemStateChanged(ItemEvent e) {
 		CPArtwork artwork = controller.getArtwork();
 		Object source = e.getItemSelectable();
@@ -188,9 +190,11 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 		renameField.layerNb = layerNb;
 	}
 
+	@Override
 	public void updateRegion(CPArtwork artwork, CPRect region) {
 	}
 
+	@Override
 	public void layerChange(CPArtwork artwork) {
 		if (artwork.getActiveLayer().getAlpha() != alphaSlider.value) {
 			alphaSlider.setValue(artwork.getActiveLayer().getAlpha());
@@ -219,10 +223,12 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			return (d.height - p.y) / layerH;
 		}
 
+		@Override
 		public void update(Graphics g) {
 			paint(g);
 		}
 
+		@Override
 		public void paintComponent(Graphics g) {
 			Graphics g2 = g.create();
 
@@ -275,11 +281,13 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			}
 		}
 
+		@Override
 		public Dimension getPreferredSize() {
 			CPArtwork artwork = controller.getArtwork();
 			return new Dimension(60, layerH * artwork.getLayersNb());
 		}
 
+		@Override
 		public void mouseClicked(MouseEvent e) {
 			Point p = e.getPoint();
 			CPArtwork artwork = controller.getArtwork();
@@ -292,12 +300,15 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			}
 		}
 
+		@Override
 		public void mouseEntered(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseExited(MouseEvent e) {
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e) {
 			// click, moved from mouseClicked due
 			// to problems with focus and stuff
@@ -332,6 +343,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			}
 		}
 
+		@Override
 		public void mouseReleased(MouseEvent e) {
 			if (layerDrag && (e.getModifiers() & InputEvent.BUTTON1_MASK) != 0) {
 				Dimension d = getSize();
@@ -353,6 +365,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			}
 		}
 
+		@Override
 		public void mouseDragged(MouseEvent e) {
 			if (layerDrag) {
 				layerDragReally = true;
@@ -361,6 +374,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			}
 		}
 
+		@Override
 		public void mouseMoved(MouseEvent e) {
 		}
 	}
@@ -372,6 +386,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			minValue = 0;
 		}
 
+		@Override
 		public void onValueChange() {
 			title = "Opacity: " + value + "%";
 			CPArtwork artwork = controller.getArtwork();
@@ -394,15 +409,18 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			addFocusListener(this);
 		}
 
+		@Override
 		public void actionPerformed(ActionEvent e) {
 			renameAndHide();
 		}
 
+		@Override
 		public void focusGained(FocusEvent e) {
 			// FIXME: hack to avoid losing the focus to the main canvas
 			controller.canvas.setDontStealFocus(true);
 		}
 
+		@Override
 		public void focusLost(FocusEvent e) {
 			controller.canvas.setDontStealFocus(false);
 			renameAndHide();

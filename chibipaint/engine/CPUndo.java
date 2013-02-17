@@ -27,17 +27,18 @@ abstract public class CPUndo {
 
 	abstract public void redo();
 
-	@SuppressWarnings("unused")
+	@SuppressWarnings({ "unused", "static-method" })
 	public boolean merge(CPUndo u)
 	{
 		return false;
 	}
 
+	@SuppressWarnings("static-method")
 	public boolean noChange() {
 		return false;
 	}
 
-	@SuppressWarnings("unused")
+	@SuppressWarnings({ "unused", "static-method" })
 	public long getMemoryUsed(boolean undone, Object param)
 	{
 		return 0;

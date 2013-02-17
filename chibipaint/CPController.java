@@ -218,6 +218,7 @@ public abstract class CPController implements ActionListener {
 	 * public CPToolInfo getModeInfo() { return modes[curMode]; }
 	 */
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (artwork == null || canvas == null) {
 			return; // this shouldn't happen but just in case
@@ -337,6 +338,7 @@ public abstract class CPController implements ActionListener {
 		}
 
 		if (e.getActionCommand().equals("CPTest")) {
+			// CPTest is disabled for now
 		}
 
 		// Layers actions
@@ -559,6 +561,7 @@ public abstract class CPController implements ActionListener {
 		try {
 			ImageIO.write(bi, "png", pngFileStream);
 		} catch (IOException e) {
+			return null;
 		}
 		byte[] pngData = pngFileStream.toByteArray();
 

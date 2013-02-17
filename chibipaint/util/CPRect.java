@@ -160,6 +160,7 @@ public class CPRect implements Cloneable {
 		bottom = r.bottom;
 	}
 
+	@Override
 	public Object clone() {
 		try {
 			return super.clone();
@@ -179,11 +180,17 @@ public class CPRect implements Cloneable {
 		translate(x - left, y - top);
 	}
 
+	@Override
 	public boolean equals(Object o) {
 		if (o instanceof CPRect) {
 			CPRect r = (CPRect) o;
 			return left == r.left && right == r.right && top == r.top && bottom == r.bottom;
 		}
 		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return super.hashCode();
 	}
 };

@@ -34,7 +34,7 @@ class CPSlider extends JComponent implements MouseListener, MouseMotionListener 
 
 	boolean dragNormal = false, dragPrecise = false;
 	int dragPreciseX;
-	
+
 	boolean centerMode = false;
 
 	public CPSlider(int valueRange) {
@@ -50,6 +50,7 @@ class CPSlider extends JComponent implements MouseListener, MouseMotionListener 
 		addMouseMotionListener(this);
 	}
 
+	@Override
 	public void paint(Graphics g) {
 		Dimension d = getSize();
 
@@ -92,6 +93,7 @@ class CPSlider extends JComponent implements MouseListener, MouseMotionListener 
 		setValue(x * valueRange / d.width);
 	}
 
+	@Override
 	public void mousePressed(MouseEvent e) {
 		boolean drag = dragNormal || dragPrecise;
 		if (!drag && (e.getModifiers() & InputEvent.BUTTON1_MASK) != 0) {
@@ -104,6 +106,7 @@ class CPSlider extends JComponent implements MouseListener, MouseMotionListener 
 		}
 	}
 
+	@Override
 	public void mouseDragged(MouseEvent e) {
 		if (dragNormal) {
 			mouseSelect(e);
@@ -116,6 +119,7 @@ class CPSlider extends JComponent implements MouseListener, MouseMotionListener 
 		}
 	}
 
+	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (dragNormal && (e.getModifiers() & InputEvent.BUTTON1_MASK) != 0) {
 			dragNormal = false;
@@ -128,15 +132,19 @@ class CPSlider extends JComponent implements MouseListener, MouseMotionListener 
 	}
 
 	// Unused interface methods
+	@Override
 	public void mouseEntered(MouseEvent e) {
 	}
 
+	@Override
 	public void mouseExited(MouseEvent e) {
 	}
 
+	@Override
 	public void mouseClicked(MouseEvent e) {
 	}
 
+	@Override
 	public void mouseMoved(MouseEvent e) {
 	}
 }

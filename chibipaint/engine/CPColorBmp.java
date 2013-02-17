@@ -65,7 +65,8 @@ public class CPColorBmp extends CPBitmap {
 	// Pixel access with friendly clipping
 	//
 
-	public int getPixel(int x, int y) {
+	public int getPixel(int xArg, int yArg) {
+		int x = xArg, y = yArg;
 		x = Math.max(0, Math.min(width - 1, x));
 		y = Math.max(0, Math.min(height - 1, y));
 
@@ -265,8 +266,9 @@ public class CPColorBmp extends CPBitmap {
 	}
 
 	// we building metric in which our new color will always be counted as not near (so it passed in farAwayColor parameter)
-	public boolean is_colors_near (int color_1, int color_2, int mask, int distance, int farAwayColor)
+	public static boolean is_colors_near (int color_1Arg, int color_2Arg, int maskArg, int distance, int farAwayColor)
 	{
+		int color_1 = color_1Arg, color_2 = color_2Arg, mask = maskArg;
 		int[] dist = new int[4];
 		if (color_1 == farAwayColor && color_2 == farAwayColor)
 			return true;
@@ -413,7 +415,7 @@ public class CPColorBmp extends CPBitmap {
 		}
 	}
 
-	public void multiplyAlpha(int[] buffer, int len) {
+	public static void multiplyAlpha(int[] buffer, int len) {
 		for (int i = 0; i < len; i++) {
 			buffer[i] = buffer[i] & 0xff000000 | ((buffer[i] >>> 24) * (buffer[i] >>> 16 & 0xff) / 255) << 16
 					| ((buffer[i] >>> 24) * (buffer[i] >>> 8 & 0xff) / 255) << 8 | (buffer[i] >>> 24)
@@ -421,7 +423,7 @@ public class CPColorBmp extends CPBitmap {
 		}
 	}
 
-	public void separateAlpha(int[] buffer, int len) {
+	public static void separateAlpha(int[] buffer, int len) {
 		for (int i = 0; i < len; i++) {
 			if ((buffer[i] & 0xff000000) != 0) {
 				buffer[i] = buffer[i] & 0xff000000
@@ -432,7 +434,7 @@ public class CPColorBmp extends CPBitmap {
 		}
 	}
 
-	public void boxBlurLine(int[] src, int dst[], int len, int radius) {
+	public static void boxBlurLine(int[] src, int dst[], int len, int radius) {
 		int s, ta, tr, tg, tb;
 		s = ta = tr = tg = tb = 0;
 		int pix;

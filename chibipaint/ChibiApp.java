@@ -57,6 +57,7 @@ public class ChibiApp extends JFrame {
 				break;
 			case JOptionPane.CLOSED_OPTION:
 			case JOptionPane.CANCEL_OPTION:
+			default:
 				return false;
 			}
 		}
@@ -85,9 +86,11 @@ public class ChibiApp extends JFrame {
 		final ChibiApp frame = this;
 
 		frame.addWindowListener(new WindowAdapter() {
+			@Override
 			public void windowClosing(WindowEvent e) {
-				while (appIsBusy) // Waiting while it would be safe exit (all changes saved)
+				while (appIsBusy)
 				{
+					// Waiting while it would be safe exit (all changes saved)
 				}
 
 				if (!confirmDialog ())
@@ -122,7 +125,7 @@ public class ChibiApp extends JFrame {
 		frame.setVisible(true);
 	}
 
-	private static void SaveWindowSettings (JFrame frame) {
+	static void SaveWindowSettings (JFrame frame) {
 
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node( "chibipaintmod" );
@@ -134,15 +137,16 @@ public class ChibiApp extends JFrame {
 		preferences.putInt ("window_width", w);
 	}
 
-	private static void createChibiApp() {
+	static void createChibiApp() {
 		JFrame frame = new ChibiApp();
-		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		LoadWindowSettings (frame);
 	}
 
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 
+			@Override
 			public void run() {
 				createChibiApp();
 			}

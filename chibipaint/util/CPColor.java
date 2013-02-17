@@ -165,6 +165,7 @@ public class CPColor implements Cloneable {
 		return value;
 	}
 
+	@Override
 	public Object clone() {
 		try {
 			return super.clone();

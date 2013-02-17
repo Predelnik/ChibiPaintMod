@@ -64,6 +64,7 @@ public class CPStrokePalette extends CPPalette implements ActionListener, CPCont
 		controller.addToolListener(this);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		Component[] components = getComponents();
 		for (Component c : components) {
@@ -75,6 +76,7 @@ public class CPStrokePalette extends CPPalette implements ActionListener, CPCont
 		((CPIconButton) e.getSource()).setSelected(true);
 	}
 
+	@Override
 	public void newTool(int tool, CPBrushInfo toolInfo) {
 		freeHandButton.setSelected(toolInfo.strokeMode == CPBrushInfo.SM_FREEHAND);
 		lineButton.setSelected(toolInfo.strokeMode == CPBrushInfo.SM_LINE);

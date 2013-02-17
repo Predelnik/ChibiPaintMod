@@ -60,10 +60,12 @@ public class CPSwatchesPalette extends CPPalette {
 			addMouseListener(this);
 		}
 
+		@Override
 		public void update(Graphics g) {
 			paint(g);
 		}
 
+		@Override
 		public void paint(Graphics g) {
 			Dimension d = getSize();
 			if (color != null) {
@@ -82,6 +84,7 @@ public class CPSwatchesPalette extends CPPalette {
 
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e) {
 			if ((e.getModifiers() & InputEvent.BUTTON1_MASK) != 0 && color != null) {
 				controller.setCurColor(color);
@@ -98,20 +101,24 @@ public class CPSwatchesPalette extends CPPalette {
 			}
 		}
 
-		private void setColor(int color) {
+		void setColor(int color) {
 			this.color = new CPColor(color);
 			repaint();
 		}
 
+		@Override
 		public void mouseEntered(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseExited(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseClicked(MouseEvent e) {
 		}
 
+		@Override
 		public void mouseReleased(MouseEvent e) {
 		}
 	}

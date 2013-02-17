@@ -32,18 +32,16 @@ public class CPBenchmark {
 	}
 
 	public static void main(String[] args) {
-		CPBenchmark bench = new CPBenchmark();
-
 		if (args.length > 0 && args[0].equals("blending")) {
-			bench.blendingBenchmark(args);
+			CPBenchmark.blendingBenchmark(args);
 		} else if (args.length > 0 && args[0].equals("dabs")) {
-			bench.brushDabsBenchmark(args);
+			CPBenchmark.brushDabsBenchmark(args);
 		} else {
 			System.out.println("no valid benchmark selected");
 		}
 	}
 
-	void blendingBenchmark(String[] args) {
+	static void blendingBenchmark(String[] args) {
 		int iterations = args.length > 1 ? Integer.valueOf(args[1]) : 100;
 		int testW = args.length > 2 ? Integer.valueOf(args[2]) : 512;
 		int testH = testW;
@@ -217,7 +215,7 @@ public class CPBenchmark {
 		}
 	}
 
-	void brushDabsBenchmark(String[] args) {
+	static void brushDabsBenchmark(String[] args) {
 		int iterations = args.length > 1 ? Integer.valueOf(args[1]) : 10000;
 		int sizeMin = args.length > 2 ? Integer.valueOf(args[2]) : 1;
 		int sizeMax = args.length > 3 ? Integer.valueOf(args[3]) : 200;

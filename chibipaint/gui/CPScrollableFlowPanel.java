@@ -39,38 +39,45 @@ public class CPScrollableFlowPanel extends JPanel implements Scrollable {
 	public CPScrollableFlowPanel() {
 		setLayout(new FlowLayout(FlowLayout.LEFT));
 	}
-	
+
 	public JScrollPane wrapInScrollPane() {
-		return new JScrollPane(this, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		return new JScrollPane(this, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 	}
-	
+
+	@Override
 	public void setBounds(int x, int y, int width, int height) {
 		super.setBounds(x, y, getParent().getWidth(), height);
 	}
 
+	@Override
 	public Dimension getPreferredSize() {
 		return new Dimension(getWidth(), getPreferredHeight());
 	}
 
+	@Override
 	public Dimension getPreferredScrollableViewportSize() {
 		return super.getPreferredSize();
 	}
 
+	@Override
 	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
 		int hundredth = (orientation == SwingConstants.VERTICAL ?
 				getParent().getHeight() : getParent().getWidth()) / 100;
 		return (hundredth == 0 ? 1 : hundredth);
 	}
 
+	@Override
 	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
 		return orientation == SwingConstants.VERTICAL ? getParent().getHeight() : getParent().getWidth();
 	}
 
+	@Override
 	public boolean getScrollableTracksViewportWidth() {
 		return true;
 	}
 
+	@Override
 	public boolean getScrollableTracksViewportHeight() {
 		return false;
 	}

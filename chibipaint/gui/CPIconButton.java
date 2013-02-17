@@ -61,6 +61,7 @@ public class CPIconButton extends JComponent implements MouseListener {
 		}
 	}
 
+	@Override
 	public void paint(Graphics g) {
 		Dimension d = getSize();
 		g.drawImage(icons, border, border, iconW + border, iconH + border, 0, iconIndex * iconH, iconW, (iconIndex + 1)
@@ -77,22 +78,26 @@ public class CPIconButton extends JComponent implements MouseListener {
 		g.drawRect(0, 0, d.width - 1, d.height - 1);
 	}
 
+	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (!onClickDown && e.getClickCount() == 2 && actionCommandDoubleClick != null) {
 			callActionListenersDouble();
 		}
 	}
 
+	@Override
 	public void mouseEntered(MouseEvent e) {
 		mouseOver = true;
 		repaint();
 	}
 
+	@Override
 	public void mouseExited(MouseEvent e) {
 		mouseOver = false;
 		repaint();
 	}
 
+	@Override
 	public void mousePressed(MouseEvent e) {
 		requestFocusInWindow();
 
@@ -103,6 +108,7 @@ public class CPIconButton extends JComponent implements MouseListener {
 		}
 	}
 
+	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (!onClickDown && mouseOver) {
 			callActionListeners();
@@ -137,14 +143,17 @@ public class CPIconButton extends JComponent implements MouseListener {
 		}
 	}
 
+	@Override
 	public Dimension getPreferredSize() {
 		return new Dimension(iconW + 2 * border, iconH + 2 * border);
 	}
 
+	@Override
 	public Dimension getMaximumSize() {
 		return getPreferredSize();
 	}
 
+	@Override
 	public Dimension getMinimumSize() {
 		return getPreferredSize();
 	}

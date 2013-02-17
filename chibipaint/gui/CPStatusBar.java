@@ -47,6 +47,7 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 		add(memory, BorderLayout.LINE_END);
 		memory.addMouseListener(new MouseAdapter() {
 
+			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
 					Runtime r = Runtime.getRuntime();
@@ -62,6 +63,7 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 		if (timer == null) {
 			timer = new Timer(2000, new ActionListener() {
 
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					updateMemory();
 				}
@@ -71,6 +73,7 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 		}
 	}
 
+	@Override
 	public void viewChange(CPController.CPViewInfo viewInfo) {
 		DecimalFormat format = new DecimalFormat("0.0%");
 		zoom.setText("Zoom: " + format.format(viewInfo.zoom));
@@ -101,6 +104,7 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 				+ format.format(docMem) + " U" + format.format(undoMem));
 	}
 
+	@Override
 	public void cpEvent() {
 		updateMemory();
 	}
