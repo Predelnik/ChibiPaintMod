@@ -498,10 +498,6 @@ public class CPControllerApplication extends CPController {
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node("chibipaintmod");
 
-		setMode (preferences.getInt ("Mode", getCurMode())); // Note these settings reading two times
-		if (getCurMode() == M_DRAW)					         // Because we should set them one more time after enabling
-			setTool (preferences.getInt ("Brush", getCurBrush())); // of some canvas listeners
-
 		for (int i = 0; i < T_MAX; i++) {
 			tools[i].type = preferences.getInt("Tool " + String.valueOf(i)
 					+ " - Type", tools[i].type);
@@ -530,6 +526,10 @@ public class CPControllerApplication extends CPController {
 			tools[i].pressureScattering = preferences.getBoolean("Tool "
 					+ String.valueOf(i) + " - Scattering from Pressure",
 					tools[i].pressureScattering);
+
+			setMode (preferences.getInt ("Mode", getCurMode())); // Note these settings reading two times
+			if (getCurMode() == M_DRAW)					         // Because we should set them one more time after enabling
+				setTool (preferences.getInt ("Brush", getCurBrush())); // of some canvas listeners
 		}
 	}
 }
