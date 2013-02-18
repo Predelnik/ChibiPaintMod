@@ -108,7 +108,7 @@ public class CPArtwork {
 		setLayers(new Vector<CPLayer>());
 
 		CPLayer defaultLayer = new CPLayer(width, height);
-		defaultLayer.name = getDefaultLayerName();
+		defaultLayer.setName(getDefaultLayerName());
 		defaultLayer.clear(0xffffffff);
 		getLayersVector().add(defaultLayer);
 
@@ -175,7 +175,7 @@ public class CPArtwork {
 				fullAlpha = fullAlpha && fusion.hasAlpha(fusionArea);
 			}
 
-			if (l.visible) {
+			if (l.isVisible()) {
 				first = false;
 				if (fullAlpha) {
 					l.fusionWithFullAlpha(fusion, fusionArea);
@@ -1285,8 +1285,8 @@ public class CPArtwork {
 	}
 
 	public void setLayerVisibility(int layer, boolean visible) {
-		addUndo(new CPUndoLayerVisible(layer, getLayer(layer).visible, visible));
-		getLayer(layer).visible = visible;
+		addUndo(new CPUndoLayerVisible(layer, getLayer(layer).isVisible(), visible));
+		getLayer(layer).setVisible(visible);
 		invalidateFusion();
 		callListenersLayerChange();
 	}
@@ -1295,7 +1295,7 @@ public class CPArtwork {
 		addUndo(new CPUndoAddLayer(getActiveLayerNum()));
 
 		CPLayer newLayer = new CPLayer(width, height);
-		newLayer.name = getDefaultLayerName();
+		newLayer.setName(getDefaultLayerName());
 		getLayersVector().add(getActiveLayerNum() + 1, newLayer);
 		setActiveLayer(getActiveLayerNum() + 1);
 
@@ -1318,12 +1318,12 @@ public class CPArtwork {
 		int i = 0, first_unchecked_pos = 0;
 		addUndo (new CPUndoToggleLayers ());
 		for (i = 0; i < getLayersVector().size (); i++)
-			if (!getLayersVector().elementAt (i).visible)
+			if (!getLayersVector().elementAt (i).isVisible())
 				break;
 		first_unchecked_pos = i;
 
 		for (i = 0; i < getLayersVector().size (); i++)
-			getLayersVector().elementAt (i).visible = (first_unchecked_pos < getLayersVector().size ());
+			getLayersVector().elementAt (i).setVisible((first_unchecked_pos < getLayersVector().size ()));
 
 		invalidateFusion();
 		callListenersLayerChange();
@@ -1335,8 +1335,8 @@ public class CPArtwork {
 		addUndo(new CPUndoDuplicateLayer(getActiveLayerNum()));
 		CPLayer newLayer = new CPLayer(width, height);
 		newLayer.copyFrom(getLayersVector().elementAt(getActiveLayerNum()));
-		if (!newLayer.name.endsWith(copySuffix)) {
-			newLayer.name += copySuffix;
+		if (!newLayer.getName().endsWith(copySuffix)) {
+			newLayer.setName(newLayer.getName() + copySuffix);
 		}
 		getLayersVector().add(getActiveLayerNum() + 1, newLayer);
 
@@ -1371,7 +1371,7 @@ public class CPArtwork {
 			getLayersVector().clear();
 
 			CPLayer layer = new CPLayer(width, height);
-			layer.name = getDefaultLayerName();
+			layer.setName(getDefaultLayerName());
 			layer.copyDataFrom(fusion);
 			getLayersVector().add(layer);
 			setActiveLayer(0);
@@ -1422,9 +1422,9 @@ public class CPArtwork {
 	}
 
 	public void setLayerName(int layer, String name) {
-		if (getLayer(layer).name != name) {
+		if (getLayer(layer).getName() != name) {
 			addUndo(new CPUndoLayerRename(layer, name));
-			getLayer(layer).name = name;
+			getLayer(layer).setName(name);
 			callListenersLayerChange();
 		}
 	}
@@ -1822,7 +1822,7 @@ public class CPArtwork {
 
 		// FIXME: redundant code, should use AddLayer's code??
 		CPLayer newLayer = new CPLayer(width, height);
-		newLayer.name = getDefaultLayerName();
+		newLayer.setName(getDefaultLayerName());
 		getLayersVector().add(getActiveLayerNum() + 1, newLayer);
 		setActiveLayer(getActiveLayerNum() + 1);
 
@@ -1850,8 +1850,8 @@ public class CPArtwork {
 		String prefix = "Layer ";
 		int highestLayerNb = 0;
 		for (CPLayer l : getLayersVector()) {
-			if (l.name.matches("^" + prefix + "[0-9]+$")) {
-				highestLayerNb = Math.max(highestLayerNb, Integer.parseInt(l.name.substring(prefix.length())));
+			if (l.getName().matches("^" + prefix + "[0-9]+$")) {
+				highestLayerNb = Math.max(highestLayerNb, Integer.parseInt(l.getName().substring(prefix.length())));
 			}
 		}
 		return prefix + (highestLayerNb + 1);
@@ -1982,14 +1982,14 @@ public class CPArtwork {
 
 		@Override
 		public void redo() {
-			getLayer(layer).visible = newVis;
+			getLayer(layer).setVisible(newVis);
 			invalidateFusion();
 			callListenersLayerChange();
 		}
 
 		@Override
 		public void undo() {
-			getLayer(layer).visible = oldVis;
+			getLayer(layer).setVisible(oldVis);
 			invalidateFusion();
 			callListenersLayerChange();
 		}
@@ -2028,7 +2028,7 @@ public class CPArtwork {
 		@Override
 		public void redo() {
 			CPLayer newLayer = new CPLayer(width, height);
-			newLayer.name = getDefaultLayerName();
+			newLayer.setName(getDefaultLayerName());
 			getLayersVector().add(layer + 1, newLayer);
 
 			setActiveLayer(layer + 1);
@@ -2048,19 +2048,19 @@ public class CPArtwork {
 			toggleType = false;
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				if (!first && !getLayersVector().elementAt(i).visible)
+				if (!first && !getLayersVector().elementAt(i).isVisible())
 				{
 					toggleType = true;
 					first = true;
 				}
-				mask.setElementAt(getLayersVector().elementAt (i).visible, i);
+				mask.setElementAt(getLayersVector().elementAt (i).isVisible(), i);
 			}
 		}
 
 		@Override
 		public void undo() {
 			for (int i = 0; i < getLayersVector().size (); i++)
-				getLayersVector().elementAt (i).visible = mask.elementAt(i);
+				getLayersVector().elementAt (i).setVisible(mask.elementAt(i));
 			invalidateFusion();
 			callListenersLayerChange();
 		}
@@ -2068,7 +2068,7 @@ public class CPArtwork {
 		@Override
 		public void redo() {
 			for (int i = 0; i < getLayersVector().size (); i++)
-				getLayersVector().elementAt (i).visible = toggleType;
+				getLayersVector().elementAt (i).setVisible(toggleType);
 			invalidateFusion();
 			callListenersLayerChange();
 		}
@@ -2096,8 +2096,8 @@ public class CPArtwork {
 
 			CPLayer newLayer = new CPLayer(width, height);
 			newLayer.copyFrom(getLayersVector().elementAt(layer));
-			if (!newLayer.name.endsWith(copySuffix)) {
-				newLayer.name += copySuffix;
+			if (!newLayer.getName().endsWith(copySuffix)) {
+				newLayer.setName(newLayer.getName() + copySuffix);
 			}
 			getLayersVector().add(layer + 1, newLayer);
 
@@ -2322,20 +2322,20 @@ public class CPArtwork {
 		String from, to;
 
 		public CPUndoLayerRename(int layer, String name) {
-			this.from = getLayer(layer).name;
+			this.from = getLayer(layer).getName();
 			this.to = name;
 			this.layer = layer;
 		}
 
 		@Override
 		public void undo() {
-			getLayer(layer).name = from;
+			getLayer(layer).setName(from);
 			callListenersLayerChange();
 		}
 
 		@Override
 		public void redo() {
-			getLayer(layer).name = to;
+			getLayer(layer).setName(to);
 			callListenersLayerChange();
 		}
 

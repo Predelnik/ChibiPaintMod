@@ -186,7 +186,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 
 		renameField.setLocation(eyeW, d.height - (layerNb + 1) * layerH);
 
-		renameField.setText(((CPLayer) layers[layerNb]).name);
+		renameField.setText(((CPLayer) layers[layerNb]).getName());
 		renameField.selectAll();
 
 		renameField.layerNb = layerNb;
@@ -272,11 +272,11 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			g.drawLine(0, 0, d.width, 0);
 			g.drawLine(eyeW, 0, eyeW, layerH);
 
-			g.drawString(layer.name, eyeW + 6, 12);
+			g.drawString(layer.getName(), eyeW + 6, 12);
 			g.drawLine(eyeW + 6, layerH / 2, d.width - 6, layerH / 2);
-			g.drawString(modeNames[layer.blendMode] + ": " + layer.alpha + "%", eyeW + 6, 27);
+			g.drawString(modeNames[layer.getBlendMode()] + ": " + layer.getAlpha() + "%", eyeW + 6, 27);
 
-			if (layer.visible) {
+			if (layer.isVisible()) {
 				g.fillOval(eyeW / 2 - 5, layerH / 2 - 5, 10, 10);
 			} else {
 				g.drawOval(eyeW / 2 - 5, layerH / 2 - 5, 10, 10);
@@ -322,7 +322,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 				if (layerIndex >= 0 && layerIndex < artwork.getLayersNb()) {
 					CPLayer layer = artwork.getLayer(layerIndex);
 					if (p.x < eyeW) {
-						artwork.setLayerVisibility(layerIndex, !layer.visible);
+						artwork.setLayerVisibility(layerIndex, !layer.isVisible());
 					} else {
 						artwork.setActiveLayer(layerIndex);
 					}

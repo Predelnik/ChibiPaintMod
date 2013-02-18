@@ -27,9 +27,9 @@ import chibipaint.util.*;
 
 public class CPLayer extends CPColorBmp {
 
-	public int blendMode = LM_NORMAL, alpha = 100;
-	public String name;
-	public boolean visible = true;
+	protected int blendMode = LM_NORMAL, alpha = 100;
+	protected String name;
+	private boolean visible = true;
 
 	public final static int LM_NORMAL = 0;
 	public final static int LM_MULTIPLY = 1;
@@ -57,7 +57,7 @@ public class CPLayer extends CPColorBmp {
 	public CPLayer(int width, int height) {
 		super(width, height);
 
-		name = new String("");
+		setName(new String(""));
 		clear(0xffffff);
 
 		if (softLightLUTSquare == null) {
@@ -115,10 +115,10 @@ public class CPLayer extends CPColorBmp {
 	}
 
 	public void copyFrom(CPLayer l) {
-		name = l.name;
+		setName(l.getName());
 		blendMode = l.blendMode;
 		alpha = l.alpha;
-		visible = l.visible;
+		setVisible(l.isVisible());
 
 		copyDataFrom(l);
 
@@ -1316,5 +1316,21 @@ public class CPLayer extends CPColorBmp {
 		}
 
 		return andPixels != 0xff000000;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public boolean isVisible() {
+		return visible;
+	}
+
+	public void setVisible(boolean visible) {
+		this.visible = visible;
 	}
 }

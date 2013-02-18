@@ -38,7 +38,12 @@ public class ChibiApp extends JFrame {
 	private static final long serialVersionUID = 1L;
 	CPControllerApplication controller;
 	CPMainGUI mainGUI;
-	boolean appIsBusy = false;
+	public enum appState {
+		FREE,
+		SAVING,
+		LOADING
+	}
+	appState curAppState = appState.FREE;
 
 	// Returns if it is ok to continue operation
 	boolean confirmDialog ()
@@ -88,8 +93,12 @@ public class ChibiApp extends JFrame {
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				while (appIsBusy)
+				while (curAppState != appState.FREE)
 				{
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e1) {
+					}
 					// Waiting while it would be safe exit (all changes saved)
 				}
 
@@ -100,7 +109,7 @@ public class ChibiApp extends JFrame {
 				mainGUI.getPaletteManager ().savePalettesSettings ();
 				controller.canvas.saveCanvasSettings ();
 				controller.saveControllerSettings ();
-				System.exit(0);
+				dispose ();
 			}
 		});
 	}
@@ -184,12 +193,12 @@ public class ChibiApp extends JFrame {
 		setJMenuBar(mainGUI.getMenuBar());
 	}
 
-	public void setAppIsBusy(boolean value) {
-		appIsBusy = value;
+	public void setAppState(appState value) {
+		curAppState = value;
 		controller.updateTitle ();
 	}
 
-	public boolean getAppIsBusy() {
-		return appIsBusy;
+	public appState getAppState() {
+		return curAppState;
 	}
 }

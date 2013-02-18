@@ -1105,7 +1105,7 @@ CPArtwork.ICPArtworkListener {
 			if (!spacePressed && getButton() == MouseEvent.BUTTON1
 					&& (((getModifiers() & InputEvent.ALT_DOWN_MASK) == 0) || curSelectedMode == moveToolMode)) {
 
-				if (!artwork.getActiveLayer().visible && curSelectedMode != rotateCanvasMode
+				if (!artwork.getActiveLayer().isVisible() && curSelectedMode != rotateCanvasMode
 						&& curSelectedMode != rectSelectionMode) {
 					brushPreview = false;
 					repaintBrushPreview ();

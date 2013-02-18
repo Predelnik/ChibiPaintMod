@@ -113,15 +113,15 @@ public class CPChibiFile extends CPAbstractFile {
 	}
 
 	static public void writeLayer(OutputStream os, CPLayer l) throws IOException {
-		byte[] title = l.name.getBytes("UTF-8");
+		byte[] title = l.getName().getBytes("UTF-8");
 
 		os.write(LAYR); // Chunk ID
 		writeInt(os, 20 + l.data.length * 4 + title.length); // ChunkSize
 
 		writeInt(os, 20 + title.length); // Data offset from start of header
-		writeInt(os, l.blendMode); // layer blend mode
-		writeInt(os, l.alpha); // layer opacity
-		writeInt(os, l.visible ? 1 : 0); // layer visibility and future flags
+		writeInt(os, l.getBlendMode()); // layer blend mode
+		writeInt(os, l.getAlpha()); // layer opacity
+		writeInt(os, l.isVisible() ? 1 : 0); // layer visibility and future flags
 
 		writeInt(os, title.length);
 		os.write(title);
@@ -179,14 +179,14 @@ public class CPChibiFile extends CPAbstractFile {
 		CPLayer l = new CPLayer(a.width, a.height);
 
 		int offset = readInt(is);
-		l.blendMode = readInt(is); // layer blend mode
-		l.alpha = readInt(is);
-		l.visible = (readInt(is) & 1) != 0;
+		l.setBlendMode(readInt(is)); // layer blend mode
+		l.setAlpha(readInt(is));
+		l.setVisible((readInt(is) & 1) != 0);
 
 		int titleLength = readInt(is);
 		byte[] title = new byte[titleLength];
 		realRead(is, title, titleLength);
-		l.name = new String(title, "UTF-8");
+		l.setName(new String(title, "UTF-8"));
 
 		realSkip(is, offset - 20 - titleLength);
 		readIntArray(is, l.data, l.getWidth() * l.getHeight());

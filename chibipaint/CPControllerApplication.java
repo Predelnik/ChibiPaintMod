@@ -23,6 +23,7 @@ package chibipaint;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,6 +34,7 @@ import java.util.prefs.Preferences;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import chibipaint.ChibiApp.appState;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPUndo;
 import chibipaint.file.CPAbstractFile;
@@ -58,6 +60,9 @@ public class CPControllerApplication extends CPController {
 			if (e.getActionCommand().equals ("CPLoad" + supportedExts[i].toUpperCase()))
 				saveLoadImageFile (supportedExts[i], action_save_load.ACTION_LOAD, "");
 		}
+
+		if (e.getActionCommand().equals ("CPExit"))
+			((ChibiApp) mainFrame).getToolkit().getSystemEventQueue().postEvent(new WindowEvent((mainFrame), WindowEvent.WINDOW_CLOSING));
 
 		// Here we explicitly point that chi extension is native though, it's a little bit bad
 		if (e.getActionCommand().equals ("CPSave"))
@@ -102,8 +107,12 @@ public class CPControllerApplication extends CPController {
 			titleString += "Untitled - ChibiPaintMod";
 
 		// TODO: probably add some good visible progress bar
-		if (((ChibiApp) mainFrame).getAppIsBusy ())
+		if (((ChibiApp) mainFrame).getAppState () == appState.SAVING)
 			titleString += " (Saving...)";
+
+		if (((ChibiApp) mainFrame).getAppState () == appState.LOADING)
+			titleString += " (Loading...)";
+
 		mainFrame.setTitle(titleString);
 	}
 
@@ -229,6 +238,9 @@ public class CPControllerApplication extends CPController {
 	static String recent_file_string(int i) {
 		return "Recent File[" + i + "]";
 	}
+
+	// TODO: make more distinguishable messages
+	static final public String FILE_IS_UNSUPPORTED_STRING = "Sorry, but the type of action you are trying to perform is currently unsupported or target file is unsupported or corrupted.";
 
 	// file_name used only in recent files handling, very scarce use actually
 	private boolean saveLoadImageFile(final String ext, // Extension characterizes type of file
@@ -358,10 +370,9 @@ public class CPControllerApplication extends CPController {
 						selectedFile.getAbsolutePath());
 			}
 
-			if (action == action_save_load.ACTION_SAVE) // settting that app is busy so program won't exit until saving is done
-			{
-				((ChibiApp) mainFrame).setAppIsBusy (true);
-			}
+			// settting that app is busy so program won't exit until saving is done
+			// also telling a user what's going on currently
+			((ChibiApp) mainFrame).setAppState (action == action_save_load.ACTION_SAVE ? appState.SAVING : appState.LOADING);
 
 			switch (action) {
 			case ACTION_LOAD:
@@ -378,13 +389,15 @@ public class CPControllerApplication extends CPController {
 						JOptionPane
 						.showMessageDialog(
 								mainFrame,
-								"Sorry, but this type of action is probably unsupported");
+								FILE_IS_UNSUPPORTED_STRING);
 						fos.close();
+						((ChibiApp) mainFrame).setAppState (appState.FREE);
 						return false;
 					}
 					try {
 						fos.close();
 					} catch (IOException e) {
+						((ChibiApp) mainFrame).setAppState (appState.FREE);
 						return false;
 					}
 					setLatestAction (null, null);
@@ -394,7 +407,7 @@ public class CPControllerApplication extends CPController {
 					JOptionPane
 					.showMessageDialog(
 							mainFrame,
-							"Sorry, not Enough Memory. Please restart the application or try to use lesser image size.");
+							FILE_IS_UNSUPPORTED_STRING);
 					return false;
 				} catch (IOException e) {
 					return false;
@@ -414,14 +427,14 @@ public class CPControllerApplication extends CPController {
 						JOptionPane
 						.showMessageDialog(
 								mainFrame,
-								"Sorry, but this type of action is probably unsupported");
-						((ChibiApp) mainFrame).setAppIsBusy (false);
+								"Sorry, but this type of action or file you are trying to load is probably unsupported for some reason");
+						((ChibiApp) mainFrame).setAppState (appState.FREE);
 						return false;
 					}
 					fos.close();
-					((ChibiApp) mainFrame).setAppIsBusy (false);
+					((ChibiApp) mainFrame).setAppState (appState.FREE);
 				} catch (IOException e) {
-					((ChibiApp) mainFrame).setAppIsBusy (false);
+					((ChibiApp) mainFrame).setAppState (appState.FREE);
 					return false;
 				}
 				break;
@@ -438,16 +451,15 @@ public class CPControllerApplication extends CPController {
 							.getUndoList().getFirst() : null, artwork
 							.getRedoList().size() > 0 ? artwork.getRedoList()
 									.getFirst() : null);
-					((ChibiApp) mainFrame).setAppIsBusy (false);
 				}
 			}
 			else if (action == action_save_load.ACTION_LOAD) // If native file is loaded image should turn to untitled
 			{
-
 				setCurrentFile (null);
 				setLatestAction (null, null);
 			}
 
+			((ChibiApp) mainFrame).setAppState (appState.FREE);
 			return true;
 		}
 		return true; // Actually that's ok behaviour, just cancel was pressed
