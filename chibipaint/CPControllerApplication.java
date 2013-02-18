@@ -483,6 +483,10 @@ public class CPControllerApplication extends CPController {
 					+ " - Scattering from Pressure",
 					tools[i].pressureScattering);
 		}
+
+		// Well this settings are stored in artwork...
+		preferences.putBoolean ("Lock Alpha", artwork.isLockAlpha ());
+		preferences.putBoolean ("Sample All Layers", artwork.isSampleAllLayers ());
 	}
 
 	void loadUrgentSettings() {
@@ -492,6 +496,9 @@ public class CPControllerApplication extends CPController {
 		setMode (preferences.getInt ("Mode", getCurMode()));
 		if (getCurMode() == M_DRAW)
 			setTool (preferences.getInt ("Brush", getCurBrush()));
+		// Well this settings are stored in artwork...
+		artwork.setLockAlpha((preferences.getBoolean ("Lock Alpha", artwork.isLockAlpha ())));
+		artwork.setSampleAllLayers((preferences.getBoolean ("Sample All Layers", artwork.isSampleAllLayers())));
 	}
 
 	void loadControllerSettings() {
@@ -526,10 +533,12 @@ public class CPControllerApplication extends CPController {
 			tools[i].pressureScattering = preferences.getBoolean("Tool "
 					+ String.valueOf(i) + " - Scattering from Pressure",
 					tools[i].pressureScattering);
-
-			setMode (preferences.getInt ("Mode", getCurMode())); // Note these settings reading two times
-			if (getCurMode() == M_DRAW)					         // Because we should set them one more time after enabling
-				setTool (preferences.getInt ("Brush", getCurBrush())); // of some canvas listeners
 		}
+		setMode (preferences.getInt ("Mode", getCurMode())); // Note these settings reading two times
+		if (getCurMode() == M_DRAW)					         // Because we should set them one more time after enabling
+			setTool (preferences.getInt ("Brush", getCurBrush())); // of some canvas listeners
+		// Well this settings are stored in artwork...
+		artwork.setLockAlpha((preferences.getBoolean ("Lock Alpha", artwork.isLockAlpha ())));
+		artwork.setSampleAllLayers((preferences.getBoolean ("Sample All Layers", artwork.isSampleAllLayers())));
 	}
 }

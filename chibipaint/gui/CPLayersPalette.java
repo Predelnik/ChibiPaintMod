@@ -75,9 +75,11 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 		sp = new JScrollPane(lw);
 
 		cbSampleAllLayers = new JCheckBox("Sample All Layers");
+		cbSampleAllLayers.setSelected(controller.artwork.isSampleAllLayers());
 		cbSampleAllLayers.addItemListener(this);
 
 		cbLockAlpha = new JCheckBox("Lock Alpha");
+		cbLockAlpha.setSelected(controller.artwork.isLockAlpha());
 		cbLockAlpha.addItemListener(this);
 
 		// Layout

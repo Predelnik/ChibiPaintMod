@@ -178,7 +178,7 @@ CPArtwork.ICPArtworkListener {
 			}
 			catch (Exception e)
 			{
-				System.out.format("Error during loading of JTablet 1.2");
+				System.out.format("Error happened during checking compatility JTablet 1.2");
 				System.exit (1);
 			}
 		} catch (ClassNotFoundException e) {
@@ -208,12 +208,12 @@ CPArtwork.ICPArtworkListener {
 
 		if (!oldJTabletUsed)
 		{
+			CPTablet2.connectToCanvas(this);
 
 			// This stuff is to fix bug with not disappearing brush preview while moving cursor on widgets while
 			// using tablet
 			// It's bug of nature unknown to me, that's why I fixed it in a little confusing kind of way.
-			// TODO: Maybe fix it a better.
-			CPTablet2.connectToCanvas(this);
+			// TODO: Maybe fix it a better way.
 			addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseExited(MouseEvent me) {
@@ -974,8 +974,8 @@ CPArtwork.ICPArtworkListener {
 	{
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node( "chibipaintmod" );
+		preferences.putBoolean ("Lock Alpha", artwork.isLockAlpha());
 		preferences.putBoolean ("Interpolation", interpolation);
-		preferences.putBoolean ("Apply to All Layers", applyToAllLayers);
 		preferences.putBoolean ("Show Grid", showGrid);
 		preferences.putInt ("Grid size", gridSize);
 	}
@@ -987,6 +987,7 @@ CPArtwork.ICPArtworkListener {
 		setInterpolation (preferences.getBoolean ("Interpolation", interpolation));
 		setApplyToAllLayers(preferences.getBoolean ("Apply to All Layers", applyToAllLayers));
 		showGrid (preferences.getBoolean ("Show Grid", showGrid));
+		artwork.setLockAlpha (preferences.getBoolean ("Lock Alpha", artwork.isLockAlpha ()));
 		controller.getMainGUI().setPaletteMenuItem("Use Linear Interpolation", interpolation);
 		controller.getMainGUI().setPaletteMenuItem("Apply to All Layers", applyToAllLayers);
 		controller.getMainGUI().setPaletteMenuItem("Show Grid", showGrid);

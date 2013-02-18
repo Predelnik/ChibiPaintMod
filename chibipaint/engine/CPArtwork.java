@@ -88,8 +88,8 @@ public class CPArtwork {
 	// Current Engine Parameters
 	//
 
-	boolean sampleAllLayers = false;
-	boolean lockAlpha = false;
+	private boolean sampleAllLayers = false;
+	private boolean lockAlpha = false;
 
 	int curColor;
 
@@ -265,7 +265,7 @@ public class CPArtwork {
 			paintingModes[curBrush.paintMode].mergeOpacityBuf(opacityArea, color);
 
 			// Allow to eraser lower alpha with 'lock alpha' because it's all more logical and comfortable (look at gimp and other stuff)
-			if (lockAlpha && curBrush.paintMode != CPBrushInfo.M_ERASE) {
+			if (isLockAlpha() && curBrush.paintMode != CPBrushInfo.M_ERASE) {
 				restoreAlpha(opacityArea);
 			}
 
@@ -733,7 +733,7 @@ public class CPArtwork {
 
 			paintDirect(srcRect, dstRect, dab.brush, dab.width, Math.max(1, dab.alpha / 4), newColor);
 			mergeOpacityBuffer(0, false);
-			if (sampleAllLayers) {
+			if (isSampleAllLayers()) {
 				fusionLayers();
 			}
 		}
@@ -779,7 +779,7 @@ public class CPArtwork {
 		CPColorFloat sampleColor(int x, int y, int dx, int dy) {
 			LinkedList<CPColorFloat> samples = new LinkedList<CPColorFloat>();
 
-			CPLayer layerToSample = sampleAllLayers ? fusion : getActiveLayer();
+			CPLayer layerToSample = isSampleAllLayers() ? fusion : getActiveLayer();
 
 			samples.addLast(new CPColorFloat(layerToSample.getPixel(x, y) & 0xffffff));
 
@@ -831,13 +831,13 @@ public class CPArtwork {
 				oilAccumBuffer(srcRect, dstRect, brushBuffer, dab.width, (int) ((curBrush.bleed) * 255));
 			}
 			mergeOpacityBuffer(0, false);
-			if (sampleAllLayers) {
+			if (isSampleAllLayers()) {
 				fusionLayers();
 			}
 		}
 
 		private void oilAccumBuffer(CPRect srcRect, CPRect dstRect, int[] buffer, int w, int alpha) {
-			CPLayer layerToSample = sampleAllLayers ? fusion : getActiveLayer();
+			CPLayer layerToSample = isSampleAllLayers() ? fusion : getActiveLayer();
 
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
@@ -949,12 +949,12 @@ public class CPArtwork {
 				smudgeAccumBuffer(srcRect, dstRect, brushBuffer, dab.width, dab.alpha);
 				smudgePasteBuffer(srcRect, dstRect, brushBuffer, dab.brush, dab.width);
 
-				if (lockAlpha) {
+				if (isLockAlpha()) {
 					restoreAlpha(dstRect);
 				}
 			}
 			opacityArea.makeEmpty();
-			if (sampleAllLayers) {
+			if (isSampleAllLayers()) {
 				fusionLayers();
 			}
 		}
@@ -966,7 +966,7 @@ public class CPArtwork {
 
 		private void smudgeAccumBuffer(CPRect srcRect, CPRect dstRect, int[] buffer, int w, int alpha) {
 
-			CPLayer layerToSample = sampleAllLayers ? fusion : getActiveLayer();
+			CPLayer layerToSample = isSampleAllLayers() ? fusion : getActiveLayer();
 
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
@@ -1176,7 +1176,7 @@ public class CPArtwork {
 		// not really necessary and could potentially the repaint
 		// of the canvas to miss that area
 		// fusionLayers();
-		if (sampleAllLayers)
+		if (isSampleAllLayers())
 			return fusion.getPixel((int) x, (int) y) & 0xffffff;
 		else
 			return curLayer.getPixel((int) x, (int) y) & 0xffffff;
@@ -1433,7 +1433,7 @@ public class CPArtwork {
 		undoBuffer.copyFrom(curLayer);
 		undoArea = new CPRect(width, height);
 
-		curLayer.floodFill((int) x, (int) y, curColor | 0xff000000, sampleAllLayers ? fusion : curLayer, colorDistance);
+		curLayer.floodFill((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers() ? fusion : curLayer, colorDistance);
 
 		addUndo(new CPUndoPaint());
 		invalidateFusion();
@@ -1890,6 +1890,14 @@ public class CPArtwork {
 
 	public void setActiveLayerNum(int activeLayer) {
 		this.activeLayer = activeLayer;
+	}
+
+	public boolean isLockAlpha() {
+		return lockAlpha;
+	}
+
+	public boolean isSampleAllLayers() {
+		return sampleAllLayers;
 	}
 
 	class CPUndoPaint extends CPUndo {
