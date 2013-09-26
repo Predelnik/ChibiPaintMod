@@ -22,7 +22,7 @@ public abstract class CPStandardImageFile extends CPAbstractFile {
 	public abstract String ext ();
 	public abstract int imageTypeCorrection (int x);
 	@Override
-	public boolean isNative () // Well this kind of files couldn't be native since they  are not layers
+	public boolean isNative () // Well this kind of files couldn't be native since they are not layered
 	{
 		return false;
 	}

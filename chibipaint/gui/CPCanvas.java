@@ -105,6 +105,8 @@ CPArtwork.ICPArtworkListener {
 	CPMode curSelectedMode = curDrawMode;
 	private CPMode activeMode = defaultMode;
 
+	CPSelection curSelection;
+
 	// Container with scrollbars
 	JPanel container;
 	JScrollBar horizScroll, vertScroll;
@@ -132,8 +134,7 @@ CPArtwork.ICPArtworkListener {
 		imgSource.setAnimated(true);
 		// imgSource.setFullBufferUpdates(false);
 		img = createImage(imgSource);
-
-		centerCanvas();
+		curSelection = new CPSelection (w, h);
 
 		ctrl.setCanvas(this);
 
@@ -228,6 +229,21 @@ CPArtwork.ICPArtworkListener {
 				}
 			});
 		}
+
+
+		Timer timer = new Timer (50, new ActionListener () {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				curSelection.RaiseInitialDash ();
+				repaint (curSelection.GetBoundingBox (getThis ()));
+			}});
+		timer.start();
+	}
+
+	public CPCanvas getThis ()
+	{
+		return this;
 	}
 
 	public void KillCanvas()
@@ -395,8 +411,9 @@ CPArtwork.ICPArtworkListener {
 		path.setWindingRule(Path2D.WIND_EVEN_ODD);
 		g2d.setColor(new Color(0x606060));
 		g2d.fill(path);
+		/*
 
-		// This XOR mode guaranties contrast over all colors
+		// This XOR mode guarantees contrast over all colors
 		g2d.setColor(Color.black);
 		g2d.setXORMode(new Color(0x808080));
 
@@ -409,6 +426,9 @@ CPArtwork.ICPArtworkListener {
 			g2d.draw(coordToDisplay(artwork.getSelection()));
 			g2d.setStroke(stroke);
 		}
+		 */
+
+		curSelection.drawItself (g2d, this);
 
 		// Draw grid
 		if (showGrid) {
@@ -501,6 +521,7 @@ CPArtwork.ICPArtworkListener {
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		setModifiers(e.getModifiersEx());
 		setButton(e.getButton ());
 		getActiveMode().cursorReleaseAction ();
 	}
@@ -1595,11 +1616,31 @@ CPArtwork.ICPArtworkListener {
 				curRect.bottom = firstClick.y;
 			}
 
-			repaint();
+			repaint ();
 		}
 
 		@Override
 		public void cursorReleaseAction () {
+
+			boolean ShiftPressed = (getModifiers() & InputEvent.SHIFT_DOWN_MASK) != 0;
+			boolean ControlPressed = (getModifiers() & InputEvent.CTRL_DOWN_MASK) != 0;
+			if (ShiftPressed || ControlPressed)
+			{
+				CPSelection Rect = new CPSelection (artwork.width, artwork.height);
+				Rect.makeRectangularSelection(curRect);
+				if (ShiftPressed)
+				{
+					if (!ControlPressed)
+						curSelection.AddToSelection (Rect);
+					else
+						curSelection.IntersectWithSelection (Rect);
+				}
+				else
+					curSelection.SubtractFromSelection (Rect);
+			}
+			else
+				curSelection.makeRectangularSelection (curRect);
+
 			artwork.rectangleSelection(curRect);
 
 			setActiveMode(defaultMode); // yield control to the default mode

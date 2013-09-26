@@ -1684,7 +1684,7 @@ public class CPArtwork {
 		// FIXME: ASAP!
 		boolean copy = copyArg;
 		if (!copy && !getUndoList().isEmpty() && redoList.isEmpty() && (getUndoList().getFirst() instanceof CPMultiUndo)
-				&& (((CPMultiUndo) getUndoList().getFirst()).undoes[0] instanceof CPUndoPaint)
+				&& (((CPMultiUndo) getUndoList().get(0)).undoes[0] instanceof CPUndoPaint)
 				&& ((CPUndoPaint) ((CPMultiUndo) getUndoList().getFirst()).undoes[0]).layer == getActiveLayerNb()) {
 			undo();
 			copy = prevModeCopy;
@@ -1872,8 +1872,8 @@ public class CPArtwork {
 		return redoList;
 	}
 
-	public void setUndoList(LinkedList<CPUndo> undoList) {
-		this.undoList = undoList;
+	public void setUndoList(LinkedList<CPUndo> linkedList) {
+		this.undoList = linkedList;
 	}
 
 	public Vector<CPLayer> getLayersVector() {

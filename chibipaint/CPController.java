@@ -49,11 +49,11 @@ public abstract class CPController implements ActionListener {
 	private int curBrush = T_PENCIL;
 	private int curMode = M_DRAW;
 
-	private LinkedList<ICPColorListener> colorListeners = new LinkedList<ICPColorListener>();
-	private LinkedList<ICPToolListener> toolListeners = new LinkedList<ICPToolListener>();
-	private LinkedList<ICPModeListener> modeListeners = new LinkedList<ICPModeListener>();
-	private LinkedList<ICPViewListener> viewListeners = new LinkedList<ICPViewListener>();
-	private LinkedList<ICPEventListener> cpEventListeners = new LinkedList<ICPEventListener>();
+	private ArrayList<ICPColorListener> colorListeners = new ArrayList<ICPColorListener>();
+	private ArrayList<ICPToolListener> toolListeners = new ArrayList<ICPToolListener>();
+	private ArrayList<ICPModeListener> modeListeners = new ArrayList<ICPModeListener>();
+	private ArrayList<ICPViewListener> viewListeners = new ArrayList<ICPViewListener>();
+	private ArrayList<ICPEventListener> cpEventListeners = new ArrayList<ICPEventListener>();
 
 	//
 	// Definition of all the standard tools available
@@ -497,11 +497,11 @@ public abstract class CPController implements ActionListener {
 	}
 
 	public void addColorListener(ICPColorListener listener) {
-		colorListeners.addLast(listener);
+		colorListeners.add(listener);
 	}
 
 	public void addToolListener(ICPToolListener listener) {
-		toolListeners.addLast(listener);
+		toolListeners.add (listener);
 	}
 
 	public void removeToolListener(ICPToolListener listener) {
@@ -515,7 +515,7 @@ public abstract class CPController implements ActionListener {
 	}
 
 	public void addModeListener(ICPModeListener listener) {
-		modeListeners.addLast(listener);
+		modeListeners.add (listener);
 	}
 
 	public void removeModeListener(ICPModeListener listener) {
@@ -529,7 +529,7 @@ public abstract class CPController implements ActionListener {
 	}
 
 	public void addViewListener(ICPViewListener listener) {
-		viewListeners.addLast(listener);
+		viewListeners.add (listener);
 	}
 
 	public void callViewListeners(CPViewInfo info) {
@@ -539,7 +539,7 @@ public abstract class CPController implements ActionListener {
 	}
 
 	public void addCPEventListener(ICPEventListener listener) {
-		cpEventListeners.addLast(listener);
+		cpEventListeners.add (listener);
 	}
 
 	public void callCPEventListeners() {

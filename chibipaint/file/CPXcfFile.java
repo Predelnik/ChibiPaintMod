@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -100,7 +100,7 @@ public class CPXcfFile extends CPAbstractFile {
 		if (is instanceof FileInputStream)
 			return (int)((FileInputStream) is).getChannel().position ();
 		else
-			throw new IOException ("Seeking isn't supported for this kinda of Input Stream");
+			throw new IOException ("Seeking isn't supported for this kind of Input Stream");
 	}
 
 	public static int position (OutputStream os) throws IOException
@@ -382,11 +382,10 @@ public class CPXcfFile extends CPAbstractFile {
 		}
 		int[] startPos = { ox + x * 64, oy + y * 64 };
 		if (startPos[0] >= dstW || startPos[1] >= dstH)
-			return; // Optimizing: if tile is entirely out of picture, do
-		// nothing
+			return; // Optimizing: if tile is entirely out of picture, do nothing
 		int[] limit = { startPos[0] + sizeX, startPos[1] + sizeY };
 		if (limit[0] < 0 || limit[1] < 0)
-			return;  // Optimizing: if tile is entirely out of picture, do
+			return;  // Optimizing: if tile is entirely out of picture, do nothing
 		int[] curPos = new int[2];
 		int longRunNumber = 0;
 		int leadingByte = 0;
@@ -425,7 +424,7 @@ public class CPXcfFile extends CPAbstractFile {
 						movePos(curPos, startPos, limit);
 					}
 				} else if (leadingByte >= 129) {
-					// Reading leadingByte different bytes
+					// Reading (256 - leadingByte) different bytes
 					for (int j = 0; j < 256 - leadingByte; j++) {
 						curByte = is.read();
 						if (isInBounds (curPos, dstW, dstH))
@@ -792,7 +791,6 @@ public class CPXcfFile extends CPAbstractFile {
 
 	static public void writeVersion(OutputStream os, int minVersion)
 			throws IOException {
-		// For now let's try version 0
 		switch (minVersion) {
 		case 0:
 			os.write(v0);
@@ -851,7 +849,7 @@ public class CPXcfFile extends CPAbstractFile {
 			// to not create layers
 
 			// Now we're reading layer links, array of unknown size
-			LinkedList<Integer> layerLinks = new LinkedList<Integer>();
+			ArrayList<Integer> layerLinks = new ArrayList<Integer>();
 			while (true) {
 				int l = readInt(is);
 				if (l != 0)

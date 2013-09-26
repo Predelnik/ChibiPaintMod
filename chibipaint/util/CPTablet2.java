@@ -54,6 +54,7 @@ public class CPTablet2 {
 
 				@Override
 				public void cursorReleased(TabletEvent e) {
+					c.setModifiers(e.getModifiersEx());
 					c.setButton(e.getButton ());
 					c.getActiveMode().cursorReleaseAction ();
 				}

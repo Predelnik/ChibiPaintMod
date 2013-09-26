@@ -26,6 +26,7 @@ import java.awt.event.WindowEvent;
 import java.util.prefs.Preferences;
 
 import javax.swing.*;
+import javax.swing.UIManager.LookAndFeelInfo;
 
 import chibipaint.engine.*;
 import chibipaint.gui.*;
@@ -67,6 +68,16 @@ public class ChibiApp extends JFrame {
 			}
 		}
 		return true;
+	}
+
+	public static String getLookAndFeelClassName(String nameSnippet) {
+		LookAndFeelInfo[] plafs = UIManager.getInstalledLookAndFeels();
+		for (LookAndFeelInfo info : plafs) {
+			if (info.getName().contains(nameSnippet)) {
+				return info.getClassName();
+			}
+		}
+		return null;
 	}
 
 	public ChibiApp() {
