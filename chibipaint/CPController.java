@@ -301,6 +301,10 @@ public abstract class CPController implements ActionListener {
 			setMode(M_RECT_SELECTION);
 		}
 
+        if (e.getActionCommand().equals("CPFreeSelection")) {
+            setMode(M_FREE_SELECTION);
+        }
+
 		if (e.getActionCommand().equals("CPMoveTool")) {
 			setMode(M_MOVE_TOOL);
 		}

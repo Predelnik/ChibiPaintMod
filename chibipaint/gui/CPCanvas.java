@@ -97,6 +97,7 @@ CPArtwork.ICPArtworkListener {
 	CPMode rotateCanvasMode = new CPRotateCanvasMode();
 	CPMode floodFillMode = new CPFloodFillMode();
 	CPMode rectSelectionMode = new CPRectSelectionMode();
+    CPMode freeSelectionMode = new CPFreeSelectionMode ();
 	CPMode moveToolMode = new CPMoveToolMode();
 
 	// this must correspond to the stroke modes defined in CPToolInfo
@@ -752,6 +753,20 @@ CPArtwork.ICPArtworkListener {
 		return poly;
 	}
 
+    public Polygon coordToDisplay(Path2D r) {
+        Polygon poly = new Polygon();
+        PathIterator it = r.getPathIterator(transform);
+        float[] coords = new float[2];
+        while (!it.isDone())
+        {
+            it.currentSegment(coords);
+            poly.addPoint((int) coords[0], (int) coords[1]);
+            it.next();
+        }
+
+        return poly;
+    }
+
 	public Rectangle getRefreshArea(CPRect r) {
 		Point p1 = coordToDisplayInt(new Point(r.left - 1, r.top - 1));
 		Point p2 = coordToDisplayInt(new Point(r.left - 1, r.bottom));
@@ -826,6 +841,10 @@ CPArtwork.ICPArtworkListener {
 		case CPController.M_RECT_SELECTION:
 			curSelectedMode = rectSelectionMode;
 			break;
+
+        case CPController.M_FREE_SELECTION:
+            curSelectedMode = freeSelectionMode;
+            break;
 
 		case CPController.M_MOVE_TOOL:
 			curSelectedMode = moveToolMode;
@@ -1629,24 +1648,9 @@ CPArtwork.ICPArtworkListener {
 		@Override
 		public void cursorReleaseAction () {
 
-			boolean ShiftPressed = (getModifiers() & InputEvent.SHIFT_DOWN_MASK) != 0;
-			boolean ControlPressed = (getModifiers() & InputEvent.CTRL_DOWN_MASK) != 0;
-			if (ShiftPressed || ControlPressed)
-			{
-				CPSelection Rect = new CPSelection (artwork.width, artwork.height);
-				Rect.makeRectangularSelection(curRect);
-				if (ShiftPressed)
-				{
-					if (!ControlPressed)
-						curSelection.AddToSelection (Rect);
-					else
-						curSelection.IntersectWithSelection (Rect);
-				}
-				else
-					curSelection.SubtractFromSelection (Rect);
-			}
-			else
-				curSelection.makeRectangularSelection (curRect);
+            CPSelection Rect = new CPSelection (artwork.width, artwork.height);
+            Rect.makeRectangularSelection(curRect);
+            DoSelection (getModifiers(), Rect);
 
 			artwork.rectangleSelection(curRect);
 
@@ -1663,6 +1667,68 @@ CPArtwork.ICPArtworkListener {
 
 	}
 
+
+    void DoSelection (int modifiers, CPSelection selection)
+    {
+        boolean ShiftPressed = (getModifiers() & InputEvent.SHIFT_DOWN_MASK) != 0;
+        boolean ControlPressed = (getModifiers() & InputEvent.CTRL_DOWN_MASK) != 0;
+        if (ShiftPressed || ControlPressed)
+        {
+            if (ShiftPressed)
+            {
+                if (!ControlPressed)
+                    curSelection.AddToSelection (selection);
+                else
+                    curSelection.IntersectWithSelection (selection);
+            }
+            else
+                curSelection.SubtractFromSelection (selection);
+        }
+        else
+            curSelection = selection;
+    }
+
+    class CPFreeSelectionMode extends CPMode {
+
+        Path2D polygon;
+
+        @Override
+        public void cursorPressAction () {
+            Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
+
+            polygon = new Path2D.Float ();
+            polygon.moveTo (p.getX (), p.getY ());
+            repaint();
+        }
+
+        @Override
+        public void cursorDragAction() {
+            Point p = coordToDocumentInt(new Point (getCursorX(), getCursorY()));
+            polygon.lineTo (p.getX(), p.getY());
+            boolean square = (getModifiers() & InputEvent.SHIFT_MASK) != 0;
+
+            // TODO: add shift and control modifiers for snapped by angle lines
+            repaint ();
+        }
+
+        @Override
+        public void cursorReleaseAction () {
+
+            CPSelection polygonSelection = new CPSelection (artwork.width, artwork.height);
+            polygonSelection.makeSelectionFromPolygon (polygon);
+            DoSelection (getModifiers(), polygonSelection);
+
+            setActiveMode(defaultMode); // yield control to the default mode
+            repaint();
+        }
+
+        @Override
+        public void paint(Graphics2D g2d) {
+            g2d.draw(coordToDisplay(polygon));
+        }
+
+    }
+
 	//
 	// CPMoveTool mode
 	//
@@ -1678,7 +1744,7 @@ CPArtwork.ICPArtworkListener {
 
 			artwork.beginPreviewMode((getModifiers() & InputEvent.ALT_MASK) != 0);
 
-			// FIXME: The following hack avoids a slight display glitch
+			// TODO: The following hack avoids a slight display glitch
 			// if the whole move tool mess is fixed it probably won't be necessary anymore
 			artwork.move(0, 0);
 		}

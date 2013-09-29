@@ -7,7 +7,11 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.ArrayList;
@@ -88,14 +92,18 @@ public class CPSelection extends CPGreyBmp {
 				else
 					data[j * width + i] = 0;
 				invalidateSelection = true;
-				/*
-				if ((i - 100) * (i - 100) + (j - 100) * (j - 100) < 5000)
-					data[j * width + i] = (byte) 0xff;
-				else
-					data[j * width + i] = 0;
-				 */
 			}
 	}
+
+    public void makeSelectionFromPolygon(Path2D polygon) {
+        BufferedImage bImage = new BufferedImage (width, height, BufferedImage.TYPE_BYTE_GRAY);
+        Graphics2D g = bImage.createGraphics();
+        g.setColor(Color.WHITE);
+        polygon.setWindingRule(Path2D.WIND_EVEN_ODD);
+        g.fill(polygon);
+        data = ((DataBufferByte) bImage.getData().getDataBuffer()).getData();
+        invalidateSelection = true;
+    }
 
 	private boolean getIsActive (int i, int j)
 	{
@@ -169,7 +177,8 @@ public class CPSelection extends CPGreyBmp {
 	int[] OppositeDirection = {2, 3, 0, 1};
 	int[] PowersOf2 = {1, 2, 4, 8};
 
-	class PixelCoords implements Comparable<PixelCoords>
+
+    class PixelCoords implements Comparable<PixelCoords>
 	{
 		int x,y;
 		PixelCoords (int xArg, int yArg)
