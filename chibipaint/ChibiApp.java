@@ -70,16 +70,6 @@ public class ChibiApp extends JFrame {
 		return true;
 	}
 
-	public static String getLookAndFeelClassName(String nameSnippet) {
-		LookAndFeelInfo[] plafs = UIManager.getInstalledLookAndFeels();
-		for (LookAndFeelInfo info : plafs) {
-			if (info.getName().contains(nameSnippet)) {
-				return info.getClassName();
-			}
-		}
-		return null;
-	}
-
 	public ChibiApp() {
 		super("ChibiPaintMod");
 
@@ -119,6 +109,7 @@ public class ChibiApp extends JFrame {
 				SaveWindowSettings (frame);
 				mainGUI.getPaletteManager ().savePalettesSettings ();
 				controller.canvas.saveCanvasSettings ();
+                controller.canvas.killTimers ();
 				controller.saveControllerSettings ();
 				dispose ();
 			}

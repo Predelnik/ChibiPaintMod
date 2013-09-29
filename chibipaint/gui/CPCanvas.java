@@ -70,6 +70,7 @@ CPArtwork.ICPArtworkListener {
 	private int cursorY;
 	private int modifiers;
 	private int button;
+    private Timer selectionUpdateTimer;
 
 	boolean brushPreview = false;
 	Rectangle oldPreviewRect;
@@ -231,14 +232,14 @@ CPArtwork.ICPArtworkListener {
 		}
 
 
-		Timer timer = new Timer (50, new ActionListener () {
+		selectionUpdateTimer = new Timer (50, new ActionListener () {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				curSelection.RaiseInitialDash ();
 				repaint (curSelection.GetBoundingBox (getThis ()));
 			}});
-		timer.start();
+        selectionUpdateTimer.start();
 	}
 
 	public CPCanvas getThis ()
@@ -1000,6 +1001,12 @@ CPArtwork.ICPArtworkListener {
 		preferences.putBoolean ("Show Grid", showGrid);
 		preferences.putInt ("Grid size", gridSize);
 	}
+
+    public void killTimers ()
+    {
+        selectionUpdateTimer.stop();
+        selectionUpdateTimer = null;
+    }
 
 	public void loadCanvasSettings ()
 	{
