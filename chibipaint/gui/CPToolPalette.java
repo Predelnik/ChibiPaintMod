@@ -28,162 +28,65 @@ import chibipaint.*;
 
 public class CPToolPalette extends CPPalette implements ActionListener {
 
+    private Image icons;
+    private static int buttonSize = 32;
+
+    private void addButton (int iconIndex, String action, int mode, String actionDouble, int brushType)
+    {
+        CPIconButton button;
+        button = new CPIconButton(icons, buttonSize, buttonSize, iconIndex, 1);
+        add (button);
+
+        button.addCPActionListener(controller);
+        button.addCPActionListener(this);
+        button.setCPActionCommand(action);
+        if (actionDouble != null)
+            button.setCPActionCommandDouble(actionDouble);
+
+        if (mode != controller.M_INVALID && controller.getCurMode() == mode &&
+                (brushType == controller.T_INVALID || controller.getCurBrush() == brushType))
+            button.setSelected (true);
+    }
+
+    private void addButton (int iconIndex, String action, int mode, String actionDouble)
+    {
+        addButton (iconIndex, action, mode, null, controller.T_INVALID);
+    }
+
+    private void addButton (int iconIndex, String action, int mode)
+    {
+        addButton (iconIndex, action, mode, null);
+    }
+
+    private void addButton (int iconIndex, String action)
+    {
+        addButton (iconIndex, action, CPController.M_INVALID);
+    }
+
 	public CPToolPalette(CPController controller) {
 		super(controller);
 
 		title = "Tools";
 		setLayout(new FlowLayout());
 
-		Image icons = controller.loadImage("icons.png");
+		icons = controller.loadImage("icons.png");
 		CPIconButton button;
 
-		button = new CPIconButton(icons, 32, 32, 0, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPRectSelection");
-		if (controller.getCurMode() == CPController.M_RECT_SELECTION)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 1, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPMoveTool");
-		if (controller.getCurMode() == CPController.M_MOVE_TOOL)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 2, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPFloodFill");
-		if (controller.getCurMode() == CPController.M_FLOODFILL)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 29, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPRotateCanvas");
-		button.setCPActionCommandDouble("CPResetCanvasRotation");
-		if (controller.getCurMode() == CPController.M_ROTATE_CANVAS)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 5, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPPencil");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_PENCIL)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 6, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPPen");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_PEN)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 7, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPAirbrush");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_AIRBRUSH)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 18, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPWater");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_WATER)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 8, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPEraser");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_ERASER)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 9, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPSoftEraser");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_SOFTERASER)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 24, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPSmudge");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_SMUDGE)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 28, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPBlender");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_BLENDER)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 16, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPDodge");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_DODGE)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 17, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPBurn");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_BURN)
-			button.setSelected (true);
-
-		button = new CPIconButton(icons, 32, 32, 23, 1);
-		add(button);
-
-		button.addCPActionListener(controller);
-		button.addCPActionListener(this);
-		button.setCPActionCommand("CPBlur");
-		if (   controller.getCurMode() == CPController.M_DRAW
-				&& controller.getCurBrush() == CPController.T_BLUR)
-			button.setSelected (true);
-
+        addButton(0 , "CPRectSelection", CPController.M_RECT_SELECTION);
+        addButton(1 , "CPMoveTool", CPController.M_MOVE_TOOL);
+        addButton(2 , "CPFloodFill", CPController.M_FLOODFILL);
+        addButton(29, "CPRotateCanvas", CPController.M_ROTATE_CANVAS, "CPResetCanvasRotation");
+        addButton(5 , "CPPencil", CPController.M_DRAW, null, CPController.T_PENCIL);
+        addButton(6 , "CPPen"   , CPController.M_DRAW, null, CPController.T_PEN);
+        addButton(7 , "CPAirbrush", CPController.M_DRAW, null, CPController.T_AIRBRUSH);
+        addButton(18, "CPWater", CPController.M_DRAW, null, CPController.T_WATER);
+        addButton(8 , "CPEraser", CPController.M_DRAW, null, CPController.T_ERASER);
+        addButton(9 , "CPSoftEraser", CPController.M_DRAW, null, CPController.T_SOFTERASER);
+        addButton(24 , "CPSmudge", CPController.M_DRAW, null, CPController.T_SMUDGE);
+        addButton(28 , "CPBlender", CPController.M_DRAW, null, CPController.T_BLENDER);
+        addButton(16 , "CPDodge", CPController.M_DRAW, null, CPController.T_DODGE);
+        addButton(17 , "CPBurn", CPController.M_DRAW, null, CPController.T_BURN);
+        addButton(23 , "CPBlur", CPController.M_DRAW, null, CPController.T_BLUR);
 	}
 
 	@Override

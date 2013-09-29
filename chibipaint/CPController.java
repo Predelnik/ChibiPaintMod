@@ -58,7 +58,8 @@ public abstract class CPController implements ActionListener {
 	//
 	// Definition of all the standard tools available
 	//
-
+    // TODO: Make enum
+    public static final int T_INVALID = -1;
 	public static final int T_PENCIL = 0;
 	public static final int T_ERASER = 1;
 	public static final int T_PEN = 2;
@@ -76,6 +77,8 @@ public abstract class CPController implements ActionListener {
 	// Definition of all the modes available
 	//
 
+    // TODO: Make enum
+    public static final int M_INVALID = -1;
 	public static final int M_DRAW = 0;
 	public static final int M_FLOODFILL = 1;
 	public static final int M_RECT_SELECTION = 2;

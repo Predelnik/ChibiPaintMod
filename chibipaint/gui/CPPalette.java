@@ -28,7 +28,7 @@ import chibipaint.gui.CPPaletteManager.*;
 
 public class CPPalette extends JComponent {
 
-	CPController controller;
+	protected CPController controller;
 	ICPPaletteContainer container;
 
 	String title = "";
