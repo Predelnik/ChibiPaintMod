@@ -84,7 +84,9 @@ public abstract class CPController implements ActionListener {
 	public static final int M_RECT_SELECTION = 2;
 	public static final int M_MOVE_TOOL = 3;
 	public static final int M_ROTATE_CANVAS = 4;
-	public static final int M_MAX = 5;
+    public static final int M_FREE_SELECTION = 5;
+    public static final int M_MAGIC_WAND = 6;
+	public static final int M_MAX = 7;
 
 	// Setting for other modes than draw (probably should do different class for them)
 	private int colorDistance;

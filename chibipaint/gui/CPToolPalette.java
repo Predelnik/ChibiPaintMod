@@ -73,6 +73,8 @@ public class CPToolPalette extends CPPalette implements ActionListener {
 		CPIconButton button;
 
         addButton(0 , "CPRectSelection", CPController.M_RECT_SELECTION);
+        addButton(30, "CPFreeSelection", CPController.M_FREE_SELECTION);
+        addButton(31, "CPMagicWand", CPController.M_MAGIC_WAND);
         addButton(1 , "CPMoveTool", CPController.M_MOVE_TOOL);
         addButton(2 , "CPFloodFill", CPController.M_FLOODFILL);
         addButton(29, "CPRotateCanvas", CPController.M_ROTATE_CANVAS, "CPResetCanvasRotation");
