@@ -379,11 +379,13 @@ public abstract class CPController implements ActionListener {
 
 		if (e.getActionCommand().equals("CPSelectAll")) {
 			artwork.rectangleSelection(artwork.getSize());
+            artwork.getCurSelection().selectAll ();
 			canvas.repaint();
 		}
 
 		if (e.getActionCommand().equals("CPDeselectAll")) {
 			artwork.rectangleSelection(new CPRect());
+            artwork.getCurSelection().deactivate ();
 			canvas.repaint();
 		}
 

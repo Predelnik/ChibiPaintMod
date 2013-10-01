@@ -193,4 +193,6 @@ public class CPRect implements Cloneable {
 	public int hashCode() {
 		return super.hashCode();
 	}
+
+
 };

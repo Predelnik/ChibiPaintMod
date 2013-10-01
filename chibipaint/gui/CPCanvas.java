@@ -107,8 +107,6 @@ CPArtwork.ICPArtworkListener {
 	CPMode curSelectedMode = curDrawMode;
 	private CPMode activeMode = defaultMode;
 
-	CPSelection curSelection;
-
 	// Container with scrollbars
 	JPanel container;
 	JScrollBar horizScroll, vertScroll;
@@ -136,7 +134,7 @@ CPArtwork.ICPArtworkListener {
 		imgSource.setAnimated(true);
 		// imgSource.setFullBufferUpdates(false);
 		img = createImage(imgSource);
-		curSelection = new CPSelection (w, h);
+        artwork.setCurSelection (new CPSelection (w, h));
 
 		ctrl.setCanvas(this);
 
@@ -237,8 +235,8 @@ CPArtwork.ICPArtworkListener {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				curSelection.RaiseInitialDash ();
-				repaint (curSelection.GetBoundingBox (getThis ()));
+				artwork.getCurSelection().RaiseInitialDash ();
+				repaint (artwork.getCurSelection().GetBoundingBox (getThis ()));
 			}});
         selectionUpdateTimer.start();
 	}
@@ -430,7 +428,7 @@ CPArtwork.ICPArtworkListener {
 		}
 		 */
 
-		curSelection.drawItself (g2d, this);
+		artwork.getCurSelection().drawItself (g2d, this);
 
 		// Draw grid
 		if (showGrid) {
@@ -1677,15 +1675,15 @@ CPArtwork.ICPArtworkListener {
             if (ShiftPressed)
             {
                 if (!ControlPressed)
-                    curSelection.AddToSelection (selection);
+                    artwork.getCurSelection().AddToSelection (selection);
                 else
-                    curSelection.IntersectWithSelection (selection);
+                    artwork.getCurSelection().IntersectWithSelection (selection);
             }
             else
-                curSelection.SubtractFromSelection (selection);
+                artwork.getCurSelection().SubtractFromSelection (selection);
         }
         else
-            curSelection = selection;
+            artwork.setCurSelection(selection);
     }
 
     class CPFreeSelectionMode extends CPMode {

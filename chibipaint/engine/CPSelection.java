@@ -32,7 +32,7 @@ public class CPSelection extends CPGreyBmp {
 	public CPSelection(int width, int height) {
 		super(width, height);
 		markerArray = new byte[(width + 1) * (height + 1)];
-		Arrays.fill (data, (byte) 0);;
+		Arrays.fill (data, (byte) 0);
 	}
 
 	public void RaiseInitialDash ()
@@ -176,6 +176,20 @@ public class CPSelection extends CPGreyBmp {
 	int[][] Corners = {{1, 1}, {0, 1}, {0, 0}, {1, 0}};
 	int[] OppositeDirection = {2, 3, 0, 1};
 	int[] PowersOf2 = {1, 2, 4, 8};
+
+    public void deactivate()
+    {
+        Arrays.fill (data, (byte) 0);
+        minX = 1;
+        maxX = 0;
+        minY = 1;
+        maxY = 0;
+    }
+
+    public void selectAll() {
+        Arrays.fill (data, (byte) -1);
+        invalidateSelection = true;
+    }
 
 
     class PixelCoords implements Comparable<PixelCoords>
@@ -401,6 +415,8 @@ public class CPSelection extends CPGreyBmp {
 			invalidateSelection = false;
 		}
 
+        if (minX >= maxX || minY >= maxY)
+            return;
 
 		Color prevColor = g2d.getColor ();
 		float defaultDashLength = 8.2f / canvas.getZoom ();
@@ -546,4 +562,10 @@ public class CPSelection extends CPGreyBmp {
 		}
 		return ResultingLump;
 	}
+
+    final float oneDividedBy255 = 0.00392156862745f;
+    public float getData (int i, int j)
+    {
+        return (minX < maxX && minY < maxY) ? ((data[j * width + i] & 0xFF) * oneDividedBy255) : 1.0f;
+    }
 }

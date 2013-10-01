@@ -37,11 +37,20 @@ public class CPArtwork {
 	CPLayer curLayer;
 	private int activeLayer;
 
-	CPRect curSelection = new CPRect();
-
 	CPLayer fusion, undoBuffer, opacityBuffer;
 	Vector<CPLayer> undoBufferAll;
 	CPRect fusionArea, undoArea, opacityArea;
+
+    public CPSelection getCurSelection() {
+        return curSelectionNew;
+    }
+
+    public void setCurSelection(CPSelection curSelection) {
+        this.curSelectionNew = curSelection;
+    }
+
+    CPSelection curSelectionNew; // TODO: Remove old completely and rename this one to one without new
+    CPRect curSelection = new CPRect ();
 
 	Random rnd = new Random();
 
@@ -117,7 +126,6 @@ public class CPArtwork {
 		undoArea = new CPRect();
 		opacityArea = new CPRect();
 		setActiveLayerNum(0);
-		curSelection.makeEmpty();
 
 		undoBuffer = new CPLayer(width, height);
 		// we reserve a double sized buffer to be used as a 16bits per channel buffer
@@ -262,6 +270,13 @@ public class CPArtwork {
 
 	void mergeOpacityBuffer(int color, boolean clear) {
 		if (!opacityArea.isEmpty()) {
+
+            for (int j = opacityArea.top; j < opacityArea.bottom; j++) {
+                int dstOffset = opacityArea.left + j * width;
+                for (int i = opacityArea.left; i < opacityArea.right; i++, dstOffset++) {
+                    opacityBuffer.data [dstOffset] = (int) (opacityBuffer.data [dstOffset] * curSelectionNew.getData (i, j));
+                }
+            }
 			paintingModes[curBrush.paintMode].mergeOpacityBuf(opacityArea, color);
 
 			// Allow to eraser lower alpha with 'lock alpha' because it's all more logical and comfortable (look at gimp and other stuff)
