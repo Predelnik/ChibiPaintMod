@@ -462,8 +462,8 @@ CPArtwork.ICPArtworkListener {
 
 		// Adding * for unsaved changes
 		if (controller.isRunningAsApplication ())
-			((CPControllerApplication) controller).updateChanges (artwork.getUndoList().size () > 0 ? artwork.getUndoList().getFirst() : null,
-					artwork.getRedoList().size () > 0 ? artwork.getRedoList().getFirst() : null);
+			((CPControllerApplication) controller).updateChanges (artwork.getUndoManager().getUndoList().size () > 0 ? artwork.getUndoManager().getUndoList().getFirst() : null,
+					artwork.getUndoManager().getRedoList().size () > 0 ? artwork.getUndoManager().getRedoList().getFirst() : null);
 	}
 
 	private GeneralPath getCheckerboardBackgroundPath(Rectangle2D r) {
@@ -1649,6 +1649,7 @@ CPArtwork.ICPArtworkListener {
             CPSelection Rect = new CPSelection (artwork.width, artwork.height);
             Rect.makeRectangularSelection(curRect);
             DoSelection (getModifiers(), Rect);
+
 
 			artwork.rectangleSelection(curRect);
 

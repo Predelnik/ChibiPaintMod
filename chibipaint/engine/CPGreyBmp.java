@@ -21,6 +21,8 @@
 
 package chibipaint.engine;
 
+import chibipaint.util.CPRect;
+
 public class CPGreyBmp extends CPBitmap {
 
 	public byte[] data;
@@ -43,6 +45,35 @@ public class CPGreyBmp extends CPBitmap {
 			data[i] = (byte) (255 - data[i]);
 		}
 	}
+
+    public byte[] copyRectXOR(CPGreyBmp bmp, CPRect rect) {
+        CPRect r = new CPRect(0, 0, width, height);
+        r.clip(rect);
+
+        byte[] buffer = new byte[r.getWidth() * r.getHeight()];
+        int w = r.getWidth();
+        int h = r.getHeight();
+        for (int j = 0; j < h; j++) {
+            for (int i = 0; i < w; i++) {
+                buffer[i + j * w] = (byte) (data[(j + r.top) * width + i + r.left] ^ bmp.data[(j + r.top) * width + i + r.left]);
+            }
+        }
+
+        return buffer;
+    }
+
+    public void setRectXOR(byte[] buffer, CPRect rect) {
+        CPRect r = new CPRect(0, 0, width, height);
+        r.clip(rect);
+
+        int w = r.getWidth();
+        int h = r.getHeight();
+        for (int j = 0; j < h; j++) {
+            for (int i = 0; i < w; i++) {
+                data[(j + r.top) * width + i + r.left] = (byte) (data[(j + r.top) * width + i + r.left] ^ buffer[i + j * w]);
+            }
+        }
+    }
 
 	public void mirrorHorizontally() {
 		byte[] newData = new byte[width*height];
