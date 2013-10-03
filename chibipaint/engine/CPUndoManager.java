@@ -237,75 +237,6 @@ public class CPUndoManager {
         }
     }
 
-    static class CPUndoPaste extends CPUndo {
-
-        CPArtwork.CPClip clip;
-        int layer;
-        CPRect selection;
-        private CPArtwork artwork;
-
-        public CPUndoPaste(CPArtwork artwork, CPArtwork.CPClip clip, int layerNb, CPRect selection) {
-            this.artwork = artwork;
-            this.clip = clip;
-            this.layer = layerNb;
-            this.selection = (CPRect) selection.clone();
-        }
-
-        @Override
-        public void undo() {
-            artwork.getLayersVector().remove(layer + 1);
-            artwork.setActiveLayer(layer);
-            artwork.setSelection(selection);
-
-            artwork.invalidateFusion();
-            artwork.callListenersLayerChange();
-        }
-
-        @Override
-        public void redo() {
-            artwork.setActiveLayer(layer);
-            artwork.pasteClip(false, clip);
-        }
-
-        @Override
-        public long getMemoryUsed(boolean undone, Object param) {
-            return clip.bmp == param ? 0 : clip.bmp.width * clip.bmp.height * 4;
-        }
-
-    }
-
-    static class CPUndoRectangleSelection extends CPUndo {
-
-        CPRect from, to;
-        private CPArtwork artwork;
-
-        public CPUndoRectangleSelection(CPArtwork artwork, CPRect from, CPRect to) {
-            this.artwork = artwork;
-            this.from = (CPRect) from.clone();
-            this.to = (CPRect) to.clone();
-        }
-
-        @Override
-        public void undo() {
-            artwork.setSelection(from);
-        }
-
-        @Override
-        public void redo() {
-            artwork.setSelection(to);
-        }
-
-        @Override
-        public boolean merge(CPUndo u) {
-            return false;
-        }
-
-        @Override
-        public boolean noChange() {
-            return from.equals(to);
-        }
-    }
-
     static class CPUndoRemoveLayer extends CPUndo {
 
         int layer;
@@ -350,18 +281,21 @@ public class CPUndoManager {
         public CPUndoSelection(CPArtwork artwork, CPSelection pastSelection, CPRect changedRect) {
             this.artwork = artwork;
             rect = (CPRect) changedRect.clone();
-            data = artwork.curSelectionNew.copyRectXOR(pastSelection, changedRect);
+            data = pastSelection.copyRectXOR(artwork.curSelection, changedRect);
         }
 
         @Override
         public void undo() {
-            artwork.curSelectionNew.setRectXOR(data, rect);
-
+            artwork.curSelection.setRectXOR(data, rect);
+            artwork.curSelection.precalculateSelection ();
+            artwork.invalidateFusion(rect);
         }
 
         @Override
         public void redo() {
-            artwork.curSelectionNew.setRectXOR(data, rect);
+            artwork.curSelection.setRectXOR(data, rect);
+            artwork.curSelection.precalculateSelection ();
+            artwork.invalidateFusion(rect);
         }
 
         @Override
@@ -371,10 +305,8 @@ public class CPUndoManager {
 
         @Override
         public boolean noChange() {
-            boolean containsNonZero = false;
-            for (int i = 0; i < data.length; i++) {
-                if (data[i] > 0) {
-                    containsNonZero = true;
+            for (byte aData : data) {
+                if (aData > 0) {
                     return false;
                 }
             }
@@ -410,46 +342,6 @@ public class CPUndoManager {
             artwork.setActiveLayer(layer + 1);
             artwork.invalidateFusion();
             artwork.callListenersLayerChange();
-        }
-    }
-
-    static class CPUndoCut extends CPUndo {
-
-        CPColorBmp bmp;
-        int x, y, layer;
-        CPRect selection;
-        private CPArtwork artwork;
-
-        public CPUndoCut(CPArtwork artwork, CPColorBmp bmp, int x, int y, int layerNb, CPRect selection) {
-            this.artwork = artwork;
-            this.bmp = bmp;
-            this.x = x;
-            this.y = y;
-            this.layer = layerNb;
-            this.selection = (CPRect) selection.clone();
-        }
-
-        @Override
-        public void undo() {
-            artwork.setActiveLayer(layer);
-            artwork.curLayer.pasteBitmap(artwork.clipboard.bmp, x, y);
-            artwork.setSelection(selection);
-            artwork.invalidateFusion();
-        }
-
-        @Override
-        public void redo() {
-            artwork.setActiveLayer(layer);
-            CPRect r = bmp.getSize();
-            r.translate(x, y);
-            artwork.curLayer.clear(r, 0);
-            artwork.emptySelection();
-            artwork.invalidateFusion();
-        }
-
-        @Override
-        public long getMemoryUsed(boolean undone, Object param) {
-            return bmp == param ? 0 : bmp.width * bmp.height * 4;
         }
     }
 

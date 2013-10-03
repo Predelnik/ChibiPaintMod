@@ -26,7 +26,7 @@ import java.awt.event.*;
 
 import chibipaint.*;
 
-public class CPToolPalette extends CPPalette implements ActionListener {
+public class CPToolPalette extends CPPalette implements ActionListener, MouseListener {
 
     private Image icons;
     private static int buttonSize = 32;
@@ -75,7 +75,6 @@ public class CPToolPalette extends CPPalette implements ActionListener {
         addButton(0 , "CPRectSelection", CPController.M_RECT_SELECTION);
         addButton(30, "CPFreeSelection", CPController.M_FREE_SELECTION);
         addButton(31, "CPMagicWand", CPController.M_MAGIC_WAND);
-        addButton(1 , "CPMoveTool", CPController.M_MOVE_TOOL);
         addButton(2 , "CPFloodFill", CPController.M_FLOODFILL);
         addButton(29, "CPRotateCanvas", CPController.M_ROTATE_CANVAS, "CPResetCanvasRotation");
         addButton(5 , "CPPencil", CPController.M_DRAW, null, CPController.T_PENCIL);

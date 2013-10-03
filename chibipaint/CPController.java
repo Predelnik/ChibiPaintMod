@@ -81,8 +81,7 @@ public abstract class CPController implements ActionListener {
     public static final int M_INVALID = -1;
 	public static final int M_DRAW = 0;
 	public static final int M_FLOODFILL = 1;
-	public static final int M_RECT_SELECTION = 2;
-	public static final int M_MOVE_TOOL = 3;
+    public static final int M_RECT_SELECTION = 3;
 	public static final int M_ROTATE_CANVAS = 4;
     public static final int M_FREE_SELECTION = 5;
     public static final int M_MAGIC_WAND = 6;
@@ -295,19 +294,15 @@ public abstract class CPController implements ActionListener {
 
 		if (e.getActionCommand().equals("CPFloodFill")) {
 			setMode(M_FLOODFILL);
-		}
-
-		if (e.getActionCommand().equals("CPRectSelection")) {
-			setMode(M_RECT_SELECTION);
-		}
+        }
 
         if (e.getActionCommand().equals("CPFreeSelection")) {
             setMode(M_FREE_SELECTION);
         }
 
-		if (e.getActionCommand().equals("CPMoveTool")) {
-			setMode(M_MOVE_TOOL);
-		}
+        if (e.getActionCommand().equals("CPRectSelection")) {
+            setMode(M_RECT_SELECTION);
+        }
 
 		if (e.getActionCommand().equals("CPRotateCanvas")) {
 			setMode(M_ROTATE_CANVAS);
@@ -378,13 +373,11 @@ public abstract class CPController implements ActionListener {
 		}
 
 		if (e.getActionCommand().equals("CPSelectAll")) {
-			artwork.rectangleSelection(artwork.getSize());
-            artwork.getCurSelection().selectAll ();
+            artwork.getCurSelection().selectAll();
 			canvas.repaint();
 		}
 
 		if (e.getActionCommand().equals("CPDeselectAll")) {
-			artwork.rectangleSelection(new CPRect());
             artwork.getCurSelection().deactivate ();
 			canvas.repaint();
 		}
@@ -431,22 +424,6 @@ public abstract class CPController implements ActionListener {
 
 		if (e.getActionCommand().equals("CPFXMakeMonochromeBySelColor")) {
 			artwork.makeMonochrome(canvas.getApplyToAllLayers (), 4);
-		}
-
-		if (e.getActionCommand().equals("CPCut")) {
-			artwork.cutSelection(true);
-		}
-
-		if (e.getActionCommand().equals("CPCopy")) {
-			artwork.copySelection();
-		}
-
-		if (e.getActionCommand().equals("CPCopyMerged")) {
-			artwork.copySelectionMerged();
-		}
-
-		if (e.getActionCommand().equals("CPPaste")) {
-			artwork.pasteClipboard(true);
 		}
 
 		if (e.getActionCommand().equals("CPApplyToAllLayers")) {
@@ -549,11 +526,7 @@ public abstract class CPController implements ActionListener {
 		}
 	}
 
-	public void addCPEventListener(ICPEventListener listener) {
-		cpEventListeners.add (listener);
-	}
-
-	public void callCPEventListeners() {
+    public void callCPEventListeners() {
 		for (ICPEventListener l : cpEventListeners) {
 			l.cpEvent();
 		}
