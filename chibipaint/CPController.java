@@ -1,21 +1,23 @@
 /*
-	ChibiPaint
-    Copyright (c) 2006-2008 Marc Schefer
+	ChibiPaintMod
 
-    This file is part of ChibiPaint.
+   Copyright (c) 2012-2013 Sergey Semushin
+   Copyright (c) 2006-2008 Marc Schefer
 
-    ChibiPaint is free software: you can redistribute it and/or modify
+    This file is part of ChibiPaintMod (previously ChibiPaint).
+
+    ChibiPaintMod is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    ChibiPaint is distributed in the hope that it will be useful,
+    ChibiPaintMod is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with ChibiPaint. If not, see <http://www.gnu.org/licenses/>.
+    along with ChibiPaintMod. If not, see <http://www.gnu.org/licenses/>.
 
  */
 
@@ -25,17 +27,22 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
+import java.net.URISyntaxException;
 import java.util.*;
 import javax.imageio.*;
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
+import cello.jtablet.installer.BrowserLauncher;
 import chibipaint.engine.*;
 import chibipaint.gui.*;
 import chibipaint.util.*;
+import sun.java2d.loops.ProcessPath;
 
 public abstract class CPController implements ActionListener {
 
-	final static String VERSION_STRING = "0.7.11.2";
+	final static String VERSION_STRING = "0.0.5 (alpha)";
 
 	private CPColor curColor = new CPColor();
 	// int curAlpha = 255;
@@ -323,22 +330,50 @@ public abstract class CPController implements ActionListener {
 			callToolListeners();
 		}
 
+        // for copying style
+        JLabel label = new JLabel();
+        Font font = label.getFont();
+
+        // create some css from the label's font
+        StringBuffer style = new StringBuffer("font-family:" + font.getFamily() + ";");
+        style.append("font-weight:" + (font.isBold() ? "bold" : "normal") + ";");
+        style.append("font-size:" + font.getSize() + "pt;");
+
+
+        JEditorPane ep = new JEditorPane("text/html", "<html><body style=\"" + style + "\"><pre>ChibiPaintMod\n" + "Version "
+                + VERSION_STRING + "\n\n" + "Copyright (c) 2012-2013 Sergey Semushin.\n"
+                + "Copyright (c) 2006-2008 Marc Schefer. All Rights Reserved.\n\n"
+                + "ChibiPaintMod is free software: you can redistribute it and/or modify\n"
+                + "it under the terms of the GNU General Public License as published by\n"
+                + "the Free Software Foundation, either version 3 of the License, or\n"
+                + "(at your option) any later version.\n\n"
+                + "ChibiPaintMod is distributed in the hope that it will be useful,\n"
+                + "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+                + "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+                + "GNU General Public License for more details.\n\n"
+
+                + "You should have received a copy of the GNU General Public License\n"
+                + "along with ChibiPaintMod. If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>.\n" +
+                "</pre></html>");
+        ep.setEditable(false);
+        ep.setBackground(label.getBackground());
+        // handle link events
+        ep.addHyperlinkListener(new HyperlinkListener()
+        {
+            @Override
+            public void hyperlinkUpdate(HyperlinkEvent e)
+            {
+                if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED))
+                    try {
+                        BrowserLauncher.browse(e.getURL().toURI()); // roll your own link launcher or use Desktop if J6+
+                    } catch (URISyntaxException e1) {
+                        return;
+                    }
+            }
+        });
+
 		if (e.getActionCommand().equals("CPAbout")) {
-			JOptionPane.showMessageDialog(getDialogParent(), "ChibiPaint by Codexus\n" + "Version "
-					+ VERSION_STRING + "\n\n" + "Copyright (c) 2006-2008 Marc Schefer. All Rights Reserved.\n\n"
-					+ "ChibiPaint is free software: you can redistribute it and/or modify\n"
-					+ "it under the terms of the GNU General Public License as published by\n"
-					+ "the Free Software Foundation, either version 3 of the License, or\n"
-					+ "(at your option) any later version.\n\n"
-
-					+ "ChibiPaint is distributed in the hope that it will be useful,\n"
-					+ "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-					+ "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-					+ "GNU General Public License for more details.\n\n"
-
-					+ "You should have received a copy of the GNU General Public License\n"
-					+ "along with ChibiPaint. If not, see <http://www.gnu.org/licenses/>.\n",
-					"About ChibiPaint...", JOptionPane.PLAIN_MESSAGE);
+			JOptionPane.showMessageDialog(getDialogParent(), ep,"About ChibiPaint...", JOptionPane.PLAIN_MESSAGE);
 		}
 
 		if (e.getActionCommand().equals("CPTest")) {

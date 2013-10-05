@@ -1,21 +1,22 @@
 /*
-	ChibiPaint
-    Copyright (c) 2006-2008 Marc Schefer
+	ChibiPaintMod
+   Copyright (c) 2012-2013 Sergey Semushin
+   Copyright (c) 2006-2008 Marc Schefer
 
-    This file is part of ChibiPaint.
+    This file is part of ChibiPaintMod (previously ChibiPaint).
 
-    ChibiPaint is free software: you can redistribute it and/or modify
+    ChibiPaintMod is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    ChibiPaint is distributed in the hope that it will be useful,
+    ChibiPaintMod is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with ChibiPaint. If not, see <http://www.gnu.org/licenses/>.
+    along with ChibiPaintMod. If not, see <http://www.gnu.org/licenses/>.
 
  */
 
@@ -68,7 +69,7 @@ public class ChibiPaint extends JApplet {
 		// from leaking too much. In many cases it will keep
 		// a reference to this JApplet object alive forever.
 		// So have to make sure that we remove references
-		// to the rest of ChibiPaint so that they can be
+		// to the rest of ChibiPaintMod so that they can be
 		// garbage collected normally.
 
 		setContentPane(new JPanel());
@@ -167,7 +168,7 @@ public class ChibiPaint extends JApplet {
 	void createFloatingPlaceholder() {
 		// Build the panel that will be displayed in the applet when user switches to floating mode
 		floatingPlaceholder = new JPanel(new BorderLayout());
-		JLabel label = new JLabel("ChibiPaint is running in floating mode.\n\nDO NOT CLOSE THIS WINDOW!", SwingConstants.CENTER);
+		JLabel label = new JLabel("ChibiPaintMod is running in floating mode.\n\nDO NOT CLOSE THIS WINDOW!", SwingConstants.CENTER);
 		label.setFont(new Font("Serif", Font.PLAIN, 16));
 		floatingPlaceholder.add(label);
 	}

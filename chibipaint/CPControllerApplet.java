@@ -1,21 +1,22 @@
 /*
-	ChibiPaint
-    Copyright (c) 2006-2008 Marc Schefer
+	ChibiPaintMod
+   Copyright (c) 2012-2013 Sergey Semushin
+   Copyright (c) 2006-2008 Marc Schefer
 
-    This file is part of ChibiPaint.
+    This file is part of ChibiPaintMod (previously ChibiPaint).
 
-    ChibiPaint is free software: you can redistribute it and/or modify
+    ChibiPaintMod is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    ChibiPaint is distributed in the hope that it will be useful,
+    ChibiPaintMod is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with ChibiPaint. If not, see <http://www.gnu.org/licenses/>.
+    along with ChibiPaintMod. If not, see <http://www.gnu.org/licenses/>.
 
  */
 
@@ -90,7 +91,7 @@ public class CPControllerApplet extends CPController {
 		// First creates the PNG data
 		byte[] pngData = getPngData(canvas.img); // FIXME: verify canvas.img is always updated
 
-		// The ChibiPaint file data
+		// The ChibiPaintMod file data
 		ByteArrayOutputStream chibiFileStream = new ByteArrayOutputStream(1024);
 		CPChibiFile file = new CPChibiFile ();
 		file.write(chibiFileStream, artwork);
@@ -100,7 +101,7 @@ public class CPControllerApplet extends CPController {
 		int choice = JOptionPane
 				.showConfirmDialog(
 						getDialogParent(),
-						"You're about to send your oekaki to the server and end your ChibiPaint session.\n\nWould you like to send the layers file as well?\nAdditional upload size: "
+						"You're about to send your oekaki to the server and end your ChibiPaintMod session.\n\nWould you like to send the layers file as well?\nAdditional upload size: "
 								+ chibiData.length
 								/ 1024
 								+ " KB \nTotal upload size:"
@@ -157,7 +158,7 @@ public class CPControllerApplet extends CPController {
 
 			dos.writeBytes("POST " + url.getFile() + " HTTP/1.0\r\n");
 			dos.writeBytes("Host: " + url.getHost() + "\r\n");
-			dos.writeBytes("User-Agent: ChibiPaint Oekaki (" + System.getProperty("os.name") + "; "
+			dos.writeBytes("User-Agent: ChibiPaintMod Oekaki (" + System.getProperty("os.name") + "; "
 					+ System.getProperty("os.version") + ")\r\n");
 			dos.writeBytes("Cache-Control: nocache\r\n");
 			dos.writeBytes("Content-Type: multipart/form-data; boundary=" + boundary + "\r\n");
