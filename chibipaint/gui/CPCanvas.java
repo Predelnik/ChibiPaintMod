@@ -924,6 +924,27 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
                     // case KeyEvent.VK_NUMPAD0:
                     zoom100();
                     break;
+                case KeyEvent.VK_V:
+                    // TODO: MultiUndo Here
+                    if (!isRunningAsApplication())
+                        break;
+                    Image imageInClipboard = CPClipboardHelper.GetClipboardImage ();
+                    if (imageInClipboard == null)
+                        break;
+                    artwork.addLayer();
+                    CPImageUtils.PasteImageToOrigin(artwork.getActiveLayer(), imageInClipboard);
+                    CPSelection selection = new CPSelection(artwork.width, artwork.height);
+                    selection.makeSelectionFromAlpha(artwork.getActiveLayer().getData());
+                    artwork.DoSelection(0, selection);
+                    artwork.invalidateFusion();
+                    break;
+                case KeyEvent.VK_C:
+                    if (!isRunningAsApplication())
+                        break;
+
+                    Image image = CPImageUtils.RenderLayerSelectionToImage (artwork.getActiveLayer(), artwork.getCurSelection());
+                    CPClipboardHelper.SetClipboardImage(image);
+                    break;
             }
         } else {
             switch (e.getKeyCode()) {

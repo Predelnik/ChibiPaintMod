@@ -202,6 +202,22 @@ public class CPSelection extends CPGreyBmp {
         return copySelection;
     }
 
+    public void multiplyDataBySelection(int dataArg[])
+    {
+        for (int j = 0; j < height; j++)
+            for (int i = 0; i < width; i++) {
+                    dataArg[j * width + i] = (dataArg[j * width + i] & (0x00ffffff)) | ((int)((dataArg[j * width + i] & (0xff000000) >> 24) * (getData (i, j))) << 24);
+            }
+    }
+
+    public void makeSelectionFromAlpha(int[] dataArg) {
+        for (int j = 0; j < height; j++)
+            for (int i = 0; i < width; i++) {
+                data[j * width + i] = (byte)((dataArg[j * width + i] & (0xff000000)) >> 24);
+            }
+        precalculateSelection();
+    }
+
 
     class PixelCoords implements Comparable<PixelCoords> {
         int x, y;

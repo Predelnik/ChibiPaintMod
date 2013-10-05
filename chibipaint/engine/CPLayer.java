@@ -107,6 +107,10 @@ public class CPLayer extends CPColorBmp {
 		return data;
 	}
 
+    public void setData(int []dataArg) {
+        data = dataArg;
+    }
+
 	public int getAlpha() {
 		return alpha;
 	}
