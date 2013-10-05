@@ -74,8 +74,16 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
     boolean brushPreview = false;
     Rectangle oldPreviewRect;
+    JFrame waitingFrame;
 
     Cursor defaultCursor, hideCursor, moveCursor, crossCursor;
+
+    private Image loadingSign;
+
+    public boolean isCursorIn() {
+        return cursorIn;
+    }
+
     boolean cursorIn;
 
     private boolean dontStealFocus = false;
@@ -117,6 +125,11 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
     public void setArtwork(CPArtwork artwork) {
         this.artwork = artwork;
+    }
+
+    private boolean isRunningAsApplication ()
+    {
+        return controller.isRunningAsApplication();
     }
 
     public void initCanvas(CPController ctrl) {
@@ -225,6 +238,12 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
                 }
             });
         }
+        else
+        {
+            ShowLoadingTabletListenerMessage ();
+            CPTablet.getRef ();
+            HideLoadingTabletListenerMessage ();
+        }
 
 
         selectionUpdateTimer = new Timer(50, new ActionListener() {
@@ -258,6 +277,29 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
     public CPCanvas(CPController ctrl) {
         initCanvas(ctrl);
     }
+
+    public void ShowLoadingTabletListenerMessage ()
+    {
+        waitingFrame = new JFrame("Loading...");
+        waitingFrame.setUndecorated(true);
+        waitingFrame.setSize(200, 50);
+        waitingFrame.setLocationRelativeTo(null);
+        waitingFrame.setVisible(true);
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout());
+        JLabel label = new JLabel("<html><center>Loading Tablet Listener...<br>Please Wait...</center></html>");
+        panel.add(label);
+        waitingFrame.setContentPane(panel);
+        waitingFrame.pack();
+    }
+
+    public void HideLoadingTabletListenerMessage ()
+    {
+        waitingFrame.setVisible(true);
+        waitingFrame.dispose();
+    }
+
+
 
     @Override
     public boolean isOpaque() {

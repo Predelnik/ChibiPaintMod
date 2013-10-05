@@ -154,7 +154,7 @@ public class CPControllerApplication extends CPController {
         updateTitle();
 
         if ((latestUndoAction == null && latestRedoAction == null) // If
-                // latestRedoaction
+                // latestRedoAction
                 // wasn't
                 // set at
                 // all
@@ -168,7 +168,7 @@ public class CPControllerApplication extends CPController {
         // change
         {
             latestRedoAction = undoAction; // Then really changing
-            // latestRedoaction
+            // latestRedoAction
             redoActionMayChange = false; // And disabling flag
         }
 

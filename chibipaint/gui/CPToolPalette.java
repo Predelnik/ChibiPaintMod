@@ -26,7 +26,7 @@ import java.awt.event.*;
 
 import chibipaint.*;
 
-public class CPToolPalette extends CPPalette implements ActionListener, MouseListener {
+public class CPToolPalette extends CPPalette implements ActionListener {
 
     private Image icons;
     private static int buttonSize = 32;
