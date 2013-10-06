@@ -198,14 +198,14 @@ public class CPControllerApplication extends CPController {
 
         panel1.add(new JLabel("Width:"));
         JTextField widthNum = new JTextField(
-                String.valueOf(this.artwork.width), 10);
+                String.valueOf(this.artwork.getWidth()), 10);
         panel1.add(widthNum);
 
         JPanel panel2 = new JPanel();
 
         panel2.add(new JLabel("Height:"));
         JTextField heightNum = new JTextField(
-                String.valueOf(this.artwork.height), 10);
+                String.valueOf(this.artwork.getHeight()), 10);
         panel2.add(heightNum);
 
         Object[] array = {"Select Width and Height:\n\n", panel1, panel2};

@@ -108,8 +108,8 @@ public class CPChibiFile extends CPAbstractFile {
 		writeInt(os, 16); // ChunkSize
 
 		writeInt(os, 0); // Current Version: Major: 0 Minor: 0
-		writeInt(os, a.width);
-		writeInt(os, a.height);
+		writeInt(os, a.getWidth());
+		writeInt(os, a.getHeight());
 		writeInt(os, a.getLayersNb());
 	}
 
@@ -117,7 +117,7 @@ public class CPChibiFile extends CPAbstractFile {
 		byte[] title = l.getName().getBytes("UTF-8");
 
 		os.write(LAYR); // Chunk ID
-		writeInt(os, 20 + l.data.length * 4 + title.length); // ChunkSize
+		writeInt(os, 20 + l.getData().length * 4 + title.length); // ChunkSize
 
 		writeInt(os, 20 + title.length); // Data offset from start of header
 		writeInt(os, l.getBlendMode()); // layer blend mode
@@ -127,7 +127,7 @@ public class CPChibiFile extends CPAbstractFile {
 		writeInt(os, title.length);
 		os.write(title);
 
-		writeIntArray(os, l.data);
+		writeIntArray(os, l.getData());
 	}
 
 	@Override
@@ -177,7 +177,7 @@ public class CPChibiFile extends CPAbstractFile {
 	}
 
 	static private void readLayer(InputStream is, CPChibiChunk chunk, CPArtwork a) throws IOException {
-		CPLayer l = new CPLayer(a.width, a.height);
+		CPLayer l = new CPLayer(a.getWidth(), a.getHeight());
 
 		int offset = readInt(is);
 		l.setBlendMode(readInt(is)); // layer blend mode
@@ -190,7 +190,7 @@ public class CPChibiFile extends CPAbstractFile {
 		l.setName(new String(title, "UTF-8"));
 
 		realSkip(is, offset - 20 - titleLength);
-		readIntArray(is, l.data, l.getWidth() * l.getHeight());
+		readIntArray(is, l.getData(), l.getWidth() * l.getHeight());
 
 		a.getLayersVector().add(l);
 

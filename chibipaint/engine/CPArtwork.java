@@ -33,15 +33,14 @@ import chibipaint.util.*;
 
 public class CPArtwork {
 
-	public final int width;
-    public final int height;
+	private final int width;
+    private final int height;
 
 	private Vector<CPLayer> layers;
-	CPLayer curLayer;
+	private CPLayer curLayer;
 	private int activeLayer;
 
 	private final CPLayer fusion;
-    final CPLayer undoBuffer;
     private final CPLayer opacityBuffer;
 	Vector<CPLayer> undoBufferAll;
 	private final CPRect fusionArea;
@@ -56,7 +55,7 @@ public class CPArtwork {
         return undoManager;
     }
 
-    private final CPUndoManager undoManager = new CPUndoManager();
+    private final CPUndoManager undoManager = new CPUndoManager(this);
 
     public void DoSelection(int modifiers, CPSelection selection)
     {
@@ -88,6 +87,18 @@ public class CPArtwork {
 
     public void setCurSelection(CPSelection cpSelection) {
         curSelection = cpSelection;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public CPLayer getCurLayer() {
+        return curLayer;
     }
 
     public interface ICPArtworkListener {
@@ -162,7 +173,6 @@ public class CPArtwork {
 		opacityArea = new CPRect();
 		setActiveLayerNum(0);
 
-		undoBuffer = new CPLayer(width, height);
 		// we reserve a double sized buffer to be used as a 16bits per channel buffer
 		opacityBuffer = new CPLayer(width, height);
 
@@ -170,7 +180,7 @@ public class CPArtwork {
 	}
 
 	public long getDocMemoryUsed() {
-		return (long) width * height * 4 * (3 + getLayersVector().size())
+		return (long) getWidth() * getHeight() * 4 * (3 + getLayersVector().size())
 				+ (clipboard != null ? clipboard.bmp.getWidth() * clipboard.bmp.getHeight() * 4 : 0);
 	}
 
@@ -304,16 +314,16 @@ public class CPArtwork {
 		if (!opacityArea.isEmpty()) {
 
             for (int j = opacityArea.top; j < opacityArea.bottom; j++) {
-                int dstOffset = opacityArea.left + j * width;
+                int dstOffset = opacityArea.left + j * getWidth();
                 for (int i = opacityArea.left; i < opacityArea.right; i++, dstOffset++) {
-                    opacityBuffer.data [dstOffset] = (int) (opacityBuffer.data [dstOffset] * curSelection.getData (i, j));
+                    opacityBuffer.getData()[dstOffset] = (int) (opacityBuffer.getData()[dstOffset] * curSelection.getData (i, j));
                 }
             }
 			paintingModes[curBrush.paintMode].mergeOpacityBuf(opacityArea, color);
 
 			// Allow to eraser lower alpha with 'lock alpha' because it's all more logical and comfortable (look at gimp and other stuff)
 			if (isLockAlpha() && curBrush.paintMode != CPBrushInfo.M_ERASE) {
-				restoreAlpha(opacityArea);
+				undoManager.restoreCurLayerAlpha(opacityArea);
 			}
 
 			if (clear) {
@@ -324,11 +334,7 @@ public class CPArtwork {
 		}
 	}
 
-	void restoreAlpha(CPRect r) {
-		getActiveLayer().copyAlphaFrom(undoBuffer, r);
-	}
-
-	// Extend this class to create new tools and brush types
+    // Extend this class to create new tools and brush types
 	abstract class CPBrushTool {
 
 		abstract public void beginStroke(float x, float y, float pressure);
@@ -344,7 +350,7 @@ public class CPArtwork {
 
 		@Override
 		public void beginStroke(float x, float y, float pressure) {
-			undoBuffer.copyFrom(curLayer);
+            undoManager.preserveCurLayerState ();
 			undoArea.makeEmpty();
 
 			opacityBuffer.clear();
@@ -441,11 +447,11 @@ public class CPArtwork {
 
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
-			int[] opacityData = opacityBuffer.data;
-			int[] undoData = undoBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
+			int[] undoData = undoManager.getCurLayerPreservedData ();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, dstOffset++) {
 					int opacityAlpha = opacityData[dstOffset] / 255;
 					if (opacityAlpha > 0) {
@@ -462,19 +468,19 @@ public class CPArtwork {
 								& 0xff00 | (((color & 0xff) * realAlpha + (destColor & 0xff) * invAlpha) / 255) & 0xff;
 
 						newColor |= newLayerAlpha << 24 & 0xff000000;
-						curLayer.data[dstOffset] = newColor;
+						getCurLayer().getData()[dstOffset] = newColor;
 					}
 				}
 			}
 		}
 
 		void paintOpacity(CPRect srcRect, CPRect dstRect, byte[] brush, int w, int alpha) {
-			int[] opacityData = opacityBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
 
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
 				int srcOffset = srcRect.left + by * w;
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, srcOffset++, dstOffset++) {
 					int brushAlpha = (brush[srcOffset] & 0xff) * alpha;
 					if (brushAlpha != 0) {
@@ -489,12 +495,12 @@ public class CPArtwork {
 		}
 
 		void paintFlow(CPRect srcRect, CPRect dstRect, byte[] brush, int w, int alpha) {
-			int[] opacityData = opacityBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
 
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
 				int srcOffset = srcRect.left + by * w;
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, srcOffset++, dstOffset++) {
 					int brushAlpha = (brush[srcOffset] & 0xff) * alpha;
 					if (brushAlpha != 0) {
@@ -513,11 +519,11 @@ public class CPArtwork {
 
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
-			int[] opacityData = opacityBuffer.data;
-			int[] undoData = undoBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
+			int[] undoData = undoManager.getCurLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, dstOffset++) {
 					int opacityAlpha = opacityData[dstOffset] / 255;
 					if (opacityAlpha > 0) {
@@ -525,7 +531,7 @@ public class CPArtwork {
 						int destAlpha = destColor >>> 24;
 
 			int realAlpha = destAlpha * (255 - opacityAlpha) / 255;
-			curLayer.data[dstOffset] = destColor & 0xffffff | realAlpha << 24;
+			getCurLayer().getData()[dstOffset] = destColor & 0xffffff | realAlpha << 24;
 					}
 				}
 			}
@@ -536,11 +542,11 @@ public class CPArtwork {
 
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
-			int[] opacityData = opacityBuffer.data;
-			int[] undoData = undoBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
+			int[] undoData = undoManager.getCurLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, dstOffset++) {
 					int opacityAlpha = opacityData[dstOffset] / 255;
 					if (opacityAlpha > 0) {
@@ -562,7 +568,7 @@ public class CPArtwork {
 							}
 
 							int newColor = destColor & 0xff000000 | r << 16 | g << 8 | b;
-							curLayer.data[dstOffset] = newColor;
+							getCurLayer().getData()[dstOffset] = newColor;
 						}
 					}
 				}
@@ -574,11 +580,11 @@ public class CPArtwork {
 
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
-			int[] opacityData = opacityBuffer.data;
-			int[] undoData = undoBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
+			int[] undoData = undoManager.getCurLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, dstOffset++) {
 					int opacityAlpha = opacityData[dstOffset] / 255;
 					if (opacityAlpha > 0) {
@@ -605,7 +611,7 @@ public class CPArtwork {
 							}
 
 							int newColor = destColor & 0xff000000 | r << 16 | g << 8 | b;
-							curLayer.data[dstOffset] = newColor;
+							getCurLayer().getData()[dstOffset] = newColor;
 						}
 					}
 				}
@@ -617,11 +623,11 @@ public class CPArtwork {
 
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
-			int[] opacityData = opacityBuffer.data;
-			int[] undoData = undoBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
+			int[] undoData = undoManager.getCurLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, dstOffset++) {
 					int opacityAlpha = opacityData[dstOffset] / 255;
 					if (opacityAlpha > 0) {
@@ -634,13 +640,13 @@ public class CPArtwork {
 						int b = blur * (destColor & 0xff);
 						int sum = blur + 4;
 
-						destColor = undoData[j > 0 ? dstOffset - width : dstOffset];
+						destColor = undoData[j > 0 ? dstOffset - getWidth() : dstOffset];
 						a += destColor >>> 24 & 0xff;
 						r += destColor >>> 16 & 0xff;
 						g += destColor >>> 8 & 0xff;
 						b += destColor & 0xff;
 
-						destColor = undoData[j < height - 1 ? dstOffset + width : dstOffset];
+						destColor = undoData[j < getHeight() - 1 ? dstOffset + getWidth() : dstOffset];
 						a += destColor >>> 24 & 0xff;
 						r += destColor >>> 16 & 0xff;
 						g += destColor >>> 8 & 0xff;
@@ -652,7 +658,7 @@ public class CPArtwork {
 						g += destColor >>> 8 & 0xff;
 						b += destColor & 0xff;
 
-						destColor = undoData[i < width - 1 ? dstOffset + 1 : dstOffset];
+						destColor = undoData[i < getWidth() - 1 ? dstOffset + 1 : dstOffset];
 						a += destColor >>> 24 & 0xff;
 						r += destColor >>> 16 & 0xff;
 						g += destColor >>> 8 & 0xff;
@@ -662,7 +668,7 @@ public class CPArtwork {
 						r /= sum;
 						g /= sum;
 						b /= sum;
-						curLayer.data[dstOffset] = a << 24 | r << 16 | g << 8 | b;
+						getCurLayer().getData()[dstOffset] = a << 24 | r << 16 | g << 8 | b;
 					}
 				}
 			}
@@ -675,11 +681,11 @@ public class CPArtwork {
 
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
-			int[] opacityData = opacityBuffer.data;
-			int[] undoData = undoBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
+			int[] undoData = undoManager.getCurLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, dstOffset++) {
 					int color1 = opacityData[dstOffset];
 					int alpha1 = (color1 >>> 24);
@@ -694,7 +700,7 @@ public class CPArtwork {
 						int realAlpha = alpha1 * 255 / newAlpha;
 						int invAlpha = 255 - realAlpha;
 
-						curLayer.data[dstOffset] = newAlpha << 24
+						getCurLayer().getData()[dstOffset] = newAlpha << 24
 								| (((color1 >>> 16 & 0xff) * realAlpha + (color2 >>> 16 & 0xff) * invAlpha) / 255) << 16
 								| (((color1 >>> 8 & 0xff) * realAlpha + (color2 >>> 8 & 0xff) * invAlpha) / 255) << 8
 								| (((color1 & 0xff) * realAlpha + (color2 & 0xff) * invAlpha) / 255);
@@ -763,12 +769,12 @@ public class CPArtwork {
 		}
 
 		void paintDirect(CPRect srcRect, CPRect dstRect, byte[] brush, int w, int alpha, int color1) {
-			int[] opacityData = opacityBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
 
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
 				int srcOffset = srcRect.left + by * w;
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, srcOffset++, dstOffset++) {
 					int alpha1 = (brush[srcOffset] & 0xff) * alpha / 255;
 					if (alpha1 <= 0) {
@@ -866,9 +872,9 @@ public class CPArtwork {
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
 				int srcOffset = srcRect.left + by * w;
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, srcOffset++, dstOffset++) {
-					int color1 = layerToSample.data[dstOffset];
+					int color1 = layerToSample.getData()[dstOffset];
 					int alpha1 = (color1 >>> 24) * alpha / 255;
 					if (alpha1 <= 0) {
 						continue;
@@ -926,12 +932,12 @@ public class CPArtwork {
 		}
 
 		private void oilPasteBuffer(CPRect srcRect, CPRect dstRect, int[] buffer, byte[] brush, int w, int alpha) {
-			int[] opacityData = opacityBuffer.data;
+			int[] opacityData = opacityBuffer.getData();
 
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
 				int srcOffset = srcRect.left + by * w;
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, srcOffset++, dstOffset++) {
 					int color1 = buffer[srcOffset];
 					int alpha1 = (color1 >>> 24) * (brush[srcOffset] & 0xff) * alpha / (255 * 255);
@@ -939,7 +945,7 @@ public class CPArtwork {
 						continue;
 					}
 
-					int color2 = curLayer.data[dstOffset];
+					int color2 = getCurLayer().getData()[dstOffset];
 					int alpha2 = (color2 >>> 24);
 
 					int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -974,7 +980,7 @@ public class CPArtwork {
 				smudgePasteBuffer(srcRect, dstRect, brushBuffer, dab.brush, dab.width);
 
 				if (isLockAlpha()) {
-					restoreAlpha(dstRect);
+					undoManager.restoreCurLayerAlpha(dstRect);
 				}
 			}
 			opacityArea.makeEmpty();
@@ -995,9 +1001,9 @@ public class CPArtwork {
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
 				int srcOffset = srcRect.left + by * w;
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, srcOffset++, dstOffset++) {
-					int layerColor = layerToSample.data[dstOffset];
+					int layerColor = layerToSample.getData()[dstOffset];
 					int opacityAlpha = 255 - alpha;
 					if (opacityAlpha > 0) {
 						int destColor = buffer[srcOffset];
@@ -1073,12 +1079,12 @@ public class CPArtwork {
 		}
 
 		private void smudgePasteBuffer(CPRect srcRect, CPRect dstRect, int[] buffer, byte[] brush, int w) {
-			int[] undoData = undoBuffer.data;
+			int[] undoData = undoManager.getCurLayerPreservedData();
 
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
 				int srcOffset = srcRect.left + by * w;
-				int dstOffset = dstRect.left + j * width;
+				int dstOffset = dstRect.left + j * getWidth();
 				for (int i = dstRect.left; i < dstRect.right; i++, srcOffset++, dstOffset++) {
 					int bufferColor = buffer[srcOffset];
 					int opacityAlpha = (bufferColor >>> 24) * (brush[srcOffset] & 0xff) / 255;
@@ -1097,7 +1103,7 @@ public class CPArtwork {
 								| (((bufferColor & 0xff) * realAlpha + (destColor & 0xff) * invAlpha) / 255)
 								& 0xff;
 
-						curLayer.data[dstOffset] = newColor;
+						getCurLayer().getData()[dstOffset] = newColor;
 					}
 				}
 			}
@@ -1123,7 +1129,7 @@ public class CPArtwork {
 	}
 
 	public CPLayer getActiveLayer() {
-		return curLayer;
+		return getCurLayer();
 	}
 
 	public CPLayer getLayer(int i) {
@@ -1202,11 +1208,11 @@ public class CPArtwork {
 		if (isSampleAllLayers())
 			return fusion.getPixel((int) x, (int) y) & 0xffffff;
 		else
-			return curLayer.getPixel((int) x, (int) y) & 0xffffff;
+			return getCurLayer().getPixel((int) x, (int) y) & 0xffffff;
 	}
 
 	public boolean isPointWithin(float x, float y) {
-		return x >= 0 && y >= 0 && (int) x < width && (int) y < height;
+		return x >= 0 && y >= 0 && (int) x < getWidth() && (int) y < getHeight();
 	}
 
 	// FIXME: 2007-01-13 I'm moving this to the CPRect class
@@ -1228,15 +1234,15 @@ public class CPArtwork {
 
 		// new dest bottom/right
 		dstRect.right = dstRect.left + srcRect.getWidth();
-		if (dstRect.right > width) {
-			srcRect.right -= dstRect.right - width;
-			dstRect.right = width;
+		if (dstRect.right > getWidth()) {
+			srcRect.right -= dstRect.right - getWidth();
+			dstRect.right = getWidth();
 		}
 
 		dstRect.bottom = dstRect.top + srcRect.getHeight();
-		if (dstRect.bottom > height) {
-			srcRect.bottom -= dstRect.bottom - height;
-			dstRect.bottom = height;
+		if (dstRect.bottom > getHeight()) {
+			srcRect.bottom -= dstRect.bottom - getHeight();
+			dstRect.bottom = getHeight();
 		}
 
 		// new src top/left
@@ -1260,7 +1266,7 @@ public class CPArtwork {
 	}
 
 	public CPRect getSize() {
-		return new CPRect(width, height);
+		return new CPRect(getWidth(), getHeight());
 	}
 
 	//
@@ -1278,7 +1284,7 @@ public class CPArtwork {
 	}
 
 	public void invalidateFusion() {
-		invalidateFusion(new CPRect(0, 0, width, height));
+		invalidateFusion(new CPRect(0, 0, getWidth(), getHeight()));
 	}
 
 	public void setLayerVisibility(int layer, boolean visible) {
@@ -1291,7 +1297,7 @@ public class CPArtwork {
 	public void addLayer() {
 		addUndo(new CPUndoManager.CPUndoAddLayer(this, getActiveLayerNum()));
 
-		CPLayer newLayer = new CPLayer(width, height);
+		CPLayer newLayer = new CPLayer(getWidth(), getHeight());
 		newLayer.setName(getDefaultLayerName());
 		getLayersVector().add(getActiveLayerNum() + 1, newLayer);
 		setActiveLayer(getActiveLayerNum() + 1);
@@ -1302,7 +1308,7 @@ public class CPArtwork {
 
 	public void removeLayer() {
 		if (getLayersVector().size() > 1) {
-			addUndo(new CPUndoManager.CPUndoRemoveLayer(this, getActiveLayerNum(), curLayer));
+			addUndo(new CPUndoManager.CPUndoRemoveLayer(this, getActiveLayerNum(), getCurLayer()));
 			getLayersVector().remove(getActiveLayerNum());
 			setActiveLayer(getActiveLayerNum() < getLayersVector().size() ? getActiveLayerNum() : getActiveLayerNum() - 1);
 			invalidateFusion();
@@ -1330,7 +1336,7 @@ public class CPArtwork {
 		String copySuffix = " Copy";
 
 		addUndo(new CPUndoManager.CPUndoDuplicateLayer(this, getActiveLayerNum()));
-		CPLayer newLayer = new CPLayer(width, height);
+		CPLayer newLayer = new CPLayer(getWidth(), getHeight());
 		newLayer.copyFrom(getLayersVector().elementAt(getActiveLayerNum()));
 		if (!newLayer.getName().endsWith(copySuffix)) {
 			newLayer.setName(newLayer.getName() + copySuffix);
@@ -1349,7 +1355,7 @@ public class CPArtwork {
 			}
 
 			getLayersVector().elementAt(getActiveLayerNum()).fusionWithFullAlpha(getLayersVector().elementAt(getActiveLayerNum() - 1),
-					new CPRect(width, height));
+					new CPRect(getWidth(), getHeight()));
 			getLayersVector().remove(getActiveLayerNum());
 			setActiveLayer(getActiveLayerNum() - 1);
 
@@ -1367,7 +1373,7 @@ public class CPArtwork {
 			fusionLayers();
 			getLayersVector().clear();
 
-			CPLayer layer = new CPLayer(width, height);
+			CPLayer layer = new CPLayer(getWidth(), getHeight());
 			layer.setName(getDefaultLayerName());
 			layer.copyDataFrom(fusion);
 			getLayersVector().add(layer);
@@ -1427,10 +1433,10 @@ public class CPArtwork {
 	}
 
 	public void floodFill(float x, float y, int colorDistance) {
-		undoBuffer.copyFrom(curLayer);
-		undoArea = new CPRect(width, height);
+        undoManager.preserveCurLayerState();
+		undoArea = new CPRect(getWidth(), getHeight());
 
-		curLayer.floodFill((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers() ? fusion : curLayer, colorDistance);
+		getCurLayer().floodFill((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers() ? fusion : getCurLayer(), colorDistance);
 
 		addUndo(new CPUndoManager.CPUndoPaint(this));
 		invalidateFusion();
@@ -1443,9 +1449,9 @@ public class CPArtwork {
 
 		if (!applyToAllLayers)
 		{
-			undoBuffer.copyFrom(curLayer);
+			undoManager.preserveCurLayerState();
 
-			curLayer.clear (r, color);
+			getCurLayer().clear(r, color);
 			addUndo(new CPUndoManager.CPUndoPaint(this));
 		}
 		else
@@ -1454,7 +1460,7 @@ public class CPArtwork {
 			undoBufferAll.setSize (getLayersVector().size ());
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (width, height), i);
+				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).clear (r, color);
 
@@ -1474,9 +1480,9 @@ public class CPArtwork {
 
 		if (!applyToAllLayers)
 		{
-			undoBuffer.copyFrom(curLayer);
+            undoManager.preserveCurLayerState();
 
-			curLayer.copyRegionHFlip(getSize(), undoBuffer);
+			getCurLayer().copyRegionHFlip(getSize(), undoManager.getCurLayerPreservedData());
 			addUndo(new CPUndoManager.CPUndoPaint(this));
 		}
 		else
@@ -1485,9 +1491,9 @@ public class CPArtwork {
 			undoBufferAll.setSize (getLayersVector().size ());
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (width, height), i);
+				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
-				getLayersVector().elementAt(i).copyRegionHFlip(getSize(), undoBufferAll.elementAt(i));
+				getLayersVector().elementAt(i).copyRegionHFlip(getSize(), undoBufferAll.elementAt(i).getData());
 
 			}
 			addUndo(new CPUndoManager.CPUndoPaintAll(this));
@@ -1501,9 +1507,9 @@ public class CPArtwork {
 
 		if (!applyToAllLayers)
 		{
-			undoBuffer.copyFrom(curLayer);
+            undoManager.preserveCurLayerState();
 
-			curLayer.copyRegionVFlip(getSize(), undoBuffer);
+			getCurLayer().copyRegionVFlip(getSize(), undoManager.getCurLayerPreservedData());
 			addUndo(new CPUndoManager.CPUndoPaint(this));
 		}
 		else
@@ -1512,14 +1518,13 @@ public class CPArtwork {
 			undoBufferAll.setSize (getLayersVector().size ());
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (width, height), i);
+				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
-				getLayersVector().elementAt(i).copyRegionVFlip(getSize(), undoBufferAll.elementAt(i));
+				getLayersVector().elementAt(i).copyRegionVFlip(getSize(), undoBufferAll.elementAt(i).getData());
 
 			}
 			addUndo(new CPUndoManager.CPUndoPaintAll(this));
 		}
-
 		invalidateFusion();
 	}
 
@@ -1528,9 +1533,9 @@ public class CPArtwork {
 
 		if (!applyToAllLayers)
 		{
-			undoBuffer.copyFrom(curLayer);
+            undoManager.preserveCurLayerState();
 
-			curLayer.fillWithNoise(getSize());
+			getCurLayer().fillWithNoise(getSize());
 			addUndo(new CPUndoManager.CPUndoPaint(this));
 		}
 		else
@@ -1539,7 +1544,7 @@ public class CPArtwork {
 			undoBufferAll.setSize (getLayersVector().size ());
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (width, height), i);
+				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).fillWithNoise(getSize());
 
@@ -1555,9 +1560,9 @@ public class CPArtwork {
 
 		if (!applyToAllLayers)
 		{
-			undoBuffer.copyFrom(curLayer);
+            undoManager.preserveCurLayerState();
 
-			curLayer.fillWithColorNoise(getSize());
+			getCurLayer().fillWithColorNoise(getSize());
 			addUndo(new CPUndoManager.CPUndoPaint(this));
 		}
 		else
@@ -1566,7 +1571,7 @@ public class CPArtwork {
 			undoBufferAll.setSize (getLayersVector().size ());
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (width, height), i);
+				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).fillWithColorNoise(getSize());
 
@@ -1582,10 +1587,10 @@ public class CPArtwork {
 
 		if (!applyToAllLayers)
 		{
-			undoBuffer.copyFrom(curLayer);
+            undoManager.preserveCurLayerState();
 
 			for (int c = 0; c < iterations; c++) {
-				curLayer.boxBlur(getSize(), radiusX, radiusY);
+				getCurLayer().boxBlur(getSize(), radiusX, radiusY);
 			}
 			addUndo(new CPUndoManager.CPUndoPaint(this));
 		}
@@ -1595,7 +1600,7 @@ public class CPArtwork {
 			undoBufferAll.setSize (getLayersVector().size ());
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (width, height), i);
+				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				for (int c = 0; c < iterations; c++) {
 					getLayersVector().elementAt(i).boxBlur(getSize(), radiusX, radiusY);
@@ -1612,9 +1617,9 @@ public class CPArtwork {
 
 		if (!applyToAllLayers)
 		{
-			undoBuffer.copyFrom(curLayer);
+            undoManager.preserveCurLayerState();
 
-			curLayer.invert (getSize());
+			getCurLayer().invert(getSize());
 
 			addUndo(new CPUndoManager.CPUndoPaint(this));
 		}
@@ -1624,7 +1629,7 @@ public class CPArtwork {
 			undoBufferAll.setSize (getLayersVector().size ());
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (width, height), i);
+				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).invert(getSize());
 			}
@@ -1639,9 +1644,9 @@ public class CPArtwork {
 
 		if (!applyToAllLayers)
 		{
-			undoBuffer.copyFrom(curLayer);
+            undoManager.preserveCurLayerState();
 
-			curLayer.makeMonochrome(getSize(), type, curColor);
+			getCurLayer().makeMonochrome(getSize(), type, curColor);
 
 			addUndo(new CPUndoManager.CPUndoPaint(this));
 		}
@@ -1651,7 +1656,7 @@ public class CPArtwork {
 			undoBufferAll.setSize (getLayersVector().size ());
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (width, height), i);
+				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
 				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).makeMonochrome(getSize(), type, curColor);
 			}

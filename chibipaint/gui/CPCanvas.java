@@ -146,8 +146,8 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
         buffer = artwork.getDisplayBM().getData();
 
-        int w = artwork.width;
-        int h = artwork.height;
+        int w = artwork.getWidth();
+        int h = artwork.getHeight();
 
         imgSource = new MemoryImageSource(w, h, buffer, 0, w);
         imgSource.setAnimated(true);
@@ -598,8 +598,8 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         if (artwork.isPointWithin(pf.x, pf.y)) {
             zoomOnPoint(getZoom() * factor, getCursorX(), getCursorY());
         } else {
-            zoomOnPoint(getZoom() * factor, offsetX + (int) (artwork.width * zoom / 2), offsetY
-                    + (int) (artwork.height * zoom / 2));
+            zoomOnPoint(getZoom() * factor, offsetX + (int) (artwork.getWidth() * zoom / 2), offsetY
+                    + (int) (artwork.getHeight() * zoom / 2));
         }
         // FIXME: clean the above code, some coordinates get transformed multiple times for nothing
     }
@@ -713,8 +713,8 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
     void centerCanvas() {
         Dimension d = getSize();
-        setOffset((d.width - (int) (artwork.width * getZoom())) / 2,
-                (d.height - (int) (artwork.height * getZoom())) / 2);
+        setOffset((d.width - (int) (artwork.getWidth() * getZoom())) / 2,
+                (d.height - (int) (artwork.getHeight() * getZoom())) / 2);
         repaint();
     }
 
@@ -897,7 +897,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension((int) (artwork.width * zoom), (int) (artwork.height * zoom));
+        return new Dimension((int) (artwork.getWidth() * zoom), (int) (artwork.getHeight() * zoom));
     }
 
     @Override
@@ -940,7 +940,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
                         break;
                     artwork.addLayer();
                     CPImageUtils.PasteImageToOrigin(artwork.getActiveLayer(), imageInClipboard);
-                    CPSelection selection = new CPSelection(artwork.width, artwork.height);
+                    CPSelection selection = new CPSelection(artwork.getWidth(), artwork.getHeight());
                     selection.makeSelectionFromAlpha(artwork.getActiveLayer().getData());
                     artwork.DoSelection(0, selection);
                     artwork.invalidateFusion();
@@ -1698,7 +1698,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         @Override
         public void cursorReleaseAction() {
 
-            CPSelection Rect = new CPSelection(artwork.width, artwork.height);
+            CPSelection Rect = new CPSelection(artwork.getWidth(), artwork.getHeight());
             Rect.makeRectangularSelection(curRect);
             artwork.DoSelection(getModifiers(), Rect);
 
@@ -1740,7 +1740,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         @Override
         public void cursorReleaseAction() {
 
-            CPSelection polygonSelection = new CPSelection(artwork.width, artwork.height);
+            CPSelection polygonSelection = new CPSelection(artwork.getWidth(), artwork.getHeight());
             polygonSelection.makeSelectionFromPolygon(polygon);
             artwork.DoSelection(getModifiers(), polygonSelection);
 

@@ -33,7 +33,7 @@ import chibipaint.util.*;
 public class CPColorBmp extends CPBitmap {
 
 	// The bitmap data
-	public int[] data;
+    private int[] data;
 
 	//
 	// Constructors
@@ -71,7 +71,7 @@ public class CPColorBmp extends CPBitmap {
 		x = Math.max(0, Math.min(width - 1, x));
 		y = Math.max(0, Math.min(height - 1, y));
 
-		return data[x + y * width];
+		return getData()[x + y * width];
 	}
 
 	public void setPixel(int x, int y, int color) {
@@ -79,7 +79,7 @@ public class CPColorBmp extends CPBitmap {
 			return;
 		}
 
-		data[x + y * width] = color;
+		getData()[x + y * width] = color;
 	}
 
 	//
@@ -95,7 +95,7 @@ public class CPColorBmp extends CPBitmap {
 		int w = r.getWidth();
 		int h = r.getHeight();
 		for (int j = 0; j < h; j++) {
-			System.arraycopy(data, (j + r.top) * width + r.left, buffer, j * w, w);
+			System.arraycopy(getData(), (j + r.top) * width + r.left, buffer, j * w, w);
 		}
 
 		return buffer;
@@ -112,7 +112,7 @@ public class CPColorBmp extends CPBitmap {
 		int w = r.getWidth();
 		int h = r.getHeight();
 		for (int j = 0; j < h; j++) {
-			System.arraycopy(data, (j + r.top) * width + r.left, buffer, j * w, w);
+			System.arraycopy(getData(), (j + r.top) * width + r.left, buffer, j * w, w);
 		}
 
 		return true;
@@ -126,7 +126,7 @@ public class CPColorBmp extends CPBitmap {
 		int w = r.getWidth();
 		int h = r.getHeight();
 		for (int j = 0; j < h; j++) {
-			System.arraycopy(buffer, j * w, data, (j + r.top) * width + r.left, w);
+			System.arraycopy(buffer, j * w, getData(), (j + r.top) * width + r.left, w);
 		}
 	}
 
@@ -143,7 +143,7 @@ public class CPColorBmp extends CPBitmap {
 		int h = r.getHeight();
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
-				buffer[i + j * w] = data[(j + r.top) * width + i + r.left] ^ bmp.data[(j + r.top) * width + i + r.left];
+				buffer[i + j * w] = getData()[(j + r.top) * width + i + r.left] ^ bmp.getData()[(j + r.top) * width + i + r.left];
 			}
 		}
 
@@ -158,7 +158,7 @@ public class CPColorBmp extends CPBitmap {
 		int h = r.getHeight();
 		for (int j = 0; j < h; j++) {
 			for (int i = 0; i < w; i++) {
-				data[(j + r.top) * width + i + r.left] = data[(j + r.top) * width + i + r.left] ^ buffer[i + j * w];
+				getData()[(j + r.top) * width + i + r.left] = getData()[(j + r.top) * width + i + r.left] ^ buffer[i + j * w];
 			}
 		}
 	}
@@ -177,7 +177,7 @@ public class CPColorBmp extends CPBitmap {
         }
         getSize().clipSourceDest(srcRectCpy, dstRect);
 
-		int[] srcData = bmp.data;
+		int[] srcData = bmp.getData();
 		for (int j = 0; j < dstRect.bottom - dstRect.top; j++) {
 			int srcOffset = srcRectCpy.left + (srcRectCpy.top + j) * bmp.width;
 			int dstOffset = dstRect.left + (dstRect.top + j) * width;
@@ -190,11 +190,11 @@ public class CPColorBmp extends CPBitmap {
 		}
 
 		if (alpha1 == 255) {
-			data[dstOffset] = color1;
+			getData()[dstOffset] = color1;
 			continue;
 		}
 
-		int color2 = data[dstOffset];
+		int color2 = getData()[dstOffset];
 		int alpha2 = (color2 >>> 24);
 
 		int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -202,7 +202,7 @@ public class CPColorBmp extends CPBitmap {
 			int realAlpha = alpha1 * 255 / newAlpha;
 			int invAlpha = 255 - realAlpha;
 
-			data[dstOffset] = newAlpha << 24
+			getData()[dstOffset] = newAlpha << 24
 					| ((color1 >>> 16 & 0xff) + (((color2 >>> 16 & 0xff) * invAlpha - (color1 >>> 16 & 0xff)
 							* invAlpha) / 255)) << 16
 							| ((color1 >>> 8 & 0xff) + (((color2 >>> 8 & 0xff) * invAlpha - (color1 >>> 8 & 0xff)
@@ -217,7 +217,7 @@ public class CPColorBmp extends CPBitmap {
 	// Assumes that the width and height of this bitmap and the rectangle are the same!!!
     void setFromBitmapRect(CPColorBmp bmp, CPRect r) {
 		for (int i = 0; i < r.getHeight(); i++) {
-			System.arraycopy(bmp.data, (i + r.top) * bmp.width + r.left, data, i * width, width);
+			System.arraycopy(bmp.getData(), (i + r.top) * bmp.width + r.left, getData(), i * width, width);
 		}
 	}
 
@@ -227,7 +227,7 @@ public class CPColorBmp extends CPBitmap {
 		getSize().clipSourceDest(srcRect, dstRect);
 
 		for (int i = 0; i < srcRect.getHeight(); i++) {
-			System.arraycopy(bmp.data, (i + srcRect.top) * bmp.width + srcRect.left, data, (i + dstRect.top) * width
+			System.arraycopy(bmp.getData(), (i + srcRect.top) * bmp.width + srcRect.left, getData(), (i + dstRect.top) * width
 					+ dstRect.left, srcRect.getWidth());
 		}
 	}
@@ -241,7 +241,7 @@ public class CPColorBmp extends CPBitmap {
 
 		for (int j = r.top; j < r.bottom; j++) {
 			for (int i = r.left; i < r.right; i++) {
-				data[j * width + i] = (data[j * width + i] & 0xffffff) | (bmp.data[j * width + i] & 0xff000000);
+				getData()[j * width + i] = (getData()[j * width + i] & 0xffffff) | (bmp.getData()[j * width + i] & 0xff000000);
 			}
 		}
 	}
@@ -253,10 +253,18 @@ public class CPColorBmp extends CPBitmap {
 			data = new int[width * height];
 		}
 
-		System.arraycopy(bmp.data, 0, data, 0, data.length);
+		System.arraycopy(bmp.getData(), 0, getData(), 0, getData().length);
 	}
 
-	//
+    public int[] getData() {
+        return data;
+    }
+
+    public void setData(int []dataArg) {
+        data = dataArg;
+    }
+
+    //
 	// Flood fill algorithm
 	//
 
@@ -347,15 +355,15 @@ public class CPColorBmp extends CPBitmap {
 			int lineOffset = line.y * width;
 
 			int left = line.x1, next;
-			while (left >= clip.left && is_colors_near (data[left + lineOffset], oldColor, colorMask, distance, color)
-					&& is_colors_near (useDataFrom.data[left + lineOffset], dataOldColor, dataColorMask, distance, color))
+			while (left >= clip.left && is_colors_near (getData()[left + lineOffset], oldColor, colorMask, distance, color)
+					&& is_colors_near (useDataFrom.getData()[left + lineOffset], dataOldColor, dataColorMask, distance, color))
 			{
-				data[left + lineOffset] = color;
+				getData()[left + lineOffset] = color;
 				left--;
 			}
 			if (left >= line.x1) {
-				while (    left <= line.x2 && (!is_colors_near (data[left + lineOffset], oldColor, colorMask, distance, color)
-						|| !is_colors_near (useDataFrom.data[left + lineOffset], dataOldColor, dataColorMask, distance, color))
+				while (    left <= line.x2 && (!is_colors_near (getData()[left + lineOffset], oldColor, colorMask, distance, color)
+						|| !is_colors_near (useDataFrom.getData()[left + lineOffset], dataOldColor, dataColorMask, distance, color))
 						) {
 					left++;
 				}
@@ -372,10 +380,10 @@ public class CPColorBmp extends CPBitmap {
 			}
 
 			do {
-				data[left + lineOffset] = color;
-				while (next < clip.right && is_colors_near (data[next + lineOffset], oldColor, colorMask, distance, color)
-						&& is_colors_near (useDataFrom.data[next + lineOffset], dataOldColor, dataColorMask, distance, color)) {
-					data[next + lineOffset] = color;
+				getData()[left + lineOffset] = color;
+				while (next < clip.right && is_colors_near (getData()[next + lineOffset], oldColor, colorMask, distance, color)
+						&& is_colors_near (useDataFrom.getData()[next + lineOffset], dataOldColor, dataColorMask, distance, color)) {
+					getData()[next + lineOffset] = color;
 					next++;
 				}
 				stack.addLast(new CPFillLine(left, next - 1, line.y + line.dy, line.dy));
@@ -385,8 +393,8 @@ public class CPColorBmp extends CPBitmap {
 				}
 
 				left = next + 1;
-				while (left <= line.x2 && (!is_colors_near (data[left + lineOffset], oldColor, colorMask, distance, color)
-						|| !is_colors_near (useDataFrom.data[left + lineOffset], dataOldColor, dataColorMask, distance, color))) {
+				while (left <= line.x2 && (!is_colors_near (getData()[left + lineOffset], oldColor, colorMask, distance, color)
+						|| !is_colors_near (useDataFrom.getData()[left + lineOffset], dataOldColor, dataColorMask, distance, color))) {
 					left++;
 				}
 
@@ -411,10 +419,10 @@ public class CPColorBmp extends CPBitmap {
 		int[] dst = new int[l];
 
 		for (int j = rect.top; j < rect.bottom; j++) {
-			System.arraycopy(data, rect.left + j * width, src, 0, w);
+			System.arraycopy(getData(), rect.left + j * width, src, 0, w);
 			multiplyAlpha(src, w);
 			boxBlurLine(src, dst, w, radiusX);
-			System.arraycopy(dst, 0, data, rect.left + j * width, w);
+			System.arraycopy(dst, 0, getData(), rect.left + j * width, w);
 		}
 
 		for (int i = rect.left; i < rect.right; i++) {
@@ -482,13 +490,13 @@ public class CPColorBmp extends CPBitmap {
 
 	void copyColumnToArray(int x, int y, int len, int[] buffer) {
 		for (int i = 0; i < len; i++) {
-			buffer[i] = data[x + (i + y) * width];
+			buffer[i] = getData()[x + (i + y) * width];
 		}
 	}
 
 	void copyArrayToColumn(int x, int y, int len, int[] buffer) {
 		for (int i = 0; i < len; i++) {
-			data[x + (i + y) * width] = buffer[i];
+			getData()[x + (i + y) * width] = buffer[i];
 		}
 	}
 }

@@ -110,8 +110,8 @@ public class ChibiPaint extends JApplet {
 
 				CPChibiFile file = new CPChibiFile ();
 				artwork = file.read(connec.getInputStream());
-				w = artwork.width;
-				h = artwork.height;
+				w = artwork.getWidth();
+				h = artwork.getHeight();
 			} catch (Exception ignored) {
 				// Ignored
 			}
@@ -154,7 +154,7 @@ public class ChibiPaint extends JApplet {
 		}
 
 		if (loadImage != null) {
-			PixelGrabber grabber = new PixelGrabber(loadImage, 0, 0, w, h, artwork.getActiveLayer().data, 0, w);
+			PixelGrabber grabber = new PixelGrabber(loadImage, 0, 0, w, h, artwork.getActiveLayer().getData(), 0, w);
 			try {
 				grabber.grabPixels();
 			} catch (InterruptedException e) {

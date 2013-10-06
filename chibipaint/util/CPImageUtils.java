@@ -24,7 +24,7 @@ public class CPImageUtils {
 
     public static Image RenderLayerSelectionToImage(CPLayer layer, CPSelection curSelection) {
         CPRect rect = curSelection.getBoundingRect();
-        int[] dataClone = layer.data.clone();
+        int[] dataClone = layer.getData().clone();
         curSelection.multiplyDataBySelection(dataClone);
         MemoryImageSource imgSource = new MemoryImageSource (layer.getWidth(), layer.getHeight (), dataClone, 0, layer.getWidth ());
         Image layerImage = Toolkit.getDefaultToolkit().createImage (imgSource);

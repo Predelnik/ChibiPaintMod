@@ -302,7 +302,7 @@ public class CPXcfFile extends CPAbstractFile {
 					// warning offset should be taken into account correctly and
 					// pixels out of bound should be cut
 					try {
-						readTileRLE(is, layer.data, j, i, layerWidth,
+						readTileRLE(is, layer.getData(), j, i, layerWidth,
 								layerHeight, layer.getWidth (), layer.getHeight(), offsetX, offsetY, colorType, colorType == COLOR_TYPE_RGB || colorType == COLOR_TYPE_G); // reading
 						// actual
 						// tile
@@ -691,7 +691,7 @@ public class CPXcfFile extends CPAbstractFile {
 			// outer loop is vertical one
 			for (int j = 0; j < wTiles; j++) {
 				tilePointers[i * wTiles + j] = position(os);
-				writeTileRLE(os, layer.data, j, i, layer.getWidth(),
+				writeTileRLE(os, layer.getData(), j, i, layer.getWidth(),
 						layer.getHeight()); // Writing actual tile Info
 			}
 
@@ -910,8 +910,8 @@ public class CPXcfFile extends CPAbstractFile {
 			ByteArrayOutputStreamWithSeek os = new ByteArrayOutputStreamWithSeek ();
 			writeMagic (os);
 			writeVersion (os, minVersion (a));
-			writeInt (os, a.width);  // image width
-			writeInt (os, a.height); // image height
+			writeInt (os, a.getWidth());  // image width
+			writeInt (os, a.getHeight()); // image height
 			writeInt (os, 0); // RGB Color - mode, other modes don't concern us
 			// Image properties
 			writeProperties (os);

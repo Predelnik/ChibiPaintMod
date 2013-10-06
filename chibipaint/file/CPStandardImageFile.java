@@ -53,12 +53,12 @@ public abstract class CPStandardImageFile extends CPAbstractFile {
 	public boolean write(OutputStream os, CPArtwork a)
 	{
 		int [] data = a.getDisplayBM().getData();
-		MemoryImageSource imgSource = new MemoryImageSource (a.width, a.height, data, 0, a.width);
+		MemoryImageSource imgSource = new MemoryImageSource (a.getWidth(), a.getHeight(), data, 0, a.getWidth());
 		Image img = Toolkit.getDefaultToolkit().createImage (imgSource);
 		int imageType = a.hasAlpha() ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
 		imageType = imageTypeCorrection (imageType);
 
-		BufferedImage bI = new BufferedImage(a.width, a.height, imageType);
+		BufferedImage bI = new BufferedImage(a.getWidth(), a.getHeight(), imageType);
 		Graphics2D g = bI.createGraphics();
 		g.drawImage(img, 0, 0, null);
 		try {
@@ -82,10 +82,10 @@ public abstract class CPStandardImageFile extends CPAbstractFile {
 			return null;
 		}
 		CPArtwork a = new CPArtwork(bI.getWidth(), bI.getHeight ());
-		BufferedImage bIConverted = new BufferedImage (a.width, a.height, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage bIConverted = new BufferedImage (a.getWidth(), a.getHeight(), BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = bIConverted.createGraphics();
 		g.drawImage(bI, 0, 0, null);
-		a.getLayersVector().get(0).data = ((DataBufferInt)bIConverted.getData().getDataBuffer()).getData();
+		a.getLayersVector().get(0).setData (((DataBufferInt)bIConverted.getData().getDataBuffer()).getData());
 		return a;
 	}
 }

@@ -31,8 +31,19 @@ import java.util.Vector;
 public class CPUndoManager {
 
     private final LinkedList<CPUndo> undoList = new LinkedList<CPUndo>();
-
     private final LinkedList<CPUndo> redoList = new LinkedList<CPUndo>();
+    private final CPArtwork artwork;
+
+    public CPLayer getUndoBuffer() {
+        return undoBuffer;
+    }
+
+    final CPLayer undoBuffer;
+
+    public CPUndoManager(CPArtwork artworkArg) {
+        artwork = artworkArg;
+        undoBuffer = new CPLayer (artwork.getWidth(), artwork.getHeight());
+    }
 
     public LinkedList<CPUndo> getUndoList() {
         return undoList;
@@ -40,6 +51,18 @@ public class CPUndoManager {
 
     public LinkedList<CPUndo> getRedoList() {
         return redoList;
+    }
+
+    void restoreCurLayerAlpha(CPRect r) {
+        artwork.getActiveLayer().copyAlphaFrom(undoBuffer, r);
+    }
+
+    public void preserveCurLayerState() {
+        undoBuffer.copyFrom(artwork.getCurLayer());
+    }
+
+    public int[] getCurLayerPreservedData() {
+        return undoBuffer.getData();
     }
 
     static class CPUndoPaint extends CPUndo {
@@ -55,7 +78,7 @@ public class CPUndoManager {
             layer = artwork.getActiveLayerNb();
             rect = new CPRect(artwork.undoArea);
 
-            data = artwork.undoBuffer.copyRectXOR(artwork.curLayer, rect);
+            data = artwork.getUndoManager().getUndoBuffer().copyRectXOR(artwork.getCurLayer(), rect);
             artwork.undoArea.makeEmpty();
         }
 
@@ -189,7 +212,7 @@ public class CPUndoManager {
 
         @Override
         public long getMemoryUsed(boolean undone, Object param) {
-            return undone ? 0 : oldLayers.size() * artwork.width * artwork.height * 4;
+            return undone ? 0 : oldLayers.size() * artwork.getWidth() * artwork.getHeight() * 4;
         }
     }
 
@@ -202,7 +225,7 @@ public class CPUndoManager {
         public CPUndoMergeDownLayer(CPArtwork artwork, int layer) {
             this.artwork = artwork;
             this.layer = layer;
-            layerBottom = new CPLayer(artwork.width, artwork.height);
+            layerBottom = new CPLayer(artwork.getWidth(), artwork.getHeight());
             layerBottom.copyFrom(artwork.getLayersVector().elementAt(layer - 1));
             layerTop = artwork.getLayersVector().elementAt(layer);
         }
@@ -221,7 +244,7 @@ public class CPUndoManager {
 
         @Override
         public void redo() {
-            layerBottom = new CPLayer(artwork.width, artwork.height);
+            layerBottom = new CPLayer(artwork.getWidth(), artwork.getHeight());
             layerBottom.copyFrom(artwork.getLayersVector().elementAt(layer - 1));
             layerTop = artwork.getLayersVector().elementAt(layer);
 
@@ -231,7 +254,7 @@ public class CPUndoManager {
 
         @Override
         public long getMemoryUsed(boolean undone, Object param) {
-            return undone ? 0 : artwork.width * artwork.height * 4 * 2;
+            return undone ? 0 : artwork.getWidth() * artwork.getHeight() * 4 * 2;
         }
     }
 
@@ -292,7 +315,7 @@ public class CPUndoManager {
 
         @Override
         public long getMemoryUsed(boolean undone, Object param) {
-            return undone ? 0 : artwork.width * artwork.height * 4;
+            return undone ? 0 : artwork.getWidth() * artwork.getHeight() * 4;
         }
 
     }
@@ -360,7 +383,7 @@ public class CPUndoManager {
 
         @Override
         public void redo() {
-            CPLayer newLayer = new CPLayer(artwork.width, artwork.height);
+            CPLayer newLayer = new CPLayer(artwork.getWidth(), artwork.getHeight());
             newLayer.setName(artwork.getDefaultLayerName());
             artwork.getLayersVector().add(layer + 1, newLayer);
 
@@ -392,7 +415,7 @@ public class CPUndoManager {
         public void redo() {
             String copySuffix = " Copy";
 
-            CPLayer newLayer = new CPLayer(artwork.width, artwork.height);
+            CPLayer newLayer = new CPLayer(artwork.getWidth(), artwork.getHeight());
             newLayer.copyFrom(artwork.getLayersVector().elementAt(layer));
             if (!newLayer.getName().endsWith(copySuffix)) {
                 newLayer.setName(newLayer.getName() + copySuffix);

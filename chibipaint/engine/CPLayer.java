@@ -90,7 +90,7 @@ public class CPLayer extends CPColorBmp {
 
 	public void clear(int color) {
 		for (int i = 0; i < width * height; i++) {
-			data[i] = color;
+			getData()[i] = color;
 		}
 	}
 
@@ -99,20 +99,12 @@ public class CPLayer extends CPColorBmp {
 		rect.clip(r);
 		for (int j = rect.top; j < rect.bottom; j++) {
 			for (int i = rect.left; i < rect.right; i++) {
-				data[i + j * width] = color;
+				getData()[i + j * width] = color;
 			}
 		}
 	}
 
-	public int[] getData() {
-		return data;
-	}
-
-    public void setData(int []dataArg) {
-        data = dataArg;
-    }
-
-	public int getAlpha() {
+    public int getAlpha() {
 		return alpha;
 	}
 
@@ -282,12 +274,12 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int curAlpha = (color1 >>> 24) * this.alpha / 100;
 				if (curAlpha != 0) {
-					int color2 = fusion.data[off];
+					int color2 = fusion.getData()[off];
 					color1 = ~color1;
-					fusion.data[off] = 0xff000000
+					fusion.getData()[off] = 0xff000000
 							| ((color2 >>> 16 & 0xff) - (color1 >>> 16 & 0xff)
 									* (color2 >>> 16 & 0xff) * curAlpha
 									/ (255 * 255)) << 16
@@ -308,15 +300,15 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alphaLocal = (color1 >>> 24) * this.alpha / 100;
                 if (alphaLocal == 255) {
-					fusion.data[off] = color1;
+					fusion.getData()[off] = color1;
 				} else if (alphaLocal != 0) {
-					int color2 = fusion.data[off];
+					int color2 = fusion.getData()[off];
 
 					int invAlpha = 255 - alphaLocal;
-					fusion.data[off] = 0xff000000
+					fusion.getData()[off] = 0xff000000
 							| (((color1 >>> 16 & 0xff) * alphaLocal + (color2 >>> 16 & 0xff)
 									* invAlpha) / 255) << 16
 									| (((color1 >>> 8 & 0xff) * alphaLocal + (color2 >>> 8 & 0xff)
@@ -335,15 +327,15 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alphaLocal = color1 >>> 24;
          if (alphaLocal == 255) {
-			fusion.data[off] = color1;
+			fusion.getData()[off] = color1;
 		} else if (alphaLocal != 0) {
-			int color2 = fusion.data[off];
+			int color2 = fusion.getData()[off];
 
 			int invAlpha = 255 - alphaLocal;
-			fusion.data[off] = 0xff000000
+			fusion.getData()[off] = 0xff000000
 					| (((color1 >>> 16 & 0xff) * alphaLocal + (color2 >>> 16 & 0xff)
 							* invAlpha) / 255) << 16
 							| (((color1 >>> 8 & 0xff) * alphaLocal + (color2 >>> 8 & 0xff)
@@ -362,10 +354,10 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alphaLocal = (color1 >>> 24) * this.alpha / 100;
 				if (alphaLocal != 0) {
-					int color2 = fusion.data[off];
+					int color2 = fusion.getData()[off];
 
 					int r = Math.min(255, (color2 >>> 16 & 0xff) + alphaLocal
 							* (color1 >>> 16 & 0xff) / 255);
@@ -374,7 +366,7 @@ public class CPLayer extends CPColorBmp {
 					int b = Math.min(255, (color2 & 0xff) + alphaLocal
 							* (color1 & 0xff) / 255);
 
-					fusion.data[off] = 0xff000000 | r << 16 | g << 8 | b;
+					fusion.getData()[off] = 0xff000000 | r << 16 | g << 8 | b;
 				}
 			}
 		}
@@ -390,9 +382,9 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -400,7 +392,7 @@ public class CPLayer extends CPColorBmp {
 					int realAlpha = alpha1 * 255 / newAlpha;
 					int invAlpha = 255 - realAlpha;
 
-					fusion.data[off] = newAlpha << 24
+					fusion.getData()[off] = newAlpha << 24
 							| (((color1 >>> 16 & 0xff) * realAlpha + (color2 >>> 16 & 0xff)
 									* invAlpha) / 255) << 16
 									| (((color1 >>> 8 & 0xff) * realAlpha + (color2 >>> 8 & 0xff)
@@ -423,9 +415,9 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -434,7 +426,7 @@ public class CPLayer extends CPColorBmp {
 					int alpha1n2 = alpha1 * (alpha2 ^ 0xff) / 255;
 					int alphan12 = (alpha1 ^ 0xff) * alpha2 / 255;
 
-					fusion.data[off] = newAlpha << 24
+					fusion.getData()[off] = newAlpha << 24
 							| (((color1 >>> 16 & 0xff) * alpha1n2)
 									+ ((color2 >>> 16 & 0xff) * alphan12) + (color1 >>> 16 & 0xff)
 									* (color2 >>> 16 & 0xff) * alpha12 / 255)
@@ -463,9 +455,9 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -494,7 +486,7 @@ public class CPLayer extends CPColorBmp {
 							* (color1 & 0xff))
 							/ newAlpha);
 
-					fusion.data[off] = newAlpha << 24 | r << 16 | g << 8 | b;
+					fusion.getData()[off] = newAlpha << 24 | r << 16 | g << 8 | b;
 				}
 			}
 		}
@@ -511,9 +503,9 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -537,7 +529,7 @@ public class CPLayer extends CPColorBmp {
 							/ newAlpha;
 					b = b & (~b >>> 24);
 
-					fusion.data[off] = newAlpha << 24 | r << 16 | g << 8 | b;
+					fusion.getData()[off] = newAlpha << 24 | r << 16 | g << 8 | b;
 				}
 			}
 		}
@@ -557,9 +549,9 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -570,7 +562,7 @@ public class CPLayer extends CPColorBmp {
 					color1 ^= 0xffffff;
 					color2 ^= 0xffffff;
 
-					fusion.data[off] = newAlpha << 24
+					fusion.getData()[off] = newAlpha << 24
 							| (0xffffff ^ ((((color1 >>> 16 & 0xff) * alpha1n2)
 									+ ((color2 >>> 16 & 0xff) * alphan12) + (color1 >>> 16 & 0xff)
 									* (color2 >>> 16 & 0xff) * alpha12 / 255)
@@ -601,9 +593,9 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -634,7 +626,7 @@ public class CPLayer extends CPColorBmp {
 					color |= ((c2 >= c1) ? (c1 * alpha21 + c2 * invAlpha21)
 							: (c2 * alpha12 + c1 * invAlpha12)) / 255;
 
-					fusion.data[off] = color;
+					fusion.getData()[off] = color;
 
 				}
 			}
@@ -653,9 +645,9 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -686,7 +678,7 @@ public class CPLayer extends CPColorBmp {
 					color |= ((c2 >= c1) ? (c2 * alpha21 + c1 * invAlpha21)
 							: (c1 * alpha12 + c2 * invAlpha12)) / 255;
 
-					fusion.data[off] = color;
+					fusion.getData()[off] = color;
 				}
 			}
 		}
@@ -704,14 +696,14 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
 
 				if (alpha1 == 0) {
 					continue;
 				}
 
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -721,7 +713,7 @@ public class CPLayer extends CPColorBmp {
 					int alphan12 = (alpha1 ^ 0xff) * alpha2 / 255;
 					int invColor1 = ~color1;
 
-					fusion.data[off] = newAlpha << 24
+					fusion.getData()[off] = newAlpha << 24
 							| (((color1 >>> 16 & 0xff) * alpha1n2)
 									+ ((color2 >>> 16 & 0xff) * alphan12) + alpha12
 									* (((invColor1 >>> 16 & 0xff) == 0) ? 255
@@ -759,14 +751,14 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
 
 				if (alpha1 == 0) {
 					continue;
 				}
 
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -776,7 +768,7 @@ public class CPLayer extends CPColorBmp {
 					int alphan12 = (alpha1 ^ 0xff) * alpha2 / 255;
 					int invColor2 = ~color2;
 
-					fusion.data[off] = newAlpha << 24
+					fusion.getData()[off] = newAlpha << 24
 							| (((color1 >>> 16 & 0xff) * alpha1n2)
 									+ ((color2 >>> 16 & 0xff) * alphan12) + alpha12
 									* (((color1 >>> 16 & 0xff) == 0) ? 0
@@ -816,14 +808,14 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
 
 				if (alpha1 == 0) {
 					continue;
 				}
 
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -856,7 +848,7 @@ public class CPLayer extends CPColorBmp {
 							: (alpha12 * ((2 * (c1 ^ 0xff) * (c2 ^ 0xff) / 255) ^ 0xff))))
 							/ newAlpha;
 
-					fusion.data[off] = color;
+					fusion.getData()[off] = color;
 				}
 			}
 		}
@@ -876,14 +868,14 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
 
 				if (alpha1 == 0) {
 					continue;
 				}
 
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -916,7 +908,7 @@ public class CPLayer extends CPColorBmp {
 							: (alpha12 * ((2 * (c1 ^ 0xff) * (c2 ^ 0xff) / 255) ^ 0xff))))
 							/ newAlpha;
 
-					fusion.data[off] = color;
+					fusion.getData()[off] = color;
 				}
 			}
 		}
@@ -934,14 +926,14 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
 
 				if (alpha1 == 0) {
 					continue;
 				}
 
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -977,7 +969,7 @@ public class CPLayer extends CPColorBmp {
 									* softLightLUTSquareRoot[c2] / 255 + c2))))
 									/ newAlpha;
 
-					fusion.data[off] = color;
+					fusion.getData()[off] = color;
 				}
 			}
 		}
@@ -995,14 +987,14 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
 
 				if (alpha1 == 0) {
 					continue;
 				}
 
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -1038,7 +1030,7 @@ public class CPLayer extends CPColorBmp {
 									* 255 / (2 * (255 - c1)))))))
 									/ newAlpha;
 
-					fusion.data[off] = color;
+					fusion.getData()[off] = color;
 				}
 			}
 		}
@@ -1055,14 +1047,14 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
 
 				if (alpha1 == 0) {
 					continue;
 				}
 
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -1092,7 +1084,7 @@ public class CPLayer extends CPColorBmp {
 							.min(255, Math.max(0, c2 + 2 * c1 - 255))))
 							/ newAlpha;
 
-					fusion.data[off] = color;
+					fusion.getData()[off] = color;
 				}
 			}
 		}
@@ -1111,14 +1103,14 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			int off = rect.left + j * width;
 			for (int i = rect.left; i < rect.right; i++, off++) {
-				int color1 = data[off];
+				int color1 = getData()[off];
 				int alpha1 = (color1 >>> 24) * alpha / 100;
 
 				if (alpha1 == 0) {
 					continue;
 				}
 
-				int color2 = fusion.data[off];
+				int color2 = fusion.getData()[off];
 				int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
 
 				int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -1151,7 +1143,7 @@ public class CPLayer extends CPColorBmp {
 											color |= (alpha1n2 * c1 + alphan12 * c2 + alpha12 * c3)
 													/ newAlpha;
 
-											fusion.data[off] = color;
+											fusion.getData()[off] = color;
 				}
 			}
 		}
@@ -1172,31 +1164,31 @@ public class CPLayer extends CPColorBmp {
 		for (int j = rect.top; j < rect.bottom; j++) {
 			for (int i = rect.left; i < rect.right; i++) {
 				if ((i & 0x8) != 0 ^ (j & 0x8) != 0) {
-					data[i + j * width] = 0xffffffff;
+					getData()[i + j * width] = 0xffffffff;
 				} else {
-					data[i + j * width] = 0xffcccccc;
+					getData()[i + j * width] = 0xffcccccc;
 				}
 			}
 		}
 	}
 
-	public void copyRegionHFlip(CPRect r, CPLayer source) {
+	public void copyRegionHFlip(CPRect r, int[] sourceData) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(r);
 
 		for (int j = rect.top; j < rect.bottom; j++) {
 			for (int i = rect.left, s = rect.right - 1; i < rect.right; i++, s--) {
-				data[i + j * width] = source.data[s + j * width];
+				getData()[i + j * width] = sourceData[s + j * width];
 			}
 		}
 	}
 
-	public void copyRegionVFlip(CPRect r, CPLayer source) {
+	public void copyRegionVFlip(CPRect r, int[] sourceData) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(r);
 
 		for (int j = rect.top, s = rect.bottom - 1; j < rect.bottom; j++, s--) {
-            System.arraycopy(source.data, rect.left + s * width, data, rect.left + j * width, rect.right - rect.left);
+            System.arraycopy(sourceData, rect.left + s * width, getData(), rect.left + j * width, rect.right - rect.left);
 		}
 	}
 
@@ -1212,7 +1204,7 @@ public class CPLayer extends CPColorBmp {
 				value = rnd.nextInt();
 				value &= 0xff;
 				value |= (value << 8) | (value << 16) | 0xff000000;
-				data[i + j * width] = value;
+				getData()[i + j * width] = value;
 			}
 		}
 	}
@@ -1225,7 +1217,7 @@ public class CPLayer extends CPColorBmp {
 
 		for (int j = rect.top; j < rect.bottom; j++) {
 			for (int i = rect.left; i < rect.right; i++) {
-				data[i + j * width] = rnd.nextInt() | 0xff000000;
+				getData()[i + j * width] = rnd.nextInt() | 0xff000000;
 			}
 		}
 	}
@@ -1236,7 +1228,7 @@ public class CPLayer extends CPColorBmp {
 
 		for (int j = rect.top; j < rect.bottom; j++) {
 			for (int i = rect.left; i < rect.right; i++) {
-				data[i + j * width] ^= 0xffffff;
+				getData()[i + j * width] ^= 0xffffff;
 			}
 		}
 	}
@@ -1253,9 +1245,9 @@ public class CPLayer extends CPColorBmp {
 
 				for (int j = rect.top; j < rect.bottom; j++) {
 					for (int i = rect.left; i < rect.right; i++) {
-						red = data[i + j * width] >>> 16 & 0xff;
-				green = data[i + j * width] >>> 8 & 0xff;
-			blue = data[i + j * width] & 0xff;
+						red = getData()[i + j * width] >>> 16 & 0xff;
+				green = getData()[i + j * width] >>> 8 & 0xff;
+			blue = getData()[i + j * width] & 0xff;
 			switch (type) {
 			case 0:
 				v = (red + green + blue) / 3;
@@ -1273,7 +1265,7 @@ public class CPLayer extends CPColorBmp {
 			case 4:
 				v = (cr * red + cg * green + cb * blue) / 255 / 3;
 			}
-			data[i + j * width] = (data[i + j * width] & 0xff000000)
+			getData()[i + j * width] = (getData()[i + j * width] & 0xff000000)
 					| v << 16 | v << 8 | v;
 					}
 				}
@@ -1287,7 +1279,7 @@ public class CPLayer extends CPColorBmp {
 		int andPixels = 0xff000000;
 		int max = width * height;
 		for (int i = 0; i < max; i++) {
-			andPixels &= data[i];
+			andPixels &= getData()[i];
 		}
 
 		return andPixels != 0xff000000;
@@ -1307,7 +1299,7 @@ public class CPLayer extends CPColorBmp {
 			int off = rect.left + j * width;
 			int max = off + rect.right - rect.left;
 			for (; off < max; off++) {
-				andPixels &= data[off];
+				andPixels &= getData()[off];
 			}
 		}
 
