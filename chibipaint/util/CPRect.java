@@ -154,7 +154,7 @@ public class CPRect implements Cloneable {
 		return right <= left || bottom <= top;
 	}
 
-	public void set(CPRect r) {
+	void set(CPRect r) {
 		left = r.left;
 		top = r.top;
 		right = r.right;
@@ -190,10 +190,5 @@ public class CPRect implements Cloneable {
 		return false;
 	}
 
-	@Override
-	public int hashCode() {
-		return super.hashCode();
-	}
 
-
-};
+}

@@ -54,7 +54,7 @@ public class CPColorFloat implements Cloneable {
 	}
 
 	@Override
-	public Object clone() {
+	public Object clone() throws CloneNotSupportedException {
 		try {
 			return super.clone();
 		} catch (Exception ignored) {

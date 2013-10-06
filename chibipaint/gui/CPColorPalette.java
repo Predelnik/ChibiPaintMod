@@ -33,10 +33,10 @@ import chibipaint.util.*;
 
 public class CPColorPalette extends CPPalette implements chibipaint.CPController.ICPColorListener {
 
-	CPColor curColor = new CPColor();
-	CPColorSelect colorSelect;
-	CPColorSlider colorSlider;
-	CPColorShow colorShow;
+	private final CPColor curColor = new CPColor();
+	private final CPColorSelect colorSelect;
+	private final CPColorSlider colorSlider;
+	private final CPColorShow colorShow;
 
 	public CPColorPalette(CPController controller) {
 		super(controller);
@@ -73,10 +73,11 @@ public class CPColorPalette extends CPPalette implements chibipaint.CPController
 
 	public class CPColorSelect extends JComponent implements MouseListener, MouseMotionListener {
 
-		int[] data;
-		int w, h;
-		Image img;
-		CPColor color;
+		final int[] data;
+		final int w;
+        final int h;
+		final Image img;
+		final CPColor color;
 		boolean needRefresh;
 
 		public CPColorSelect() {
@@ -194,12 +195,13 @@ public class CPColorPalette extends CPPalette implements chibipaint.CPController
 
 	public class CPColorSlider extends JComponent implements MouseListener, MouseMotionListener {
 
-		int[] data;
-		int w, h;
-		Image img;
+		final int[] data;
+		final int w;
+        final int h;
+		final Image img;
 		int hue;
 
-		CPColorSelect selecter;
+		final CPColorSelect selecter;
 
 		public CPColorSlider(CPColorSelect selecter) {
 			w = 24;

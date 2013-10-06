@@ -7,9 +7,6 @@ import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
 import chibipaint.gui.CPCanvas;
 
-import javax.swing.*;
-import java.awt.*;
-
 public class CPTablet2 {
     public static void connectToCanvas(final CPCanvas c) {
         try {
@@ -27,8 +24,6 @@ public class CPTablet2 {
 
                     c.getActiveMode().cursorMoveAction();
                 }
-
-                ;
 
                 @Override
                 public void cursorExited(TabletEvent e) {
@@ -72,8 +67,8 @@ public class CPTablet2 {
 
 
         } catch (NoClassDefFoundError e) {
+            e.printStackTrace();
         }
-        ;
     }
 
 }

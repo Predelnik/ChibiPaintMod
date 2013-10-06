@@ -30,7 +30,9 @@ import chibipaint.engine.*;
 
 public class CPStrokePalette extends CPPalette implements ActionListener, CPController.ICPToolListener {
 
-	CPIconButton freeHandButton, lineButton, bezierButton;
+	private final CPIconButton freeHandButton;
+    private final CPIconButton lineButton;
+    private final CPIconButton bezierButton;
 
 	public CPStrokePalette(CPController controller) {
 		super(controller);

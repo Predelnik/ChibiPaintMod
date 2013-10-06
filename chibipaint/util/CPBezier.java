@@ -42,7 +42,7 @@ public class CPBezier {
 	private double Bx, dBx, ddBx, dddBx;
 	private double By, dBy, ddBy, dddBy;
 
-	public void init(double dt) {
+	void init(double dt) {
 		// Implements a fast degree-3 Bezier curve using the forward differences method
 		//
 		// Reference for this algorithm:

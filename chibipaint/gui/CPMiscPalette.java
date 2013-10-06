@@ -28,7 +28,7 @@ import javax.swing.*;
 
 import chibipaint.*;
 
-public class CPMiscPalette extends CPPalette {
+class CPMiscPalette extends CPPalette {
 
 	public CPMiscPalette(CPController controller) {
 		super(controller);

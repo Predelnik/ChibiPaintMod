@@ -25,7 +25,9 @@ package chibipaint.util;
 public class CPColor implements Cloneable {
 
 	public int rgb;
-	public int hue, saturation, value;
+	private int hue;
+    private int saturation;
+    private int value;
 
 	public CPColor() {
 		setRgb(0);
@@ -39,12 +41,12 @@ public class CPColor implements Cloneable {
 		setHsv(hue, saturation, value);
 	}
 
-	public void setRgb(int rgb) {
+	void setRgb(int rgb) {
 		this.rgb = rgb;
 		rgbToHsv();
 	}
 
-	public void setHsv(int hue, int value, int saturation) {
+	void setHsv(int hue, int value, int saturation) {
 		this.hue = hue;
 		this.saturation = saturation;
 		this.value = value;

@@ -32,18 +32,24 @@ import chibipaint.CPController;
 
 public class CPBrushPalette extends CPPalette implements CPController.ICPToolListener, ActionListener {
 
-	CPAlphaSlider alphaSlider;
-	CPSizeSlider sizeSlider;
+	private final CPAlphaSlider alphaSlider;
+	private final CPSizeSlider sizeSlider;
 
-	CPCheckBox alphaCB, sizeCB, scatteringCB;
-	CPSlider resatSlider, bleedSlider, spacingSlider, scatteringSlider, smoothingSlider;
-	CPBrushPreview brushPreview;
+	private final CPCheckBox alphaCB;
+    private final CPCheckBox sizeCB;
+    private final CPCheckBox scatteringCB;
+	private final CPSlider resatSlider;
+    private final CPSlider bleedSlider;
+    private final CPSlider spacingSlider;
+    private final CPSlider scatteringSlider;
+    private final CPSlider smoothingSlider;
+	private final CPBrushPreview brushPreview;
 
 	// For Floodfill
-	CPSlider colorDistanceSlider;
+    private final CPSlider colorDistanceSlider;
 
-	JComboBox tipCombo;
-	String tipNames[] = { "Round Pixelated", "Round Hard Edge", "Round Soft", "Square Pixelated", "Square Hard Edge" };
+	private final JComboBox tipCombo;
+	private final String[] tipNames = { "Round Pixelated", "Round Hard Edge", "Round Soft", "Square Pixelated", "Square Hard Edge" };
 
 	@SuppressWarnings("serial")
 	public CPBrushPalette(CPController ctrlr) {
@@ -272,7 +278,8 @@ public class CPBrushPalette extends CPPalette implements CPController.ICPToolLis
 
 	class CPBrushPreview extends JComponent implements MouseListener, MouseMotionListener, CPController.ICPToolListener {
 
-		int w, h;
+		final int w;
+        final int h;
 		int size;
 
 		public CPBrushPreview() {

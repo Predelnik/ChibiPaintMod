@@ -40,7 +40,7 @@ public class CPColorBmp extends CPBitmap {
 	//
 
 	// Allocates a new bitmap
-	public CPColorBmp(int width, int height) {
+    CPColorBmp(int width, int height) {
 		super(width, height);
 		this.data = new int[width * height];
 	}
@@ -168,8 +168,14 @@ public class CPColorBmp extends CPBitmap {
 	//
 
 	public void pasteAlphaRect(CPColorBmp bmp, CPRect srcRect, int x, int y) {
-		CPRect srcRectCpy = (CPRect) srcRect.clone(), dstRect = new CPRect(x, y, 0, 0);
-		getSize().clipSourceDest(srcRectCpy, dstRect);
+        CPRect srcRectCpy = null, dstRect = null;
+        try {
+            dstRect = new CPRect(x, y, 0, 0);
+            srcRectCpy = (CPRect) srcRect.clone();
+        } catch (Exception e) {
+            return;
+        }
+        getSize().clipSourceDest(srcRectCpy, dstRect);
 
 		int[] srcData = bmp.data;
 		for (int j = 0; j < dstRect.bottom - dstRect.top; j++) {
@@ -209,7 +215,7 @@ public class CPColorBmp extends CPBitmap {
 
 	// Sets the content of this CPBitmap using a rect from another bitmap
 	// Assumes that the width and height of this bitmap and the rectangle are the same!!!
-	public void setFromBitmapRect(CPColorBmp bmp, CPRect r) {
+    void setFromBitmapRect(CPColorBmp bmp, CPRect r) {
 		for (int i = 0; i < r.getHeight(); i++) {
 			System.arraycopy(bmp.data, (i + r.top) * bmp.width + r.left, data, i * width, width);
 		}
@@ -256,7 +262,10 @@ public class CPColorBmp extends CPBitmap {
 
 	static class CPFillLine {
 
-		int x1, x2, y, dy;
+		final int x1;
+        final int x2;
+        final int y;
+        final int dy;
 
 		CPFillLine(int x1, int x2, int y, int dy) {
 			this.x1 = x1;
@@ -267,7 +276,7 @@ public class CPColorBmp extends CPBitmap {
 	}
 
 	// we building metric in which our new color will always be counted as not near (so it passed in farAwayColor parameter)
-	public static boolean is_colors_near (int color_1Arg, int color_2Arg, int maskArg, int distance, int farAwayColor)
+	private static boolean is_colors_near(int color_1Arg, int color_2Arg, int maskArg, int distance, int farAwayColor)
 	{
 		int color_1 = color_1Arg, color_2 = color_2Arg, mask = maskArg;
 		int[] dist = new int[4];
@@ -416,7 +425,7 @@ public class CPColorBmp extends CPBitmap {
 		}
 	}
 
-	public static void multiplyAlpha(int[] buffer, int len) {
+	private static void multiplyAlpha(int[] buffer, int len) {
 		for (int i = 0; i < len; i++) {
 			buffer[i] = buffer[i] & 0xff000000 | ((buffer[i] >>> 24) * (buffer[i] >>> 16 & 0xff) / 255) << 16
 					| ((buffer[i] >>> 24) * (buffer[i] >>> 8 & 0xff) / 255) << 8 | (buffer[i] >>> 24)
@@ -424,7 +433,7 @@ public class CPColorBmp extends CPBitmap {
 		}
 	}
 
-	public static void separateAlpha(int[] buffer, int len) {
+	private static void separateAlpha(int[] buffer, int len) {
 		for (int i = 0; i < len; i++) {
 			if ((buffer[i] & 0xff000000) != 0) {
 				buffer[i] = buffer[i] & 0xff000000
@@ -435,7 +444,7 @@ public class CPColorBmp extends CPBitmap {
 		}
 	}
 
-	public static void boxBlurLine(int[] src, int dst[], int len, int radius) {
+	private static void boxBlurLine(int[] src, int dst[], int len, int radius) {
 		int s, ta, tr, tg, tb;
 		s = ta = tr = tg = tb = 0;
 		int pix;
@@ -471,13 +480,13 @@ public class CPColorBmp extends CPBitmap {
 		}
 	}
 
-	public void copyColumnToArray(int x, int y, int len, int[] buffer) {
+	void copyColumnToArray(int x, int y, int len, int[] buffer) {
 		for (int i = 0; i < len; i++) {
 			buffer[i] = data[x + (i + y) * width];
 		}
 	}
 
-	public void copyArrayToColumn(int x, int y, int len, int[] buffer) {
+	void copyArrayToColumn(int x, int y, int len, int[] buffer) {
 		for (int i = 0; i < len; i++) {
 			data[x + (i + y) * width] = buffer[i];
 		}

@@ -33,25 +33,30 @@ import chibipaint.util.*;
 
 public class CPArtwork {
 
-	public int width, height;
+	public final int width;
+    public final int height;
 
 	private Vector<CPLayer> layers;
 	CPLayer curLayer;
 	private int activeLayer;
 
-	CPLayer fusion, undoBuffer, opacityBuffer;
+	private final CPLayer fusion;
+    final CPLayer undoBuffer;
+    private final CPLayer opacityBuffer;
 	Vector<CPLayer> undoBufferAll;
-	CPRect fusionArea, undoArea, opacityArea;
+	private final CPRect fusionArea;
+    CPRect undoArea;
+    private final CPRect opacityArea;
 
-    CPSelection curSelection; // TODO: Remove old completely and rename this one to one without new
+    CPSelection curSelection;
 
-    Random rnd = new Random();
+    private final Random rnd = new Random();
 
     public CPUndoManager getUndoManager() {
         return undoManager;
     }
 
-    CPUndoManager undoManager = new CPUndoManager();
+    private final CPUndoManager undoManager = new CPUndoManager();
 
     public void DoSelection(int modifiers, CPSelection selection)
     {
@@ -92,14 +97,15 @@ public class CPArtwork {
 		void layerChange(CPArtwork artwork);
 	}
 
-	private LinkedList<ICPArtworkListener> artworkListeners = new LinkedList<ICPArtworkListener>();
+	private final LinkedList<ICPArtworkListener> artworkListeners = new LinkedList<ICPArtworkListener>();
 
 	// Clipboard
 
 	public static class CPClip {
 
-		CPColorBmp bmp;
-		int x, y;
+		final CPColorBmp bmp;
+		final int x;
+        final int y;
 
 		CPClip(CPColorBmp bmp, int x, int y) {
 			this.bmp = bmp;
@@ -108,15 +114,17 @@ public class CPArtwork {
 		}
 	}
 
-    CPClip clipboard = null;
+    private final CPClip clipboard = null;
 
-	CPBrushInfo curBrush;
+	private CPBrushInfo curBrush;
 
 	// FIXME: shouldn't be public
-	public CPBrushManager brushManager = new CPBrushManager();
+	public final CPBrushManager brushManager = new CPBrushManager();
 
-	float lastX, lastY, lastPressure;
-	int[] brushBuffer = null;
+	private float lastX;
+    private float lastY;
+    private float lastPressure;
+	private int[] brushBuffer = null;
 
 	public int maxUndo = 30;
 
@@ -127,15 +135,15 @@ public class CPArtwork {
 	private boolean sampleAllLayers = false;
 	private boolean lockAlpha = false;
 
-	int curColor;
+	private int curColor;
 
-	CPBrushTool paintingModes[] = { new CPBrushToolSimpleBrush(), new CPBrushToolEraser(), new CPBrushToolDodge(),
+	private final CPBrushTool[] paintingModes = { new CPBrushToolSimpleBrush(), new CPBrushToolEraser(), new CPBrushToolDodge(),
 			new CPBrushToolBurn(), new CPBrushToolWatercolor(), new CPBrushToolBlur(), new CPBrushToolSmudge(),
 			new CPBrushToolOil(), };
 
-	static final int BURN_CONSTANT = 260;
-	static final int BLUR_MIN = 64;
-	static final int BLUR_MAX = 1;
+	private static final int BURN_CONSTANT = 260;
+	private static final int BLUR_MIN = 64;
+	private static final int BLUR_MAX = 1;
 
 	public CPArtwork(int width, int height) {
 		this.width = width;
@@ -232,7 +240,7 @@ public class CPArtwork {
 		artworkListeners.remove(listener);
 	}
 
-	public void callListenersUpdateRegion(CPRect region) {
+	void callListenersUpdateRegion(CPRect region) {
 		for (ICPArtworkListener l : artworkListeners) {
 			l.updateRegion(this, region);
 		}
@@ -1150,11 +1158,11 @@ public class CPArtwork {
         undoManager.getUndoList().addFirst(redo);
 	}
 
-	public boolean canUndo() {
+	boolean canUndo() {
 		return !undoManager.getUndoList().isEmpty();
 	}
 
-	public boolean canRedo() {
+	boolean canRedo() {
 		return !undoManager.getRedoList().isEmpty();
 	}
 
@@ -1205,7 +1213,7 @@ public class CPArtwork {
 	// find where this version is used and change the
 	// code to use the CPRect version
 
-	public void clipSourceDest(CPRect srcRect, CPRect dstRect) {
+	void clipSourceDest(CPRect srcRect, CPRect dstRect) {
 		// FIXME:
 		// /!\ dstRect bottom and right are ignored and instead we clip
 		// against the width, height of the layer. :/
@@ -1688,7 +1696,7 @@ public class CPArtwork {
 		return activeLayer;
 	}
 
-	public void setActiveLayerNum(int activeLayer) {
+	void setActiveLayerNum(int activeLayer) {
 		this.activeLayer = activeLayer;
 	}
 
@@ -1702,7 +1710,7 @@ public class CPArtwork {
 
     class CPUndoToggleLayers extends CPUndo
 	{
-		Vector<Boolean> mask;
+		final Vector<Boolean> mask;
 		boolean         toggleType; // true - we checking everything, false - unchecking
 		public CPUndoToggleLayers() {
 			mask = new Vector<Boolean> ();

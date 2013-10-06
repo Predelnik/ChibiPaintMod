@@ -35,7 +35,7 @@ import javax.swing.*;
  * 
  */
 
-public class CPScrollableFlowPanel extends JPanel implements Scrollable {
+class CPScrollableFlowPanel extends JPanel implements Scrollable {
 
 	public CPScrollableFlowPanel() {
 		setLayout(new FlowLayout(FlowLayout.LEFT));

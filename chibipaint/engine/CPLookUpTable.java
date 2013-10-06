@@ -25,7 +25,7 @@ package chibipaint.engine;
 
 public class CPLookUpTable {
 	
-	int[] table = new int[256];
+	final int[] table = new int[256];
 	
 	public CPLookUpTable() {
 		loadIdentity();
@@ -35,13 +35,13 @@ public class CPLookUpTable {
 		loadBrightnessContrast(brightness, contrast);
 	}
 	
-	public void loadIdentity() {
+	void loadIdentity() {
 		for (int i=0; i<256; i++) {
 			table[i] = i;
 		}
 	}
 	
-	public void loadBrightnessContrast(float brightness, float contrast) {
+	void loadBrightnessContrast(float brightness, float contrast) {
 		float slope = contrast > 0.f ? (1f / (1.0001f - contrast)): 1f + contrast;
 		float offset = .5f - slope * .5f + brightness;
 		for (int i=0; i<256; i++) {

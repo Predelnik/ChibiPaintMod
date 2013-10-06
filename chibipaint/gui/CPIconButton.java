@@ -28,15 +28,21 @@ import java.util.*;
 
 import javax.swing.*;
 
-public class CPIconButton extends JComponent implements MouseListener {
+class CPIconButton extends JComponent implements MouseListener {
 
-	Image icons;
-	int iconW, iconH, iconIndex, border;
-	String actionCommand, actionCommandDoubleClick = null;
-	LinkedList<ActionListener> actionListeners = new LinkedList<ActionListener>();
+	private final Image icons;
+	private final int iconW;
+    private final int iconH;
+    private final int iconIndex;
+    private final int border;
+	private String actionCommand;
+    private String actionCommandDoubleClick = null;
+	private final LinkedList<ActionListener> actionListeners = new LinkedList<ActionListener>();
 
-	boolean mouseOver = false, mousePressed = false, selected = false;
-	boolean onClickDown = false;
+	private boolean mouseOver = false;
+    private boolean mousePressed = false;
+    private boolean selected = false;
+	private final boolean onClickDown = false;
 
 	public CPIconButton(Image icons, int iconW, int iconH, int iconIndex, int border) {
 		this.icons = icons;
@@ -130,14 +136,14 @@ public class CPIconButton extends JComponent implements MouseListener {
 		actionCommandDoubleClick = action;
 	}
 
-	public void callActionListeners() {
+	void callActionListeners() {
 		for (Object l : actionListeners) {
 			ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, actionCommand);
 			((ActionListener) l).actionPerformed(e);
 		}
 	}
 
-	public void callActionListenersDouble() {
+	void callActionListenersDouble() {
 		for (Object l : actionListeners) {
 			ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, actionCommandDoubleClick);
 			((ActionListener) l).actionPerformed(e);

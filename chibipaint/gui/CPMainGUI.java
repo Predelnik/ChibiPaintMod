@@ -35,16 +35,16 @@ import chibipaint.file.CPAbstractFile;
 
 public class CPMainGUI {
 
-	CPController controller;
+	private final CPController controller;
 	private CPPaletteManager paletteManager;
 
-	JMenuBar menuBar;
-	JPanel mainPanel;
-	JDesktopPane jdp;
+	private JMenuBar menuBar;
+	private JPanel mainPanel;
+	private JDesktopPane jdp;
 	private JPanel bg;
 
 	// FIXME: replace this hack by something better
-	Map<String, JCheckBoxMenuItem> paletteItems = new HashMap<String, JCheckBoxMenuItem>();
+    private final Map<String, JCheckBoxMenuItem> paletteItems = new HashMap<String, JCheckBoxMenuItem>();
 
 	public CPMainGUI(CPController controller) {
 		this.controller = controller;
@@ -94,7 +94,7 @@ public class CPMainGUI {
 		canvas.grabFocus();
 	}
 
-	public JMenuBar createMainMenu(ActionListener listener) {
+	JMenuBar createMainMenu(ActionListener listener) {
 		JMenuBar menuBarLocal = new JMenuBar();
 		JMenu menu, submenu;
 		JMenuItem menuItem;
@@ -132,7 +132,7 @@ public class CPMainGUI {
 					"Save File");
 			menuItem.setActionCommand("CPSave");
 			menuItem.addActionListener(listener);
-			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
 			menu.add(menuItem);
 
 			menuItem = new JMenuItem("Save as...", KeyEvent.VK_A);
@@ -140,7 +140,7 @@ public class CPMainGUI {
 					"Save .chi File");
 			menuItem.setActionCommand("CPSaveCHI");
 			menuItem.addActionListener(listener);
-			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
 			menu.add(menuItem);
 
 			menuItem = new JMenuItem("Open...", KeyEvent.VK_L);
@@ -148,7 +148,7 @@ public class CPMainGUI {
 					"Open .chi File");
 			menuItem.setActionCommand("CPLoadCHI");
 			menuItem.addActionListener(listener);
-			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
 			menu.add(menuItem);
 
 			submenu = new JMenu("Open Recent");
@@ -165,7 +165,7 @@ public class CPMainGUI {
 					File recentFile = new File (recentFileName);
 					menuItem = new JMenuItem(recentFile.getName ());
 					menuItem.getAccessibleContext().setAccessibleDescription("Open Recent File");
-					menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0 + (i + 1) % 10, ActionEvent.CTRL_MASK));
+					menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_0 + (i + 1) % 10, InputEvent.CTRL_MASK));
 					menuItem.setActionCommand("CPOpenRecent " + i);
 					menuItem.addActionListener(listener);
 					submenu.add(menuItem);
@@ -181,34 +181,32 @@ public class CPMainGUI {
 			String []supportedExts = CPAbstractFile.getSupportedExtensions();
 			submenu = new JMenu("Import");
 			CPAbstractFile file;
-			for (int i = 0; i < supportedExts.length; i++)
-			{
-				file = CPAbstractFile.fromExtension(supportedExts[i]);
-				if (file.isNative())
-					continue;
+            for (String supportedExt : supportedExts) {
+                file = CPAbstractFile.fromExtension(supportedExt);
+                if (file.isNative())
+                    continue;
 
-				menuItem = new JMenuItem(supportedExts[i].toUpperCase() + " File...");
-				menuItem.getAccessibleContext().setAccessibleDescription("Import " + supportedExts[i].toUpperCase() + "Files");
-				menuItem.setActionCommand("CPLoad" + supportedExts[i].toUpperCase());
-				menuItem.addActionListener(listener);
-				submenu.add(menuItem);
-			}
+                menuItem = new JMenuItem(supportedExt.toUpperCase() + " File...");
+                menuItem.getAccessibleContext().setAccessibleDescription("Import " + supportedExt.toUpperCase() + "Files");
+                menuItem.setActionCommand("CPLoad" + supportedExt.toUpperCase());
+                menuItem.addActionListener(listener);
+                submenu.add(menuItem);
+            }
 
 			menu.add (submenu);
 
 			submenu = new JMenu("Export");
-			for (int i = 0; i < supportedExts.length; i++)
-			{
-				file = CPAbstractFile.fromExtension(supportedExts[i]);
-				if (file.isNative())
-					continue;
+            for (String supportedExt : supportedExts) {
+                file = CPAbstractFile.fromExtension(supportedExt);
+                if (file.isNative())
+                    continue;
 
-				menuItem = new JMenuItem(supportedExts[i].toUpperCase() + " File...");
-				menuItem.getAccessibleContext().setAccessibleDescription("Export " + supportedExts[i].toUpperCase() + "Files");
-				menuItem.setActionCommand("CPSave" + supportedExts[i].toUpperCase());
-				menuItem.addActionListener(listener);
-				submenu.add(menuItem);
-			}
+                menuItem = new JMenuItem(supportedExt.toUpperCase() + " File...");
+                menuItem.getAccessibleContext().setAccessibleDescription("Export " + supportedExt.toUpperCase() + "Files");
+                menuItem.setActionCommand("CPSave" + supportedExt.toUpperCase());
+                menuItem.addActionListener(listener);
+                submenu.add(menuItem);
+            }
 
 			menu.add (submenu);
 
@@ -219,7 +217,7 @@ public class CPMainGUI {
 					"Exit the application");
 			menuItem.setActionCommand("CPExit");
 			menuItem.addActionListener(listener);
-			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
+			menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, InputEvent.CTRL_MASK));
 			menu.add(menuItem);
 		}
 
@@ -235,14 +233,14 @@ public class CPMainGUI {
 		menuItem.getAccessibleContext().setAccessibleDescription("Undoes the most recent action");
 		menuItem.setActionCommand("CPUndo");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK));
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Redo", KeyEvent.VK_R);
 		menuItem.getAccessibleContext().setAccessibleDescription("Redoes a previously undone action");
 		menuItem.setActionCommand("CPRedo");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Clear History", KeyEvent.VK_H);
@@ -257,28 +255,28 @@ public class CPMainGUI {
 		menuItem.getAccessibleContext().setAccessibleDescription("");
 		menuItem.setActionCommand("CPCut");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.CTRL_MASK));
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Copy", KeyEvent.VK_C);
 		menuItem.getAccessibleContext().setAccessibleDescription("");
 		menuItem.setActionCommand("CPCopy");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK));
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Copy Merged", KeyEvent.VK_Y);
 		menuItem.getAccessibleContext().setAccessibleDescription("");
 		menuItem.setActionCommand("CPCopyMerged");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Paste", KeyEvent.VK_P);
 		menuItem.getAccessibleContext().setAccessibleDescription("");
 		menuItem.setActionCommand("CPPaste");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
 		menu.add(menuItem);
 
 		menu.add(new JSeparator());
@@ -287,14 +285,14 @@ public class CPMainGUI {
 		menuItem.getAccessibleContext().setAccessibleDescription("Selects the whole canvas");
 		menuItem.setActionCommand("CPSelectAll");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_MASK));
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Deselect", KeyEvent.VK_D);
 		menuItem.getAccessibleContext().setAccessibleDescription("Deselects the whole canvas");
 		menuItem.setActionCommand("CPDeselectAll");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_MASK));
 		menu.add(menuItem);
 
 		menu = new JMenu("Layers");
@@ -305,7 +303,7 @@ public class CPMainGUI {
 		menuItem.getAccessibleContext().setAccessibleDescription("Toggle All Layers Visibility");
 		menuItem.setActionCommand("CPLayerToggleAll");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
 		menu.add(menuItem);
 
 		menu.add(new JSeparator());
@@ -314,7 +312,7 @@ public class CPMainGUI {
 		menuItem.getAccessibleContext().setAccessibleDescription("Creates a copy of the currently selected layer");
 		menuItem.setActionCommand("CPLayerDuplicate");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
 		menu.add(menuItem);
 
 		menu.add(new JSeparator());
@@ -324,15 +322,15 @@ public class CPMainGUI {
 				"Merges the currently selected layer with the one directly below it");
 		menuItem.setActionCommand("CPLayerMergeDown");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK));
 		menu.add(menuItem);
 
 		/*
 		 * menuItem = new JMenuItem("Merge Visible", KeyEvent.VK_V);
 		 * menuItem.getAccessibleContext().setAccessibleDescription("Merges all the visible layers");
 		 * menuItem.setActionCommand("CPLayerMergeVisible"); menuItem.addActionListener(listener);
-		 * menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK |
-		 * ActionEvent.SHIFT_MASK)); menu.add(menuItem);
+		 * menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK |
+		 * InputEvent.SHIFT_MASK)); menu.add(menuItem);
 		 */
 
 		menuItem = new JMenuItem("Merge All Layers", KeyEvent.VK_A);
@@ -359,7 +357,7 @@ public class CPMainGUI {
 		menuItem.getAccessibleContext().setAccessibleDescription("Fills the selected area with the current color");
 		menuItem.setActionCommand("CPFill");
 		menuItem.addActionListener(listener);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Flip Horizontal", KeyEvent.VK_H);
@@ -472,21 +470,21 @@ public class CPMainGUI {
 
 		menuItem = new JMenuItem("Zoom In", KeyEvent.VK_I);
 		menuItem.getAccessibleContext().setAccessibleDescription("Zooms In");
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, InputEvent.CTRL_MASK));
 		menuItem.setActionCommand("CPZoomIn");
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Zoom Out", KeyEvent.VK_O);
 		menuItem.getAccessibleContext().setAccessibleDescription("Zooms Out");
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, InputEvent.CTRL_MASK));
 		menuItem.setActionCommand("CPZoomOut");
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
 
 		menuItem = new JMenuItem("Zoom 100%", KeyEvent.VK_1);
 		menuItem.getAccessibleContext().setAccessibleDescription("Resets the zoom factor to 100%");
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, InputEvent.CTRL_MASK));
 		menuItem.setActionCommand("CPZoom100");
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
@@ -507,7 +505,7 @@ public class CPMainGUI {
 		menuItem = new JCheckBoxMenuItem("Show Grid", false);
 		menuItem.setMnemonic(KeyEvent.VK_G);
 		menuItem.getAccessibleContext().setAccessibleDescription("Displays a grid over the image");
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, ActionEvent.CTRL_MASK));
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, InputEvent.CTRL_MASK));
 		menuItem.setActionCommand("CPToggleGrid");
 		menuItem.addActionListener(listener);
 		menu.add(menuItem);
@@ -627,15 +625,15 @@ public class CPMainGUI {
 		return paletteManager;
 	}
 
-	public void setPaletteManager(CPPaletteManager paletteManager) {
+	void setPaletteManager(CPPaletteManager paletteManager) {
 		this.paletteManager = paletteManager;
 	}
 
-	public JPanel getBg() {
+	JPanel getBg() {
 		return bg;
 	}
 
-	public void setBg(JPanel bg) {
+	void setBg(JPanel bg) {
 		this.bg = bg;
 	}
 

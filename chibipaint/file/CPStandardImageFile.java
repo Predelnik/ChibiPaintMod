@@ -43,7 +43,7 @@ import chibipaint.engine.CPArtwork;
 public abstract class CPStandardImageFile extends CPAbstractFile {
 	@Override
 	public abstract String ext ();
-	public abstract int imageTypeCorrection (int x);
+	protected abstract int imageTypeCorrection(int x);
 	@Override
 	public boolean isNative () // Well this kind of files couldn't be native since they are not layered
 	{

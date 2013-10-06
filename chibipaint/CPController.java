@@ -42,9 +42,9 @@ import sun.java2d.loops.ProcessPath;
 
 public abstract class CPController implements ActionListener {
 
-	final static String VERSION_STRING = "0.0.5 (alpha)";
+	private final static String VERSION_STRING = "0.0.5 (alpha)";
 
-	private CPColor curColor = new CPColor();
+	private final CPColor curColor = new CPColor();
 	// int curAlpha = 255;
 	// int brushSize = 16;
 
@@ -52,15 +52,15 @@ public abstract class CPController implements ActionListener {
 	public CPArtwork artwork;
 	public CPCanvas canvas;
 
-	CPBrushInfo[] tools;
+	final CPBrushInfo[] tools;
 	private int curBrush = T_PENCIL;
 	private int curMode = M_DRAW;
 
-	private ArrayList<ICPColorListener> colorListeners = new ArrayList<ICPColorListener>();
-	private ArrayList<ICPToolListener> toolListeners = new ArrayList<ICPToolListener>();
-	private ArrayList<ICPModeListener> modeListeners = new ArrayList<ICPModeListener>();
-	private ArrayList<ICPViewListener> viewListeners = new ArrayList<ICPViewListener>();
-	private ArrayList<ICPEventListener> cpEventListeners = new ArrayList<ICPEventListener>();
+	private final ArrayList<ICPColorListener> colorListeners = new ArrayList<ICPColorListener>();
+	private final ArrayList<ICPToolListener> toolListeners = new ArrayList<ICPToolListener>();
+	private final ArrayList<ICPModeListener> modeListeners = new ArrayList<ICPModeListener>();
+	private final ArrayList<ICPViewListener> viewListeners = new ArrayList<ICPViewListener>();
+	private final ArrayList<ICPEventListener> cpEventListeners = new ArrayList<ICPEventListener>();
 
 	//
 	// Definition of all the standard tools available
@@ -78,7 +78,7 @@ public abstract class CPController implements ActionListener {
 	public static final int T_BLUR = 8;
 	public static final int T_SMUDGE = 9;
 	public static final int T_BLENDER = 10;
-	public static final int T_MAX = 11;
+	static final int T_MAX = 11;
 
 	//
 	// Definition of all the modes available
@@ -97,7 +97,7 @@ public abstract class CPController implements ActionListener {
 	// Setting for other modes than draw (probably should do different class for them)
 	private int colorDistance;
 
-	protected CPMainGUI mainGUI;
+	private CPMainGUI mainGUI;
 
 	public interface ICPColorListener {
 
@@ -130,7 +130,7 @@ public abstract class CPController implements ActionListener {
 		public int offsetX, offsetY;
 	}
 
-	public CPController() {
+	CPController() {
 		tools = new CPBrushInfo[T_MAX];
 		tools[T_PENCIL] = new CPBrushInfo(T_PENCIL, 16, 255, true, false, .5f, .05f, false, true,
 				CPBrushInfo.B_ROUND_AA, CPBrushInfo.M_PAINT, 1f, 0f);
@@ -178,8 +178,8 @@ public abstract class CPController implements ActionListener {
 	}
 
 	public CPColor getCurColor() {
-		return (CPColor) curColor.clone();
-	}
+       return (CPColor) curColor.clone();
+    }
 
 	public int getCurColorRgb() {
 		return curColor.getRgb();
@@ -219,7 +219,7 @@ public abstract class CPController implements ActionListener {
 		return tools[getCurBrush()];
 	}
 
-	public void setMode(int mode) {
+	void setMode(int mode) {
 		setCurMode(mode);
 		callModeListeners();
 		callToolListeners(); // For updating mode settings if they exist
@@ -545,7 +545,7 @@ public abstract class CPController implements ActionListener {
 		modeListeners.remove(listener);
 	}
 
-	public void callModeListeners() {
+	void callModeListeners() {
 		for (ICPModeListener l : modeListeners) {
 			l.modeChange(getCurMode());
 		}
@@ -561,7 +561,7 @@ public abstract class CPController implements ActionListener {
 		}
 	}
 
-    public void callCPEventListeners() {
+    void callCPEventListeners() {
 		for (ICPEventListener l : cpEventListeners) {
 			l.cpEvent();
 		}
@@ -621,12 +621,12 @@ public abstract class CPController implements ActionListener {
 	}
 
 	// returns the Component to be used as parent to display dialogs
-	abstract public Component getDialogParent();
+	protected abstract Component getDialogParent();
 
 	//
 	// misc dialog boxes that shouldn't be here v___v
 
-	public void showBoxBlurDialog() {
+	void showBoxBlurDialog() {
 		JPanel panel = new JPanel();
 
 		panel.add(new JLabel("Blur amount:"));
@@ -652,7 +652,7 @@ public abstract class CPController implements ActionListener {
 		}
 	}
 
-	public void showGridOptionsDialog() {
+	void showGridOptionsDialog() {
 		JPanel panel = new JPanel();
 
 		panel.add(new JLabel("Grid Size:"));
@@ -684,7 +684,7 @@ public abstract class CPController implements ActionListener {
 		return curMode;
 	}
 
-	public void setCurMode(int curMode) {
+	void setCurMode(int curMode) {
 		this.curMode = curMode;
 	}
 
@@ -700,7 +700,7 @@ public abstract class CPController implements ActionListener {
 		return curBrush;
 	}
 
-	public void setCurBrush(int curBrush) {
+	void setCurBrush(int curBrush) {
 		this.curBrush = curBrush;
 	}
 }

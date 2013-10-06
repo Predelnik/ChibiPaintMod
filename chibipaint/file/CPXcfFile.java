@@ -56,63 +56,62 @@ public class CPXcfFile extends CPAbstractFile {
 			// I mean buffer just be rewritten in that position
 		}
 	}
-	protected static final byte gimp_xcf_[] = { 'g', 'i', 'm', 'p', ' ', 'x', 'c', 'f', ' ' };
-	protected static final byte v0[] = { 'f', 'i', 'l', 'e' };
-	protected static final byte v1[] = { 'v', '0', '0', '1' };
-	protected static final byte v2[] = { 'v', '0', '0', '2' };
-	protected static final byte v3[] = { 'v', '0', '0', '3' };
+	private static final byte[] gimp_xcf_ = { 'g', 'i', 'm', 'p', ' ', 'x', 'c', 'f', ' ' };
+	private static final byte[] v0 = { 'f', 'i', 'l', 'e' };
+	private static final byte[] v1 = { 'v', '0', '0', '1' };
+	private static final byte[] v2 = { 'v', '0', '0', '2' };
+	private static final byte[] v3 = { 'v', '0', '0', '3' };
 
 	// Consts for properties:
-	protected static final int GIMP_CONST_END = 0;
-	protected static final int GIMP_CONST_ACTIVE_LAYER = 2;
-	protected static final int GIMP_CONST_OPACITY = 6;
-	protected static final int GIMP_CONST_MODE = 7;
-	protected static final int GIMP_CONST_VISIBLE = 8;
-	protected static final int GIMP_CONST_OFFSETS = 15;
+	private static final int GIMP_CONST_END = 0;
+	private static final int GIMP_CONST_ACTIVE_LAYER = 2;
+	private static final int GIMP_CONST_OPACITY = 6;
+	private static final int GIMP_CONST_MODE = 7;
+	private static final int GIMP_CONST_VISIBLE = 8;
+	private static final int GIMP_CONST_OFFSETS = 15;
 
 	// GIMP Layer Modes:
-	protected static final int GIMP_NORMAL = 0;
-	protected static final int GIMP_MULTIPLY = 3;
-	protected static final int GIMP_SCREEN = 4;
-	protected static final int GIMP_OVERLAY = 5;
-	protected static final int GIMP_ADD = 7;
-	protected static final int GIMP_SUBTRACT = 8;
-	protected static final int GIMP_DARKEN_ONLY = 9;
-	protected static final int GIMP_LIGHTEN_ONLY = 10;
-	protected static final int GIMP_DODGE = 16;
-	protected static final int GIMP_BURN = 17;
-	protected static final int GIMP_HARD_LIGHT = 18;
-	protected static final int GIMP_SOFT_LIGHT = 19;
+	private static final int GIMP_NORMAL = 0;
+	private static final int GIMP_MULTIPLY = 3;
+	private static final int GIMP_SCREEN = 4;
+	private static final int GIMP_OVERLAY = 5;
+	private static final int GIMP_ADD = 7;
+	private static final int GIMP_SUBTRACT = 8;
+	private static final int GIMP_DARKEN_ONLY = 9;
+	private static final int GIMP_LIGHTEN_ONLY = 10;
+	private static final int GIMP_DODGE = 16;
+	private static final int GIMP_BURN = 17;
+	private static final int GIMP_HARD_LIGHT = 18;
+	private static final int GIMP_SOFT_LIGHT = 19;
 
 	// GIMP Color Types:
-	protected static final int COLOR_TYPE_RGB = 0;
-	protected static final int COLOR_TYPE_RGBA = 1;
-	protected static final int COLOR_TYPE_G = 2;
-	protected static final int COLOR_TYPE_GA = 3;
+	private static final int COLOR_TYPE_RGB = 0;
+	private static final int COLOR_TYPE_RGBA = 1;
+	private static final int COLOR_TYPE_G = 2;
+	private static final int COLOR_TYPE_GA = 3;
 
-	protected static final int BUFFER_SIZE = 4 * 1024 * 1024;
+	private static final int BUFFER_SIZE = 4 * 1024 * 1024;
 
-	static public byte getByte(int x, int pos) {
+	private static byte getByte(int x, int pos) {
 		return (byte) ((x >> pos) & 0xFF);
 	}
 
-	static protected boolean isInBounds (int[] pos, int w, int h)
+	private static boolean isInBounds(int[] pos, int w, int h)
 	{
 		return (pos[0] >= 0 && pos[0] < w && pos[1] >= 0 && pos[1] < h);
 	}
 
-	static public int minVersion(CPArtwork a) {
+	private static int minVersion(CPArtwork a) {
 		for (int i = 0; i < a.getLayersVector().size(); i++)
 			if (a.getLayersVector().get(i).getBlendMode() == CPLayer.LM_SOFTLIGHT)
 				return 2;
 		return 0;
 	}
 
-	static public void movePos(int[] curPos, int[] start, int[] limit) {
+	private static void movePos(int[] curPos, int[] start, int[] limit) {
 		curPos[0]++;
-		if (curPos[0] < limit[0])
-			return;
-		else {
+		if (curPos[0] >= limit[0])
+        {
 			curPos[0] = start[0];
 			curPos[1]++;
 		}
@@ -126,7 +125,7 @@ public class CPXcfFile extends CPAbstractFile {
 			throw new IOException ("Seeking isn't supported for this kind of Input Stream");
 	}
 
-	public static int position (OutputStream os) throws IOException
+	private static int position(OutputStream os) throws IOException
 	{
 		if (os instanceof FileOutputStream)
 			return (int)((FileOutputStream) os).getChannel().position ();
@@ -142,14 +141,14 @@ public class CPXcfFile extends CPAbstractFile {
 		return Float.intBitsToFloat(data);
 	}
 
-	static public int readInt(InputStream is) throws IOException {
+	private static int readInt(InputStream is) throws IOException {
 		return is.read() << 24 | is.read() << 16 | is.read() << 8 | is.read();
 	}
 
 	// End of todo
 
-	static boolean readLayer(InputStream is, int offset, CPLayer layer,
-			int compression) throws IOException {
+	private static boolean readLayer(InputStream is, int offset, CPLayer layer,
+                                     int compression) throws IOException {
 		setPosition(is,offset); // Moving to the position of layer
 		// data
 		int layerWidth, layerHeight; // There's a problem if layer size
@@ -319,14 +318,14 @@ public class CPXcfFile extends CPAbstractFile {
 		return true;
 	}
 
-	static boolean readMagic(InputStream is) throws IOException {
+	private static boolean readMagic(InputStream is) throws IOException {
 		byte[] buf = new byte[gimp_xcf_.length];
 		is.read(buf, 0, buf.length);
 		return Arrays.equals(buf, gimp_xcf_);
 	}
 
 	// We pay any attention only to compression that's why returning it.
-	static public int readProperties(InputStream is) throws IOException {
+	private static int readProperties(InputStream is) throws IOException {
 		int paramID;
 		int compressionType = 1; // RLE default anyway
 		int payloadSize;
@@ -352,15 +351,15 @@ public class CPXcfFile extends CPAbstractFile {
 		}
 	}
 
-	static public String readString(InputStream is) throws IOException {
+	private static String readString(InputStream is) throws IOException {
 		int length = readInt(is); // size of bytes + 1 for terminating byte
 		byte[] data = new byte[length];
 		is.read(data, 0, length);
 		return new String(data, "UTF-8");
 	}
 
-	static public void readTileRLE(InputStream is, int[] data, int x,
-			int y, int w, int h, int dstW, int dstH, int ox, int oy, int colorType, boolean fillAlpha)
+	private static void readTileRLE(InputStream is, int[] data, int x,
+                                    int y, int w, int h, int dstW, int dstH, int ox, int oy, int colorType, boolean fillAlpha)
 					throws IOException {
 		int sizeX = (x + 1) * 64 <= w ? 64 : w - x * 64;
 		int sizeY = (y + 1) * 64 <= h ? 64 : h - y * 64;
@@ -483,7 +482,7 @@ public class CPXcfFile extends CPAbstractFile {
 		}
 	}
 
-	static public boolean readVersion(InputStream is) throws IOException {
+	private static boolean readVersion(InputStream is) throws IOException {
 		byte[] b = new byte[4];
 		is.read(b, 0, b.length);
 
@@ -496,7 +495,7 @@ public class CPXcfFile extends CPAbstractFile {
 		return true;
 	}
 
-	public static void setPosition (InputStream is, int position) throws IOException
+	private static void setPosition(InputStream is, int position) throws IOException
 	{
 		if (is instanceof FileInputStream)
 			((FileInputStream) is).getChannel().position (position);
@@ -509,7 +508,7 @@ public class CPXcfFile extends CPAbstractFile {
 			throw new IOException ("Seeking isn't supported for this kind of Input Stream");
 	}
 
-	public static void setPosition (OutputStream os, int position) throws IOException
+	private static void setPosition(OutputStream os, int position) throws IOException
 	{
 		if (os instanceof FileOutputStream)
 			((FileOutputStream) os).getChannel().position (position);
@@ -521,7 +520,7 @@ public class CPXcfFile extends CPAbstractFile {
 			throw new IOException ("Seeking isn't supported for this kind of Ouput Stream");
 	}
 
-	static int transformImageInt(int data_arg, int byte_arg, int pos) {
+	private static int transformImageInt(int data_arg, int byte_arg, int pos) {
 		int data = data_arg;
 		if (pos != -1) {
 			data = data & (~(0xFF << pos)); // generating something like
@@ -534,20 +533,20 @@ public class CPXcfFile extends CPAbstractFile {
 		return data;
 	}
 
-	static public void writeFloat(OutputStream os, float f)
+	private static void writeFloat(OutputStream os, float f)
 			throws IOException {
 		writeInt(os, Float.floatToRawIntBits(f));
 	}
 
 	// TODO:These functions should be outside of these classes:
-	static public void writeInt(OutputStream os, int i) throws IOException {
+	private static void writeInt(OutputStream os, int i) throws IOException {
 		byte[] temp = { (byte) (i >>> 24), (byte) ((i >>> 16) & 0xff),
 				(byte) ((i >>> 8) & 0xff), (byte) (i & 0xff) };
 		os.write(temp);
 	}
 
-	static public void writeLayer(OutputStream os, CPLayer layer,
-			boolean isActive) throws IOException {
+	private static void writeLayer(OutputStream os, CPLayer layer,
+                                   boolean isActive) throws IOException {
 		writeInt(os, layer.getWidth()); // layer width // Well in our case they
 		// are the as picture all the time
 		writeInt(os, layer.getHeight()); // layer height
@@ -705,11 +704,11 @@ public class CPXcfFile extends CPAbstractFile {
 		setPosition (os, actualPos);
 	}
 
-	static public void writeMagic(OutputStream os) throws IOException {
+	private static void writeMagic(OutputStream os) throws IOException {
 		os.write(gimp_xcf_);
 	}
 
-	static public void writeProperties(OutputStream os) throws IOException {
+	private static void writeProperties(OutputStream os) throws IOException {
 		// Compression, using default one - RLE
 		writeInt(os, 17); // PROP_COMPRESSION
 		writeInt(os, 1); // payload size
@@ -724,7 +723,7 @@ public class CPXcfFile extends CPAbstractFile {
 		writeInt(os, 0); // empty payload
 	}
 
-	static public void writeString(OutputStream os, String s)
+	private static void writeString(OutputStream os, String s)
 			throws IOException {
 		byte[] s_data = s.getBytes("UTF-8"); // converting to utf-8
 		writeInt(os, s_data.length + 1); // size of bytes + 1 for terminating
@@ -733,8 +732,8 @@ public class CPXcfFile extends CPAbstractFile {
 		os.write(0); // null-terminating byte
 	}
 
-	static public void writeTileRLE(OutputStream os, int[] data, int x,
-			int y, int w, int h) throws IOException {
+	private static void writeTileRLE(OutputStream os, int[] data, int x,
+                                     int y, int w, int h) throws IOException {
 		int sizeX = (x + 1) * 64 <= w ? 64 : w - x * 64;
 		int sizeY = (y + 1) * 64 <= h ? 64 : h - y * 64;
 		int m = sizeX * sizeY;
@@ -812,7 +811,7 @@ public class CPXcfFile extends CPAbstractFile {
 		}
 	}
 
-	static public void writeVersion(OutputStream os, int minVersion)
+	private static void writeVersion(OutputStream os, int minVersion)
 			throws IOException {
 		switch (minVersion) {
 		case 0:
@@ -887,16 +886,15 @@ public class CPXcfFile extends CPAbstractFile {
 					break;
 			}
 			int layersCount = layerLinks.size();
-			for (int i = 0; i < layersCount; i++) {
-				CPLayer layer = new CPLayer(width, height);
-				if (!readLayer(is, layerLinks.get(i).intValue(), layer,
-						compression))
-				{
-					is.close();
-					return null;
-				}
-				a.getLayersVector().insertElementAt(layer, 0);
-			}
+            for (Integer layerLink : layerLinks) {
+                CPLayer layer = new CPLayer(width, height);
+                if (!readLayer(is, layerLink, layer,
+                        compression)) {
+                    is.close();
+                    return null;
+                }
+                a.getLayersVector().insertElementAt(layer, 0);
+            }
 
 			return a;
 		} catch (IOException e) {

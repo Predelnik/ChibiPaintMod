@@ -27,14 +27,14 @@ import java.awt.event.*;
 
 import chibipaint.*;
 
-public class CPToolPalette extends CPPalette implements ActionListener {
+class CPToolPalette extends CPPalette implements ActionListener {
 
-    private Image icons;
-    private static int buttonSize = 32;
+    private final Image icons;
 
     private void addButton (int iconIndex, String action, int mode, String actionDouble, int brushType)
     {
         CPIconButton button;
+        int buttonSize = 32;
         button = new CPIconButton(icons, buttonSize, buttonSize, iconIndex, 1);
         add (button);
 
@@ -44,14 +44,14 @@ public class CPToolPalette extends CPPalette implements ActionListener {
         if (actionDouble != null)
             button.setCPActionCommandDouble(actionDouble);
 
-        if (mode != controller.M_INVALID && controller.getCurMode() == mode &&
-                (brushType == controller.T_INVALID || controller.getCurBrush() == brushType))
+        if (mode != CPController.M_INVALID && controller.getCurMode() == mode &&
+                (brushType == CPController.T_INVALID || controller.getCurBrush() == brushType))
             button.setSelected (true);
     }
 
     private void addButton (int iconIndex, String action, int mode, String actionDouble)
     {
-        addButton (iconIndex, action, mode, null, controller.T_INVALID);
+        addButton (iconIndex, action, mode, null, CPController.T_INVALID);
     }
 
     private void addButton (int iconIndex, String action, int mode)

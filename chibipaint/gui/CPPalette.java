@@ -27,14 +27,14 @@ import javax.swing.*;
 import chibipaint.*;
 import chibipaint.gui.CPPaletteManager.*;
 
-public class CPPalette extends JComponent {
+class CPPalette extends JComponent {
 
-	protected CPController controller;
-	ICPPaletteContainer container;
+	final CPController controller;
+	private ICPPaletteContainer container;
 
 	String title = "";
 
-	public CPPalette(CPController controller) {
+	CPPalette(CPController controller) {
 		this.controller = controller;
 	}
 

@@ -33,11 +33,11 @@ import chibipaint.engine.CPLayer;
 
 public class CPChibiFile extends CPAbstractFile {
 
-	protected static final byte CHIB[] = { 67, 72, 73, 66 };
-	protected static final byte IOEK[] = { 73, 79, 69, 75 };
-	protected static final byte HEAD[] = { 72, 69, 65, 68 };
-	protected static final byte LAYR[] = { 76, 65, 89, 82 };
-	protected static final byte ZEND[] = { 90, 69, 78, 68 };
+	private static final byte[] CHIB = { 67, 72, 73, 66 };
+	private static final byte[] IOEK = { 73, 79, 69, 75 };
+	private static final byte[] HEAD = { 72, 69, 65, 68 };
+	private static final byte[] LAYR = { 76, 65, 89, 82 };
+	private static final byte[] ZEND = { 90, 69, 78, 68 };
 
 	@Override
 	public boolean isNative ()
@@ -75,12 +75,12 @@ public class CPChibiFile extends CPAbstractFile {
 		}
 	}
 
-	static public void writeInt(OutputStream os, int i) throws IOException {
+	private static void writeInt(OutputStream os, int i) throws IOException {
 		byte[] temp = { (byte) (i >>> 24), (byte) ((i >>> 16) & 0xff), (byte) ((i >>> 8) & 0xff), (byte) (i & 0xff) };
 		os.write(temp);
 	}
 
-	static public void writeIntArray(OutputStream os, int arr[]) throws IOException {
+	private static void writeIntArray(OutputStream os, int arr[]) throws IOException {
 		byte[] temp = new byte[arr.length * 4];
 		int idx = 0;
 		for (int i : arr) {
@@ -93,17 +93,17 @@ public class CPChibiFile extends CPAbstractFile {
 		os.write(temp);
 	}
 
-	static public void writeMagic(OutputStream os) throws IOException {
+	private static void writeMagic(OutputStream os) throws IOException {
 		os.write(CHIB);
 		os.write(IOEK);
 	}
 
-	static public void writeEnd(OutputStream os) throws IOException {
+	private static void writeEnd(OutputStream os) throws IOException {
 		os.write(ZEND);
 		writeInt(os, 0);
 	}
 
-	static public void writeHeader(OutputStream os, CPArtwork a) throws IOException {
+	private static void writeHeader(OutputStream os, CPArtwork a) throws IOException {
 		os.write(HEAD); // Chunk ID
 		writeInt(os, 16); // ChunkSize
 
@@ -113,7 +113,7 @@ public class CPChibiFile extends CPAbstractFile {
 		writeInt(os, a.getLayersNb());
 	}
 
-	static public void writeLayer(OutputStream os, CPLayer l) throws IOException {
+	private static void writeLayer(OutputStream os, CPLayer l) throws IOException {
 		byte[] title = l.getName().getBytes("UTF-8");
 
 		os.write(LAYR); // Chunk ID
@@ -209,11 +209,11 @@ public class CPChibiFile extends CPAbstractFile {
 		}
 	}
 
-	static public int readInt(InputStream is) throws IOException {
+	private static int readInt(InputStream is) throws IOException {
 		return is.read() << 24 | is.read() << 16 | is.read() << 8 | is.read();
 	}
 
-	static void realSkip(InputStream is, long bytesToSkip) throws IOException {
+	private static void realSkip(InputStream is, long bytesToSkip) throws IOException {
 		long skipped = 0, value;
 		while (skipped < bytesToSkip) {
 			value = is.read();
@@ -226,7 +226,7 @@ public class CPChibiFile extends CPAbstractFile {
 		}
 	}
 
-	static void realRead(InputStream is, byte[] buffer, int bytesToRead) throws IOException {
+	private static void realRead(InputStream is, byte[] buffer, int bytesToRead) throws IOException {
 		int read = 0, value;
 		while (read < bytesToRead) {
 			value = is.read();
@@ -239,7 +239,7 @@ public class CPChibiFile extends CPAbstractFile {
 		}
 	}
 
-	static public boolean readMagic(InputStream is) throws IOException {
+	private static boolean readMagic(InputStream is) throws IOException {
 		byte[] buffer = new byte[4];
 
 		realRead(is, buffer, 4);
@@ -248,16 +248,13 @@ public class CPChibiFile extends CPAbstractFile {
 		}
 
 		realRead(is, buffer, 4);
-		if (!Arrays.equals(buffer, IOEK)) {
-			return false;
-		}
+        return Arrays.equals(buffer, IOEK);
 
-		return true;
-	}
+    }
 
 	static class CPChibiChunk {
 
-		byte[] chunkType = new byte[4];
+		final byte[] chunkType = new byte[4];
 		int chunkSize;
 
 		public CPChibiChunk(InputStream is) throws IOException {

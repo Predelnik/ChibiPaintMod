@@ -44,8 +44,7 @@ public abstract class CPAbstractFile {
 	// If any new extension supported please add it here
 	public static String[] getSupportedExtensions ()
 	{
-		String[] sl = {"chi", "xcf", "png", "jpeg", "bmp", "gif"};
-		return sl;
+        return new String[]{"chi", "xcf", "png", "jpeg", "bmp", "gif"};
 	}
 	// Add here new extensions too, this function should also resolve stuff like jpeg/jpg
 	// The most important thing to be able to get class instance for every extension listed above

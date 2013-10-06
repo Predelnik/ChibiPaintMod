@@ -35,13 +35,16 @@ public class CPTablet {
 		return ref;
 	}
 
-	boolean tabletOK = false;
-	Object tablet;
-	Method mPoll, mGetPressure, mGetPressureExtent;
+	private boolean tabletOK = false;
+	private Object tablet;
+	private Method mPoll;
+    private Method mGetPressure;
+    private Method mGetPressureExtent;
 
-	int pressure = 0, pressureExtent = 1;
+	private int pressure = 0;
+    private int pressureExtent = 1;
 
-	public CPTablet() {
+	private CPTablet() {
 		try {
 			Class<?> tabletClass = Class.forName("cello.tablet.JTablet");
 			tablet = tabletClass.newInstance();
@@ -64,8 +67,8 @@ public class CPTablet {
 		if (tabletOK) {
 			try {
 				if (((Boolean) mPoll.invoke(tablet, (Object[]) null)).booleanValue()) {
-					pressure = ((Integer) mGetPressure.invoke(tablet, (Object[]) null)).intValue();
-					pressureExtent = ((Integer) mGetPressureExtent.invoke(tablet, (Object[]) null)).intValue();
+					pressure = (Integer) mGetPressure.invoke(tablet, (Object[]) null);
+					pressureExtent = (Integer) mGetPressureExtent.invoke(tablet, (Object[]) null);
 				}
 			} catch (Exception e) {
 				System.out.print(e.toString());

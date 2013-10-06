@@ -40,12 +40,12 @@ public class ChibiPaint extends JApplet {
 	 *
 	 */
 	private static final long serialVersionUID = 1L;
-	CPControllerApplet controller;
-	CPMainGUI mainGUI;
+	private CPControllerApplet controller;
+	private CPMainGUI mainGUI;
 
-	boolean floatingMode = false;
-	JPanel floatingPlaceholder;
-	JFrame floatingFrame;
+	private boolean floatingMode = false;
+	private JPanel floatingPlaceholder;
+	private JFrame floatingFrame;
 
 	@Override
 	public void init() {
@@ -58,7 +58,7 @@ public class ChibiPaint extends JApplet {
 				}
 			});
 		} catch (Exception e) {
-			return; // Something went wrong
+			e.printStackTrace();
 		}
 	}
 
@@ -132,7 +132,7 @@ public class ChibiPaint extends JApplet {
 				w = loadImage.getWidth(null);
 				h = loadImage.getHeight(null);
 			} catch (Exception ignored) {
-				// Ignord
+				// Ignored
 			}
 		}
 

@@ -32,12 +32,12 @@ import chibipaint.*;
 
 public class CPPaletteManager implements ContainerListener {
 
-	CPController controller;
+	private final CPController controller;
 	private JDesktopPane jdp;
 
 	private Map<String, CPPalette> palettes = new HashMap<String, CPPalette>();
-	List<CPPaletteFrame> paletteFrames = new Vector<CPPaletteFrame>();
-	List<CPPaletteFrame> hiddenFrames = new Vector<CPPaletteFrame>();
+	private final List<CPPaletteFrame> paletteFrames = new Vector<CPPaletteFrame>();
+	private final List<CPPaletteFrame> hiddenFrames = new Vector<CPPaletteFrame>();
 
 	interface ICPPaletteContainer {
 
@@ -52,7 +52,7 @@ public class CPPaletteManager implements ContainerListener {
 
 	class CPPaletteFrame extends JInternalFrame implements ICPPaletteContainer {
 
-		private List<CPPalette> list = new Vector<CPPalette>();
+		private final List<CPPalette> list = new Vector<CPPalette>();
 
 		public CPPaletteFrame(CPPalette palette) {
 			super("", true, true, false, false); // resizable/closable frame
@@ -202,7 +202,7 @@ public class CPPaletteManager implements ContainerListener {
 		showPalette(palette, show);
 	}
 
-	public void showPalette(CPPalette palette, boolean show) {
+	void showPalette(CPPalette palette, boolean show) {
 		// FIXME: this will need to be replaced by something more generic
 		CPPaletteFrame frame = (CPPaletteFrame) palette.getPaletteContainer();
 		if (frame == null) {
@@ -298,11 +298,11 @@ public class CPPaletteManager implements ContainerListener {
 		preferences.putBoolean ("Palettes Hidden", !hiddenFrames.isEmpty());
 	}
 
-	public JDesktopPane getJdp() {
+	JDesktopPane getJdp() {
 		return jdp;
 	}
 
-	public void setJdp(JDesktopPane jdp) {
+	void setJdp(JDesktopPane jdp) {
 		this.jdp = jdp;
 	}
 

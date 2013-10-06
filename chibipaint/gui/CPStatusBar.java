@@ -33,11 +33,11 @@ import chibipaint.engine.*;
 
 public class CPStatusBar extends JPanel implements CPController.ICPViewListener, CPController.ICPEventListener {
 
-	CPController controller;
-	JLabel memory, zoom;
-	private Timer timer = null;
+	private final CPController controller;
+	private final JLabel memory;
+    private final JLabel zoom;
 
-	public CPStatusBar(CPController controller) {
+    public CPStatusBar(CPController controller) {
 		super(new BorderLayout());
 		this.controller = controller;
 
@@ -61,7 +61,8 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 		controller.addViewListener(this);
 		// controller.addCPEventListener(this);
 
-		if (timer == null) {
+        Timer timer = null;
+        if (timer == null) {
 			timer = new Timer(2000, new ActionListener() {
 
 				@Override
@@ -80,7 +81,7 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 		zoom.setText("Zoom: " + format.format(viewInfo.zoom));
 	}
 
-	public void updateMemory() {
+	void updateMemory() {
 		DecimalFormat format = new DecimalFormat("0.0");
 
 		Runtime rt = java.lang.Runtime.getRuntime();

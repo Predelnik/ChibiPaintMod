@@ -28,7 +28,7 @@ public class CPBitmap {
 	// The real width and height of the bitmap in memory
 	int width, height;
 
-	public CPBitmap(int width, int height) {
+	CPBitmap(int width, int height) {
 		this.width = width;
 		this.height = height;
 	}
@@ -41,7 +41,7 @@ public class CPBitmap {
 		return height;
 	}
 
-	public CPRect getSize() {
+	CPRect getSize() {
 		return new CPRect(width, height);
 	}
 
@@ -49,7 +49,7 @@ public class CPBitmap {
 	// Clipping related methods
 	//
 
-	public boolean isInside(int x, int y) {
+	boolean isInside(int x, int y) {
 		return x >= 0 && y >= 0 && x < width && y < height;
 	}
 

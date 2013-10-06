@@ -34,7 +34,7 @@ import chibipaint.file.CPChibiFile;
 
 public class CPControllerApplet extends CPController {
 
-	private ChibiPaint applet;
+	private final ChibiPaint applet;
 	private JFrame floatingFrame;
 	private String postUrl, exitUrl, exitUrlTarget;
 
@@ -64,7 +64,7 @@ public class CPControllerApplet extends CPController {
 		this.floatingFrame = floatingFrame;
 	}
 
-	public void getAppletParams() {
+	void getAppletParams() {
 		postUrl = applet.getParameter("postUrl");
 		exitUrl = applet.getParameter("exitUrl");
 		exitUrlTarget = applet.getParameter("exitUrlTarget");
@@ -85,7 +85,7 @@ public class CPControllerApplet extends CPController {
 		super.actionPerformed(e);
 	}
 
-	public boolean sendPng() {
+	boolean sendPng() {
 		String response = "";
 
 		// First creates the PNG data
@@ -198,7 +198,7 @@ public class CPControllerApplet extends CPController {
 		}
 	}
 
-	public void goToExitUrl() {
+	void goToExitUrl() {
 		if (exitUrl != null && !exitUrl.equals("")) {
 			try {
 				applet.getAppletContext().showDocument(new URL(applet.getDocumentBase(), exitUrl), exitUrlTarget);

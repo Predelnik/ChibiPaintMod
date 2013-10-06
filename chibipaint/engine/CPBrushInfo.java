@@ -56,13 +56,15 @@ public class CPBrushInfo implements Cloneable {
 	public int strokeMode = SM_FREEHAND;
 	public float resat = 1f, bleed = 0f;
 
-	public float texture = 1f;
+	public final float texture = 1f;
 
 	public boolean pressureScattering = false;
 	public float scattering = 0.f, curScattering;
 
-	public float squeeze = 0f, curSqueeze;
-	public float angle = (float) Math.PI, curAngle;
+	private final float squeeze = 0f;
+    public float curSqueeze;
+	private final float angle = (float) Math.PI;
+    public float curAngle;
 
 	public float smoothing = 0f;
 
@@ -104,7 +106,7 @@ public class CPBrushInfo implements Cloneable {
 
 		// FIXME: what is the point of doing that?
 		if (curSize > 16) {
-			curSize = (int) curSize;
+			curSize = (float) Math.floor (curSize);
 		}
 
 		curAlpha = pressureAlpha ? (int) (alpha * pressure) : alpha;
@@ -120,7 +122,7 @@ public class CPBrushInfo implements Cloneable {
 	}
 
 	@Override
-	public Object clone() {
+	public Object clone() throws CloneNotSupportedException {
 		try {
 			return super.clone();
 		} catch (Exception ignored) {

@@ -29,43 +29,42 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
+public class CPClipboardHelper {
+    private static class TransferableImage implements Transferable {
 
-class TransferableImage implements Transferable {
+        private final Image image;
 
-    Image i;
-
-    public TransferableImage( Image i ) {
-        this.i = i;
-    }
-
-    public Object getTransferData( DataFlavor flavor )
-            throws UnsupportedFlavorException, IOException {
-        if ( flavor.equals( DataFlavor.imageFlavor ) && i != null ) {
-            return i;
+        public TransferableImage( Image imageArg ) {
+            image = imageArg;
         }
-        else {
-            throw new UnsupportedFlavorException( flavor );
-        }
-    }
 
-    public DataFlavor[] getTransferDataFlavors() {
-        DataFlavor[] flavors = new DataFlavor[ 1 ];
-        flavors[ 0 ] = DataFlavor.imageFlavor;
-        return flavors;
-    }
-
-    public boolean isDataFlavorSupported( DataFlavor flavor ) {
-        DataFlavor[] flavors = getTransferDataFlavors();
-        for ( int i = 0; i < flavors.length; i++ ) {
-            if ( flavor.equals( flavors[ i ] ) ) {
-                return true;
+        public Object getTransferData( DataFlavor flavor )
+                throws UnsupportedFlavorException, IOException {
+            if ( flavor.equals( DataFlavor.imageFlavor ) && image != null ) {
+                return image;
+            }
+            else {
+                throw new UnsupportedFlavorException( flavor );
             }
         }
-        return false;
-    }
-}
 
-public class CPClipboardHelper {
+        public DataFlavor[] getTransferDataFlavors() {
+            DataFlavor[] flavors = new DataFlavor[ 1 ];
+            flavors[ 0 ] = DataFlavor.imageFlavor;
+            return flavors;
+        }
+
+        public boolean isDataFlavorSupported( DataFlavor flavor ) {
+            DataFlavor[] flavors = getTransferDataFlavors();
+            for (DataFlavor flavor1 : flavors) {
+                if (flavor.equals(flavor1)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     static public Image GetClipboardImage ()
     {
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -85,3 +84,4 @@ public class CPClipboardHelper {
         clipboard.setContents(transferable, null);
     }
 }
+

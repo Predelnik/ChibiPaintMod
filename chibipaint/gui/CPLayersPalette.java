@@ -33,19 +33,20 @@ import chibipaint.util.*;
 
 public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkListener, ActionListener, ItemListener {
 
-	int layerH = 32, eyeW = 24;
+	private final int layerH = 32;
+    private final int eyeW = 24;
 
-	CPLayerWidget lw;
-	JScrollPane sp;
-	CPAlphaSlider alphaSlider;
-	JComboBox blendCombo;
+	private final CPLayerWidget lw;
+	private final JScrollPane sp;
+	private final CPAlphaSlider alphaSlider;
+	private final JComboBox blendCombo;
 
-	CPRenameField renameField;
+	private final CPRenameField renameField;
 
-	JCheckBox cbSampleAllLayers;
-	JCheckBox cbLockAlpha;
+	private final JCheckBox cbSampleAllLayers;
+	private final JCheckBox cbLockAlpha;
 
-	String modeNames[] = { "Normal", "Multiply", "Add", "Screen", "Lighten", "Darken", "Subtract", "Dodge", "Burn",
+	private final String[] modeNames = { "Normal", "Multiply", "Add", "Screen", "Lighten", "Darken", "Subtract", "Dodge", "Burn",
 			"Overlay", "Hard Light", "Soft Light", "Vivid Light", "Linear Light", "Pin Light" };
 
 	public CPLayersPalette(CPController controller) {
@@ -176,7 +177,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 		}
 	}
 
-	public void showRenameControl(int layerNb) {
+	void showRenameControl(int layerNb) {
 		Dimension d = lw.getSize();
 		CPArtwork artwork = controller.getArtwork();
 		Object[] layers = artwork.getLayers();

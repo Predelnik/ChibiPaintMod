@@ -44,27 +44,30 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
      */
     private static final long serialVersionUID = 1L;
 
-    CPController controller;
+    private CPController controller;
 
     // FIXME: this should not be public
     public Image img;
 
-    BufferedImage checkerboardPattern;
-    MemoryImageSource imgSource;
-    CPRect updateRegion = new CPRect();
+    private BufferedImage checkerboardPattern;
+    private MemoryImageSource imgSource;
+    private CPRect updateRegion = new CPRect();
 
-    int[] buffer;
-    CPArtwork artwork;
+    private int[] buffer;
+    private CPArtwork artwork;
 
-    boolean spacePressed = false;
+    private boolean spacePressed = false;
 
     // canvas transformations
-    float zoom = 1, minZoom = .05f, maxZoom = 16.f;
-    int offsetX, offsetY;
-    float canvasRotation = 0.f;
-    AffineTransform transform = new AffineTransform();
-    boolean applyToAllLayers = false;
-    boolean interpolation = false;
+    private float zoom = 1;
+    private final float minZoom = .05f;
+    private final float maxZoom = 16.f;
+    private int offsetX;
+    private int offsetY;
+    private float canvasRotation = 0.f;
+    private final AffineTransform transform = new AffineTransform();
+    private boolean applyToAllLayers = false;
+    private boolean interpolation = false;
 
     private int cursorX;
 
@@ -73,11 +76,14 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
     private int button;
     private Timer selectionUpdateTimer;
 
-    boolean brushPreview = false;
-    Rectangle oldPreviewRect;
-    JFrame waitingFrame;
+    private boolean brushPreview = false;
+    private Rectangle oldPreviewRect;
+    private JFrame waitingFrame;
 
-    Cursor defaultCursor, hideCursor, moveCursor, crossCursor;
+    private Cursor defaultCursor;
+    private Cursor hideCursor;
+    private Cursor moveCursor;
+    private Cursor crossCursor;
 
     private Image loadingSign;
 
@@ -85,7 +91,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         return cursorIn;
     }
 
-    boolean cursorIn;
+    private boolean cursorIn;
 
     private boolean dontStealFocus = false;
 
@@ -93,34 +99,35 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
     // FIXME: these shouldn't be public
     public int gridSize = 32;
-    public boolean showGrid = false;
+    private boolean showGrid = false;
 
     //
     // Modes system: modes control the way the GUI is reacting to the user input
     // All the tools are implemented through modes
     //
 
-    CPMode defaultMode = new CPDefaultMode();
-    CPMode colorPickerMode = new CPColorPickerMode();
-    CPMode moveCanvasMode = new CPMoveCanvasMode();
-    CPMode rotateCanvasMode = new CPRotateCanvasMode();
-    CPMode floodFillMode = new CPFloodFillMode();
-    CPMode rectMode = new CPRectSelectionMode();
-    CPMode freeSelectionMode = new CPFreeSelectionMode();
+    private final CPMode defaultMode = new CPDefaultMode();
+    private final CPMode colorPickerMode = new CPColorPickerMode();
+    private final CPMode moveCanvasMode = new CPMoveCanvasMode();
+    private final CPMode rotateCanvasMode = new CPRotateCanvasMode();
+    private final CPMode floodFillMode = new CPFloodFillMode();
+    private final CPMode rectMode = new CPRectSelectionMode();
+    private final CPMode freeSelectionMode = new CPFreeSelectionMode();
 
     // this must correspond to the stroke modes defined in CPToolInfo
-    CPMode drawingModes[] = {new CPFreehandMode(), new CPLineMode(), new CPBezierMode(),};
+    private final CPMode[] drawingModes = {new CPFreehandMode(), new CPLineMode(), new CPBezierMode(),};
 
-    CPMode curDrawMode = drawingModes[CPBrushInfo.SM_FREEHAND];
-    CPMode curSelectedMode = curDrawMode;
+    private CPMode curDrawMode = drawingModes[CPBrushInfo.SM_FREEHAND];
+    private CPMode curSelectedMode = curDrawMode;
     private CPMode activeMode = defaultMode;
 
     // Container with scrollbars
-    JPanel container;
-    JScrollBar horizontalScroll, verticalScroll;
+    private JPanel container;
+    private JScrollBar horizontalScroll;
+    private JScrollBar verticalScroll;
 
     // Are we using old JTable or 1.2
-    boolean oldJTabletUsed;
+    private boolean oldJTabletUsed;
 
     private float lastPressure;
 
@@ -258,7 +265,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         selectionUpdateTimer.start();
     }
 
-    public CPCanvas getThis() {
+    CPCanvas getThis() {
         return this;
     }
 
@@ -376,7 +383,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
     }
 
 
-    static void updateScrollBar(JScrollBar scroll, int visMin, int visWidth, int viewSize, int offset) {
+    private static void updateScrollBar(JScrollBar scroll, int visMin, int visWidth, int viewSize, int offset) {
         if (visMin >= 0 && visMin + visWidth < viewSize) {
             scroll.setEnabled(false);
         } else {
@@ -603,7 +610,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
     // Zoom
 
-    public void setZoom(float zoom) {
+    void setZoom(float zoom) {
         this.zoom = zoom;
         updateTransform();
     }
@@ -614,28 +621,28 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
     // Offset
 
-    public void setOffset(Point p) {
+    void setOffset(Point p) {
         setOffset(p.x, p.y);
     }
 
-    public void setOffset(int x, int y) {
+    void setOffset(int x, int y) {
         offsetX = x;
         offsetY = y;
         updateTransform();
     }
 
-    public Point getOffset() {
+    Point getOffset() {
         return new Point(offsetX, offsetY);
     }
 
     // Rotation
 
-    public void setRotation(float angle) {
+    void setRotation(float angle) {
         canvasRotation = (float) (angle % (2 * Math.PI));
         updateTransform();
     }
 
-    public float getRotation() {
+    float getRotation() {
         return canvasRotation;
     }
 
@@ -666,12 +673,12 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
     // More advanced zoom methods
 
-    public void zoomOnCenter(float zoomArg) {
+    void zoomOnCenter(float zoomArg) {
         Dimension d = getSize();
         zoomOnPoint(zoomArg, d.width / 2, d.height / 2);
     }
 
-    public void zoomOnPoint(float zoomArg, int centerX, int centerY) {
+    void zoomOnPoint(float zoomArg, int centerX, int centerY) {
         float zoom_ = zoomArg;
         zoom_ = Math.max(minZoom, Math.min(maxZoom, zoom_));
         if (getZoom() != zoom_) {
@@ -704,7 +711,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         centerCanvas();
     }
 
-    public void centerCanvas() {
+    void centerCanvas() {
         Dimension d = getSize();
         setOffset((d.width - (int) (artwork.width * getZoom())) / 2,
                 (d.height - (int) (artwork.height * getZoom())) / 2);
@@ -727,7 +734,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
     // Coordinates and refresh areas methods
     //
 
-    public Point2D.Float coordToDocument(Point2D p) {
+    Point2D.Float coordToDocument(Point2D p) {
         Point2D.Float result = new Point2D.Float();
 
         try {
@@ -739,7 +746,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         return result;
     }
 
-    public Point coordToDocumentInt(Point2D p) {
+    Point coordToDocumentInt(Point2D p) {
         Point2D.Float result = new Point2D.Float();
 
         try {
@@ -759,7 +766,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         return result;
     }
 
-    public Point coordToDisplayInt(Point2D p) {
+    Point coordToDisplayInt(Point2D p) {
         Point2D.Float result = new Point2D.Float();
 
         transform.transform(p, result);
@@ -767,7 +774,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         return new Point((int) result.x, (int) result.y);
     }
 
-    public Polygon coordToDisplay(CPRect r) {
+    Polygon coordToDisplay(CPRect r) {
         Polygon poly = new Polygon();
 
         Point p = coordToDisplayInt(new Point(r.left, r.top));
@@ -785,7 +792,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         return poly;
     }
 
-    public Polygon coordToDisplay(Path2D r) {
+    Polygon coordToDisplay(Path2D r) {
         Polygon poly = new Polygon();
         PathIterator it = r.getPathIterator(transform);
         float[] coords = new float[2];
@@ -798,7 +805,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         return poly;
     }
 
-    public Rectangle getRefreshArea(CPRect r) {
+    Rectangle getRefreshArea(CPRect r) {
         Point p1 = coordToDisplayInt(new Point(r.left - 1, r.top - 1));
         Point p2 = coordToDisplayInt(new Point(r.left - 1, r.bottom));
         Point p3 = coordToDisplayInt(new Point(r.right, r.top - 1));
@@ -1091,7 +1098,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
     // base class for the different modes
     //
 
-    public int getCursorX() {
+    int getCursorX() {
         return cursorX;
     }
 
@@ -1099,7 +1106,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         this.cursorX = cursorX;
     }
 
-    public int getCursorY() {
+    int getCursorY() {
         return cursorY;
     }
 
@@ -1107,7 +1114,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         this.cursorY = cursorY;
     }
 
-    public float getLastPressure() {
+    float getLastPressure() {
         return lastPressure;
     }
 
@@ -1127,11 +1134,11 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         return activeMode;
     }
 
-    public void setActiveMode(CPMode activeMode) {
+    void setActiveMode(CPMode activeMode) {
         this.activeMode = activeMode;
     }
 
-    public int getModifiers() {
+    int getModifiers() {
         return modifiers;
     }
 
@@ -1139,7 +1146,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
         this.modifiers = modifiers;
     }
 
-    public int getButton() {
+    int getButton() {
         return button;
     }
 
@@ -1651,7 +1658,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
     class CPRectSelectionMode extends CPMode {
 
         Point firstClick;
-        CPRect curRect = new CPRect();
+        final CPRect curRect = new CPRect();
 
         @Override
         public void cursorPressAction() {

@@ -30,9 +30,9 @@ import java.util.Vector;
 
 public class CPUndoManager {
 
-    private LinkedList<CPUndo> undoList = new LinkedList<CPUndo>();
+    private final LinkedList<CPUndo> undoList = new LinkedList<CPUndo>();
 
-    private LinkedList<CPUndo> redoList = new LinkedList<CPUndo>();
+    private final LinkedList<CPUndo> redoList = new LinkedList<CPUndo>();
 
     public LinkedList<CPUndo> getUndoList() {
         return undoList;
@@ -44,10 +44,10 @@ public class CPUndoManager {
 
     static class CPUndoPaint extends CPUndo {
 
-        int layer;
-        CPRect rect;
-        int[] data;
-        private CPArtwork artwork;
+        final int layer;
+        final CPRect rect;
+        final int[] data;
+        private final CPArtwork artwork;
 
 
         public CPUndoPaint(CPArtwork artwork) {
@@ -79,9 +79,9 @@ public class CPUndoManager {
 
     static class CPUndoPaintAll extends CPUndo {
 
-        Vector<int[]> data;
-        CPRect rect;
-        private CPArtwork artwork;
+        final Vector<int[]> data;
+        final CPRect rect;
+        private final CPArtwork artwork;
 
         public CPUndoPaintAll(CPArtwork artwork) {
             this.artwork = artwork;
@@ -118,9 +118,10 @@ public class CPUndoManager {
 
     static class CPUndoLayerVisible extends CPUndo {
 
-        int layer;
-        boolean oldVis, newVis;
-        private CPArtwork artwork;
+        final int layer;
+        final boolean oldVis;
+        boolean newVis;
+        private final CPArtwork artwork;
 
         public CPUndoLayerVisible(CPArtwork artwork, int layer, boolean oldVis, boolean newVis) {
             this.artwork = artwork;
@@ -160,9 +161,9 @@ public class CPUndoManager {
 
     static class CPUndoMergeAllLayers extends CPUndo {
 
-        Vector<CPLayer> oldLayers;
-        int oldActiveLayer;
-        private CPArtwork artwork;
+        final Vector<CPLayer> oldLayers;
+        final int oldActiveLayer;
+        private final CPArtwork artwork;
 
         @SuppressWarnings("unchecked")
         public CPUndoMergeAllLayers(CPArtwork artwork) {
@@ -194,9 +195,9 @@ public class CPUndoManager {
 
     static class CPUndoMergeDownLayer extends CPUndo {
 
-        int layer;
+        final int layer;
         CPLayer layerBottom, layerTop;
-        private CPArtwork artwork;
+        private final CPArtwork artwork;
 
         public CPUndoMergeDownLayer(CPArtwork artwork, int layer) {
             this.artwork = artwork;
@@ -236,8 +237,9 @@ public class CPUndoManager {
 
     static class CPUndoMoveLayer extends CPUndo {
 
-        int from, to;
-        private CPArtwork artwork;
+        final int from;
+        final int to;
+        private final CPArtwork artwork;
 
         public CPUndoMoveLayer(CPArtwork artwork, int from, int to) {
             this.artwork = artwork;
@@ -262,9 +264,9 @@ public class CPUndoManager {
 
     static class CPUndoRemoveLayer extends CPUndo {
 
-        int layer;
-        CPLayer layerObj;
-        private CPArtwork artwork;
+        final int layer;
+        final CPLayer layerObj;
+        private final CPArtwork artwork;
 
         public CPUndoRemoveLayer(CPArtwork artwork, int layer, CPLayer layerObj) {
             this.artwork = artwork;
@@ -297,9 +299,9 @@ public class CPUndoManager {
 
     static class CPUndoSelection extends CPUndo {
 
-        CPRect rect;
-        byte[] data;
-        private CPArtwork artwork;
+        final CPRect rect;
+        final byte[] data;
+        private final CPArtwork artwork;
 
         public CPUndoSelection(CPArtwork artwork, CPSelection pastSelection, CPRect changedRect) {
             this.artwork = artwork;
@@ -340,8 +342,8 @@ public class CPUndoManager {
 
     static class CPUndoAddLayer extends CPUndo {
 
-        int layer;
-        private CPArtwork artwork;
+        final int layer;
+        private final CPArtwork artwork;
 
         public CPUndoAddLayer(CPArtwork artwork, int layer) {
             this.artwork = artwork;
@@ -370,8 +372,8 @@ public class CPUndoManager {
 
     static class CPUndoDuplicateLayer extends CPUndo {
 
-        int layer;
-        private CPArtwork artwork;
+        final int layer;
+        private final CPArtwork artwork;
 
         public CPUndoDuplicateLayer(CPArtwork artwork, int layer) {
             this.artwork = artwork;
@@ -405,9 +407,10 @@ public class CPUndoManager {
 
     static class CPUndoLayerAlpha extends CPUndo {
 
-        int layer;
-        int from, to;
-        private CPArtwork artwork;
+        final int layer;
+        final int from;
+        int to;
+        private final CPArtwork artwork;
 
         public CPUndoLayerAlpha(CPArtwork artwork, int layer, int alpha) {
             this.artwork = artwork;
@@ -447,9 +450,10 @@ public class CPUndoManager {
 
     static class CPUndoLayerMode extends CPUndo {
 
-        int layer;
-        int from, to;
-        private CPArtwork artwork;
+        final int layer;
+        final int from;
+        int to;
+        private final CPArtwork artwork;
 
         public CPUndoLayerMode(CPArtwork artwork, int layer, int mode) {
             this.artwork = artwork;
@@ -489,9 +493,10 @@ public class CPUndoManager {
 
     static class CPUndoLayerRename extends CPUndo {
 
-        int layer;
-        String from, to;
-        private CPArtwork artwork;
+        final int layer;
+        final String from;
+        String to;
+        private final CPArtwork artwork;
 
         public CPUndoLayerRename(CPArtwork artwork, int layer, String name) {
             this.artwork = artwork;

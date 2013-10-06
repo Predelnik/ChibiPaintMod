@@ -24,13 +24,16 @@ package chibipaint.engine;
 
 public class CPBrushManager {
 
-	byte[] brush, brushAA;
+	private byte[] brush;
+    private final byte[] brushAA;
 
-	byte[] cacheBrush;
-	float cacheSize, cacheSqueeze, cacheAngle;
-	int cacheType;
+	private byte[] cacheBrush;
+	private float cacheSize;
+    private float cacheSqueeze;
+    private float cacheAngle;
+	private int cacheType;
 
-	CPGreyBmp texture;
+	private CPGreyBmp texture;
 
 	private static final float MAX_SQUEEZE = 10;
 
@@ -158,7 +161,7 @@ public class CPBrushManager {
 		return brushAA;
 	}
 
-	static byte[] buildBrush(byte[] brushArg, CPBrushInfo brushInfo) {
+	private static byte[] buildBrush(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 		float sqrRadius = (brushInfo.curSize / 2) * (brushInfo.curSize / 2);
@@ -189,7 +192,7 @@ public class CPBrushManager {
 		return brushArg;
 	}
 
-	static byte[] buildBrushAA(byte[] brushArg, CPBrushInfo brushInfo) {
+	private static byte[] buildBrushAA(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 		float sqrRadius = (brushInfo.curSize / 2) * (brushInfo.curSize / 2);
@@ -237,7 +240,7 @@ public class CPBrushManager {
 		return brushArg;
 	}
 
-	static byte[] buildBrushSquare(byte[] brushArg, CPBrushInfo brushInfo) {
+	private static byte[] buildBrushSquare(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 
@@ -267,7 +270,7 @@ public class CPBrushManager {
 		return brushArg;
 	}
 
-	static byte[] buildBrushSquareAA(byte[] brushArg, CPBrushInfo brushInfo) {
+	private static byte[] buildBrushSquareAA(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 
@@ -318,7 +321,7 @@ public class CPBrushManager {
 		return brushArg;
 	}
 
-	static byte[] buildBrushSoft(byte[] brushArg, CPBrushInfo brushInfo) {
+	private static byte[] buildBrushSoft(byte[] brushArg, CPBrushInfo brushInfo) {
 		int intSize = (int) (brushInfo.curSize + .99f);
 		float center = intSize / 2.f;
 		float sqrRadius = (brushInfo.curSize / 2) * (brushInfo.curSize / 2);

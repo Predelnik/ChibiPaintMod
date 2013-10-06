@@ -56,7 +56,7 @@ public class CPGreyBmp extends CPBitmap {
         int h = r.getHeight();
         for (int j = 0; j < h; j++) {
             for (int i = 0; i < w; i++) {
-                buffer[i + j * w] = (byte) ((byte) data[(j + r.top) * width + i + r.left] ^ (byte) bmp.data[(j + r.top) * width + i + r.left]);
+                buffer[i + j * w] = (byte) (data[(j + r.top) * width + i + r.left] ^ bmp.data[(j + r.top) * width + i + r.left]);
             }
         }
 
@@ -71,7 +71,7 @@ public class CPGreyBmp extends CPBitmap {
         int h = r.getHeight();
         for (int j = 0; j < h; j++) {
             for (int i = 0; i < w; i++) {
-                data[(j + r.top) * width + i + r.left] = (byte) ((byte) data[(j + r.top) * width + i + r.left] ^ (byte) buffer[i + j * w]);
+                data[(j + r.top) * width + i + r.left] = (byte) (data[(j + r.top) * width + i + r.left] ^ buffer[i + j * w]);
             }
         }
     }

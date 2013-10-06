@@ -44,12 +44,16 @@ import chibipaint.gui.CPCanvas;
 import chibipaint.util.CPRect;
 
 public class CPSelection extends CPGreyBmp {
-    byte[] markerArray;
+    private final int PIXEL_IN_SELECTION_THRESHOLD = 64;     // Pixels with value > this treated as once that belong to selection
+    final float DASH_ZOOM_INDEPENDENT_LENGTH = 8.2f; // Dash final length, independent from current zoom
+    private byte[] markerArray;
     private float initialDashPiece = 0.0f;
     private boolean initialDashDrawn = false;
-    private boolean dashDrawn;
     private ArrayList<PixelSingleLine> CurPixelLines;
-    int minX, minY, maxX, maxY;
+    private int minX;
+    private int minY;
+    private int maxX;
+    private int maxY;
 
     public CPSelection(int width, int height) {
         super(width, height);
@@ -119,21 +123,15 @@ public class CPSelection extends CPGreyBmp {
     }
 
     private boolean getIsActive(int i, int j) {
-        if (isInside(i, j))
-            return getIsActiveInBounds(i, j);
-        else
-            return false;
+        return isInside(i, j) && getIsActiveInBounds(i, j);
     }
 
     private boolean getIsActiveInBounds(int i, int j) {
-        return (data[j * width + i] != 0);
+        return ((data[j * width + i] & 0xff) > PIXEL_IN_SELECTION_THRESHOLD);
     }
 
     private boolean isActive(PixelCoords px) {
-        if (isInside(px.x, px.y))
-            return (data[px.y * width + px.x] != 0);
-        else
-            return false;
+        return isInside(px.x, px.y) && getIsActiveInBounds(px.x, px.y);
     }
 
     private int isMarked(PixelCoords px) {
@@ -149,38 +147,11 @@ public class CPSelection extends CPGreyBmp {
         g2d.draw(new Line2D.Float(p1, p2));
     }
 
-    // Thanks to http://www.java2s.com/Code/Java/2D-Graphics-GUI/CanceltheeffectsofthezoomonaparticularStroke.htm
-    public static Stroke getInvertedZoomedStroke(Stroke stroke, double zoom) {
-        if (stroke == null || !(stroke instanceof BasicStroke)) return stroke;
 
-        BasicStroke bs = (BasicStroke) stroke;
-        float[] dashArray = bs.getDashArray();
-
-        float[] newDashArray = null;
-        if (dashArray != null) {
-            newDashArray = new float[dashArray.length];
-            for (int i = 0; i < newDashArray.length; ++i) {
-                newDashArray[i] = (float) (dashArray[i] / zoom);
-            }
-        }
-
-        BasicStroke newStroke = new BasicStroke(
-                (float) (bs.getLineWidth() / zoom),
-                bs.getEndCap(),
-                bs.getLineJoin(),
-                bs.getMiterLimit(),
-                //(float)(bs.getMiterLimit() / zoom),
-                newDashArray,
-                (float) (bs.getDashPhase() / zoom)
-        );
-        return newStroke;
-    }
-
-
-    int[][] Mv = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-    int[][] Corners = {{1, 1}, {0, 1}, {0, 0}, {1, 0}};
-    int[] OppositeDirection = {2, 3, 0, 1};
-    int[] PowersOf2 = {1, 2, 4, 8};
+    private final int[][] Mv = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
+    private final int[][] Corners = {{1, 1}, {0, 1}, {0, 0}, {1, 0}};
+    private final int[] OppositeDirection = {2, 3, 0, 1};
+    private final int[] PowersOf2 = {1, 2, 4, 8};
 
     public void deactivate() {
         Arrays.fill(data, (byte) 0);
@@ -206,7 +177,7 @@ public class CPSelection extends CPGreyBmp {
     {
         for (int j = 0; j < height; j++)
             for (int i = 0; i < width; i++) {
-                    dataArg[j * width + i] = (dataArg[j * width + i] & (0x00ffffff)) | ((int)((dataArg[j * width + i] & (0xff000000) >> 24) * (getData (i, j))) << 24);
+                    dataArg[j * width + i] = (dataArg[j * width + i] & (0x00ffffff)) | ((int)(((dataArg[j * width + i] & (0xff000000)) >> 24) * (getData (i, j))) << 24);
             }
     }
 
@@ -220,7 +191,8 @@ public class CPSelection extends CPGreyBmp {
 
 
     class PixelCoords implements Comparable<PixelCoords> {
-        int x, y;
+        int x;
+        final int y;
 
         PixelCoords(int xArg, int yArg) {
             x = xArg;
@@ -267,14 +239,14 @@ public class CPSelection extends CPGreyBmp {
 
     }
 
-    class Lump extends ArrayList<PixelCoords> {
+    private class Lump extends ArrayList<PixelCoords> {
     }
 
-    class PixelSingleLine extends ArrayList<PixelCoords> {
+    private class PixelSingleLine extends ArrayList<PixelCoords> {
         boolean backwards = false;
     }
 
-    static int directionsNum = 4;
+    private static final int directionsNum = 4;
 
     enum Directions {
         Right,
@@ -395,7 +367,7 @@ public class CPSelection extends CPGreyBmp {
             return;
 
         Color prevColor = g2d.getColor();
-        float defaultDashLength = 8.2f / canvas.getZoom();
+        float defaultDashLength = DASH_ZOOM_INDEPENDENT_LENGTH / canvas.getZoom();
         float dashLength = defaultDashLength;
 
         for (int i = 0; i < CurPixelLines.size(); i++) {
@@ -412,7 +384,7 @@ public class CPSelection extends CPGreyBmp {
 				dashLength = defaultDashLength;
 			 */
 
-            dashDrawn = initialDashDrawn;
+            boolean dashDrawn = initialDashDrawn;
             float dashCurLength = initialDashPiece * dashLength;
             for (int j = 0; j < CurPixelLines.get(i).size(); j++) {
                 PixelSingleLine CurPSL = CurPixelLines.get(i);
@@ -548,7 +520,7 @@ public class CPSelection extends CPGreyBmp {
         return ResultingLump;
     }
 
-    final float oneDividedBy255 = 0.00392156862745f;
+    private final float oneDividedBy255 = 0.00392156862745f;
 
     public float getData(int i, int j) {
         return (minX < maxX && minY < maxY) ? ((data[j * width + i] & 0xFF) * oneDividedBy255) : 1.0f;

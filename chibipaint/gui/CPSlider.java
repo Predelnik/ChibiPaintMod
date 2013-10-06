@@ -29,12 +29,15 @@ import javax.swing.*;
 
 class CPSlider extends JComponent implements MouseListener, MouseMotionListener {
 
-	int value, valueRange;
-	int minValue = 0, maxValue;
+	int value;
+    private final int valueRange;
+	int minValue = 0;
+    private final int maxValue;
 	String title;
 
-	boolean dragNormal = false, dragPrecise = false;
-	int dragPreciseX;
+	private boolean dragNormal = false;
+    private boolean dragPrecise = false;
+	private int dragPreciseX;
 
 	boolean centerMode = false;
 
@@ -77,17 +80,16 @@ class CPSlider extends JComponent implements MouseListener, MouseMotionListener 
 	public void onValueChange() {
 	}
 
-	public void onFinalValueChange() {
+	void onFinalValueChange() {
 	}
 
 	public void setValue(int value) {
-		int newValue = Math.max(minValue, Math.min(maxValue, value));
-		this.value = newValue;
+        this.value = Math.max(minValue, Math.min(maxValue, value));
 		onValueChange();
 		repaint();
 	}
 
-	public void mouseSelect(MouseEvent e) {
+	void mouseSelect(MouseEvent e) {
 		Dimension d = getSize();
 
 		int x = e.getX();

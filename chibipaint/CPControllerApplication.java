@@ -42,27 +42,27 @@ import chibipaint.file.CPAbstractFile;
 
 public class CPControllerApplication extends CPController {
 
-    JFrame mainFrame;
-    File currentFile;
-    CPUndo latestRedoAction = null;
-    CPUndo latestUndoAction = null;
-    boolean redoActionMayChange = false;
+    private final JFrame mainFrame;
+    private File currentFile;
+    private CPUndo latestRedoAction = null;
+    private CPUndo latestUndoAction = null;
+    private boolean redoActionMayChange = false;
     boolean changed;
 
     @Override
     public void actionPerformed(ActionEvent e) {
         // Let's generate appropriate command reaction for everything
         String[] supportedExts = CPAbstractFile.getSupportedExtensions();
-        for (int i = 0; i < supportedExts.length; i++) {
-            if (e.getActionCommand().equals("CPSave" + supportedExts[i].toUpperCase()))
-                saveLoadImageFile(supportedExts[i], action_save_load.ACTION_SAVE, "");
+        for (String supportedExt : supportedExts) {
+            if (e.getActionCommand().equals("CPSave" + supportedExt.toUpperCase()))
+                saveLoadImageFile(supportedExt, action_save_load.ACTION_SAVE, "");
 
-            if (e.getActionCommand().equals("CPLoad" + supportedExts[i].toUpperCase()))
-                saveLoadImageFile(supportedExts[i], action_save_load.ACTION_LOAD, "");
+            if (e.getActionCommand().equals("CPLoad" + supportedExt.toUpperCase()))
+                saveLoadImageFile(supportedExt, action_save_load.ACTION_LOAD, "");
         }
 
         if (e.getActionCommand().equals("CPExit"))
-            ((ChibiApp) mainFrame).getToolkit().getSystemEventQueue().postEvent(new WindowEvent((mainFrame), WindowEvent.WINDOW_CLOSING));
+            mainFrame.getToolkit().getSystemEventQueue().postEvent(new WindowEvent((mainFrame), WindowEvent.WINDOW_CLOSING));
 
         // Here we explicitly point that chi extension is native though, it's a little bit bad
         if (e.getActionCommand().equals("CPSave"))
@@ -93,7 +93,7 @@ public class CPControllerApplication extends CPController {
         return mainFrame;
     }
 
-    public void resetEverything(CPArtwork newArtwork) {
+    void resetEverything(CPArtwork newArtwork) {
         ((ChibiApp) mainFrame).recreateEverything(newArtwork);
     }
 
@@ -179,7 +179,7 @@ public class CPControllerApplication extends CPController {
         // Some bugs mat still be present, need further testing
     }
 
-    public void setLatestAction(CPUndo undoAction, CPUndo redoAction) {
+    void setLatestAction(CPUndo undoAction, CPUndo redoAction) {
         latestRedoAction = redoAction;
         latestUndoAction = undoAction;
         updateChanges(undoAction, redoAction);
@@ -235,12 +235,12 @@ public class CPControllerApplication extends CPController {
         ACTION_SAVE, ACTION_LOAD
     }
 
-    static String recent_file_string(int i) {
+    private static String recent_file_string(int i) {
         return "Recent File[" + i + "]";
     }
 
     // TODO: make more distinguishable messages
-    static final public String FILE_IS_UNSUPPORTED_STRING = "Sorry, but the type of action you are trying to perform is currently unsupported or target file is unsupported or corrupted.";
+    private static final String FILE_IS_UNSUPPORTED_STRING = "Sorry, but the type of action you are trying to perform is currently unsupported or target file is unsupported or corrupted.";
 
     // file_name used only in recent files handling, very scarce use actually
     private boolean saveLoadImageFile(final String ext, // Extension characterizes type of file
@@ -288,7 +288,7 @@ public class CPControllerApplication extends CPController {
             }
         };
 
-        if (file_name == "") {
+        if (file_name.equals("")) {
 
             FileNameExtensionFilter filter = null;
             filter = file.fileFilter();
@@ -312,9 +312,9 @@ public class CPControllerApplication extends CPController {
             }
         }
 
-        if (returnVal == JFileChooser.APPROVE_OPTION || file_name != "") {
+        if (returnVal == JFileChooser.APPROVE_OPTION || !file_name.equals("")) {
             File selectedFile;
-            if (file_name != "")
+            if (!file_name.equals(""))
                 selectedFile = new File(file_name);
             else
                 selectedFile = fc.getSelectedFile();

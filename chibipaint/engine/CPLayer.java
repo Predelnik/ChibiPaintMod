@@ -28,8 +28,9 @@ import chibipaint.util.*;
 
 public class CPLayer extends CPColorBmp {
 
-	protected int blendMode = LM_NORMAL, alpha = 100;
-	protected String name;
+	private int blendMode = LM_NORMAL;
+    int alpha = 100;
+	private String name;
 	private boolean visible = true;
 
 	public final static int LM_NORMAL = 0;
@@ -58,7 +59,7 @@ public class CPLayer extends CPColorBmp {
 	public CPLayer(int width, int height) {
 		super(width, height);
 
-		setName(new String(""));
+		setName("");
 		clear(0xffffff);
 
 		if (softLightLUTSquare == null) {
@@ -66,7 +67,7 @@ public class CPLayer extends CPColorBmp {
 		}
 	}
 
-	public static void makeLookUpTables() {
+	private static void makeLookUpTables() {
 
 		// V - V^2 table
 		softLightLUTSquare = new int[256];
@@ -274,7 +275,7 @@ public class CPLayer extends CPColorBmp {
 		}
 	}
 
-	public void fusionWithMultiply(CPLayer fusion, CPRect rc) {
+	void fusionWithMultiply(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -283,11 +284,9 @@ public class CPLayer extends CPColorBmp {
 			for (int i = rect.left; i < rect.right; i++, off++) {
 				int color1 = data[off];
 				int curAlpha = (color1 >>> 24) * this.alpha / 100;
-				if (curAlpha == 0) {
-					continue;
-				} else {
+				if (curAlpha != 0) {
 					int color2 = fusion.data[off];
-					color1 = color1 ^ 0xffffffff;
+					color1 = ~color1;
 					fusion.data[off] = 0xff000000
 							| ((color2 >>> 16 & 0xff) - (color1 >>> 16 & 0xff)
 									* (color2 >>> 16 & 0xff) * curAlpha
@@ -302,7 +301,7 @@ public class CPLayer extends CPColorBmp {
 		}
 	}
 
-	public void fusionWithNormal(CPLayer fusion, CPRect rc) {
+	void fusionWithNormal(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -311,11 +310,9 @@ public class CPLayer extends CPColorBmp {
 			for (int i = rect.left; i < rect.right; i++, off++) {
 				int color1 = data[off];
 				int alphaLocal = (color1 >>> 24) * this.alpha / 100;
-				if (alphaLocal == 0) {
-					continue;
-				} else if (alphaLocal == 255) {
+                if (alphaLocal == 255) {
 					fusion.data[off] = color1;
-				} else {
+				} else if (alphaLocal != 0) {
 					int color2 = fusion.data[off];
 
 					int invAlpha = 255 - alphaLocal;
@@ -331,7 +328,7 @@ public class CPLayer extends CPColorBmp {
 		}
 	}
 
-	public void fusionWithNormalNoAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithNormalNoAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -340,11 +337,9 @@ public class CPLayer extends CPColorBmp {
 			for (int i = rect.left; i < rect.right; i++, off++) {
 				int color1 = data[off];
 				int alphaLocal = color1 >>> 24;
-		if (alphaLocal == 0) {
-			continue;
-		} else if (alphaLocal == 255) {
+         if (alphaLocal == 255) {
 			fusion.data[off] = color1;
-		} else {
+		} else if (alphaLocal != 0) {
 			int color2 = fusion.data[off];
 
 			int invAlpha = 255 - alphaLocal;
@@ -360,7 +355,7 @@ public class CPLayer extends CPColorBmp {
 		}
 	}
 
-	public void fusionWithAdd(CPLayer fusion, CPRect rc) {
+	void fusionWithAdd(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -369,9 +364,7 @@ public class CPLayer extends CPColorBmp {
 			for (int i = rect.left; i < rect.right; i++, off++) {
 				int color1 = data[off];
 				int alphaLocal = (color1 >>> 24) * this.alpha / 100;
-				if (alphaLocal == 0) {
-					continue;
-				} else {
+				if (alphaLocal != 0) {
 					int color2 = fusion.data[off];
 
 					int r = Math.min(255, (color2 >>> 16 & 0xff) + alphaLocal
@@ -390,7 +383,7 @@ public class CPLayer extends CPColorBmp {
 	// Normal Alpha Mode
 	// C = A*d + B*(1-d) and d = aa / (aa + ab - aa*ab)
 
-	public void fusionWithNormalFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithNormalFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -423,7 +416,7 @@ public class CPLayer extends CPColorBmp {
 	// Multiply Mode
 	// C = (A*aa*(1-ab) + B*ab*(1-aa) + A*B*aa*ab) / (aa + ab - aa*ab)
 
-	public void fusionWithMultiplyFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithMultiplyFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -463,7 +456,7 @@ public class CPLayer extends CPColorBmp {
 	// Linear Dodge (Add) Mode
 	// C = (aa * A + ab * B) / (aa + ab - aa*ab)
 
-	public void fusionWithAddFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithAddFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -511,7 +504,7 @@ public class CPLayer extends CPColorBmp {
 	// Linear Burn (Sub) Mode
 	// C = (aa * A + ab * B - aa*ab ) / (aa + ab - aa*ab)
 
-	public void fusionWithSubtractFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithSubtractFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -557,7 +550,7 @@ public class CPLayer extends CPColorBmp {
 	// C = 1 - (((1-A)*aa*(1-ab) + (1-B)*ab*(1-aa) + (1-A)*(1-B)*aa*ab) / (aa +
 	// ab - aa*ab))
 
-	public void fusionWithScreenFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithScreenFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -601,7 +594,7 @@ public class CPLayer extends CPColorBmp {
 	// if B >= A: C = A*d + B*(1-d) and d = aa * (1-ab) / (aa + ab - aa*ab)
 	// if A > B: C = B*d + A*(1-d) and d = ab * (1-aa) / (aa + ab - aa*ab)
 
-	public void fusionWithLightenFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithLightenFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -653,7 +646,7 @@ public class CPLayer extends CPColorBmp {
 	// if B >= A: C = B*d + A*(1-d) and d = ab * (1-aa) / (aa + ab - aa*ab)
 	// if A > B: C = A*d + B*(1-d) and d = aa * (1-ab) / (aa + ab - aa*ab)
 
-	public void fusionWithDarkenFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithDarkenFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -704,7 +697,7 @@ public class CPLayer extends CPColorBmp {
 	//
 	// C = (aa*(1-ab)*A + (1-aa)*ab*B + aa*ab*B/(1-A)) / (aa + ab - aa*ab)
 
-	public void fusionWithDodgeFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithDodgeFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -726,7 +719,7 @@ public class CPLayer extends CPColorBmp {
 					int alpha12 = alpha1 * alpha2 / 255;
 					int alpha1n2 = alpha1 * (alpha2 ^ 0xff) / 255;
 					int alphan12 = (alpha1 ^ 0xff) * alpha2 / 255;
-					int invColor1 = color1 ^ 0xffffffff;
+					int invColor1 = ~color1;
 
 					fusion.data[off] = newAlpha << 24
 							| (((color1 >>> 16 & 0xff) * alpha1n2)
@@ -759,7 +752,7 @@ public class CPLayer extends CPColorBmp {
 	//
 	// C = (aa*(1-ab)*A + (1-aa)*ab*B + aa*ab*(1-(1-B)/A)) / (aa + ab - aa*ab)
 
-	public void fusionWithBurnFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithBurnFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -781,7 +774,7 @@ public class CPLayer extends CPColorBmp {
 					int alpha12 = alpha1 * alpha2 / 255;
 					int alpha1n2 = alpha1 * (alpha2 ^ 0xff) / 255;
 					int alphan12 = (alpha1 ^ 0xff) * alpha2 / 255;
-					int invColor2 = color2 ^ 0xffffffff;
+					int invColor2 = ~color2;
 
 					fusion.data[off] = newAlpha << 24
 							| (((color1 >>> 16 & 0xff) * alpha1n2)
@@ -816,7 +809,7 @@ public class CPLayer extends CPColorBmp {
 	// If B > 0.5 C = (A*aa*(1-ab) + B*ab*(1-aa) + aa*ab*(1 - 2*(1-A)*(1-B)) /
 	// (aa + ab - aa*ab)
 
-	public void fusionWithOverlayFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithOverlayFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -876,7 +869,7 @@ public class CPLayer extends CPColorBmp {
 	// If A > 0.5 C = (A*aa*(1-ab) + B*ab*(1-aa) + aa*ab*(1 - 2*(1-A)*(1-B)) /
 	// (aa + ab - aa*ab)
 
-	public void fusionWithHardLightFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithHardLightFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -934,7 +927,7 @@ public class CPLayer extends CPColorBmp {
 	// A < 0.5 => C = (2*A - 1) * (B - B^2) + B
 	// A > 0.5 => C = (2*A - 1) * (sqrt(B) - B) + B
 
-	public void fusionWithSoftLightFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithSoftLightFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -995,7 +988,7 @@ public class CPLayer extends CPColorBmp {
 	// A < 0.5 => C = 1 - (1-B) / (2*A)
 	// A > 0.5 => C = B / (2*(1-A))
 
-	public void fusionWithVividLightFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithVividLightFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -1055,7 +1048,7 @@ public class CPLayer extends CPColorBmp {
 	// Linear Light Mode
 	// C = B + 2*A -1
 
-	public void fusionWithLinearLightFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithLinearLightFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -1111,7 +1104,7 @@ public class CPLayer extends CPColorBmp {
 	// B < 2*A-1 => C = 2*A-1
 	// else => C = B
 
-	public void fusionWithPinLightFullAlpha(CPLayer fusion, CPRect rc) {
+	void fusionWithPinLightFullAlpha(CPLayer fusion, CPRect rc) {
 		CPRect rect = new CPRect(0, 0, width, height);
 		rect.clip(rc);
 
@@ -1203,9 +1196,7 @@ public class CPLayer extends CPColorBmp {
 		rect.clip(r);
 
 		for (int j = rect.top, s = rect.bottom - 1; j < rect.bottom; j++, s--) {
-			for (int i = rect.left; i < rect.right; i++) {
-				data[i + j * width] = source.data[i + s * width];
-			}
+            System.arraycopy(source.data, rect.left + s * width, data, rect.left + j * width, rect.right - rect.left);
 		}
 	}
 

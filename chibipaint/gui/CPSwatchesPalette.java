@@ -30,9 +30,9 @@ import javax.swing.*;
 import chibipaint.*;
 import chibipaint.util.*;
 
-public class CPSwatchesPalette extends CPPalette {
+class CPSwatchesPalette extends CPPalette {
 
-	int initColors[] = { 0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff };
+	private final int[] initColors = { 0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff };
 
 	public CPSwatchesPalette(CPController controller) {
 		super(controller);

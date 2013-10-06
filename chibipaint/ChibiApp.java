@@ -38,16 +38,16 @@ public class ChibiApp extends JFrame {
 	 *
 	 */
 	private static final long serialVersionUID = 1L;
-	CPControllerApplication controller;
-	CPMainGUI mainGUI;
+	private final CPControllerApplication controller;
+	private final CPMainGUI mainGUI;
 	public enum appState {
 		FREE,
 		SAVING,
 		LOADING
 	}
-	appState curAppState = appState.FREE;
+	private appState curAppState = appState.FREE;
 
-	// Returns if it is ok to continue operation
+	// Returns true if it is ok to continue operation
 	boolean confirmDialog ()
 	{
 		if (this.controller.changed)
@@ -71,7 +71,7 @@ public class ChibiApp extends JFrame {
 		return true;
 	}
 
-	public ChibiApp() {
+	private ChibiApp() {
 		super("ChibiPaintMod");
 
 		controller = new CPControllerApplication(this);
@@ -100,6 +100,7 @@ public class ChibiApp extends JFrame {
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e1) {
+                        e1.printStackTrace();
 					}
 					// Waiting while it would be safe exit (all changes saved)
 				}
@@ -137,19 +138,19 @@ public class ChibiApp extends JFrame {
 		frame.setVisible(true);
 	}
 
-	static void SaveWindowSettings (JFrame frame) {
+	private static void SaveWindowSettings(JFrame frame) {
 
 		Preferences userRoot = Preferences.userRoot();
 		Preferences preferences = userRoot.node( "chibipaintmod" );
-		int s = frame.getExtendedState ();;
-		preferences.putInt ("window_state", s);
+		int s = frame.getExtendedState ();
+        preferences.putInt ("window_state", s);
 		int h = frame.getHeight ();
 		int w = frame.getWidth ();
 		preferences.putInt ("window_height", h);
 		preferences.putInt ("window_width", w);
 	}
 
-	static void createChibiApp() {
+	private static void createChibiApp() {
 		JFrame frame = new ChibiApp();
 		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		LoadWindowSettings (frame);

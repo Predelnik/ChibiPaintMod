@@ -33,14 +33,17 @@ import javax.swing.*;
 import chibipaint.*;
 import chibipaint.engine.*;
 
-public class CPTexturePalette extends CPPalette {
+class CPTexturePalette extends CPPalette {
 
-	Vector<CPGreyBmp> textures = new Vector<CPGreyBmp>();
-	CPGreyBmp selectedTexture, processedTexture;
+	private final Vector<CPGreyBmp> textures = new Vector<CPGreyBmp>();
+	private CPGreyBmp selectedTexture;
+    private CPGreyBmp processedTexture;
 
-	CPOptionsPanel optionsPanel;
-	boolean mirror=false, inverse=false;
-	float brightness=0f, contrast=0f;
+	private final CPOptionsPanel optionsPanel;
+	private boolean mirror=false;
+    private boolean inverse=false;
+	private float brightness=0f;
+    private float contrast=0f;
 
 	public CPTexturePalette(CPController controller) {
 		super(controller);
@@ -117,6 +120,7 @@ public class CPTexturePalette extends CPPalette {
 			try {
 				grabber.grabPixels();
 			} catch (InterruptedException e) {
+                e.printStackTrace();
 			}
 
 			CPGreyBmp texture = new CPGreyBmp(width, height);
@@ -128,7 +132,7 @@ public class CPTexturePalette extends CPPalette {
 		}
 	}
 
-	static CPGreyBmp makeDotTexture(int size) {
+	private static CPGreyBmp makeDotTexture(int size) {
 		CPGreyBmp texture = new CPGreyBmp(size, size);
 		for (int i = 1; i < size * size; i++) {
 			texture.data[i] = (byte) 255;
@@ -136,7 +140,7 @@ public class CPTexturePalette extends CPPalette {
 		return texture;
 	}
 
-	static CPGreyBmp makeCheckerBoardTexture(int size) {
+	private static CPGreyBmp makeCheckerBoardTexture(int size) {
 		int textureSize = 2*size;
 		CPGreyBmp texture = new CPGreyBmp(textureSize, textureSize);
 		for (int i = 0; i < textureSize; i++) {
@@ -147,7 +151,7 @@ public class CPTexturePalette extends CPPalette {
 		return texture;
 	}
 
-	static CPGreyBmp makeVertLinesTexture(int lineSize, int size) {
+	private static CPGreyBmp makeVertLinesTexture(int lineSize, int size) {
 		CPGreyBmp texture = new CPGreyBmp(size, size);
 		for (int i = 0; i < size * size; i++) {
 			if (i % size >= lineSize) {
@@ -157,7 +161,7 @@ public class CPTexturePalette extends CPPalette {
 		return texture;
 	}
 
-	static CPGreyBmp makeHorizLinesTexture(int lineSize, int size) {
+	private static CPGreyBmp makeHorizLinesTexture(int lineSize, int size) {
 		CPGreyBmp texture = new CPGreyBmp(size, size);
 		for (int i = 0; i < size * size; i++) {
 			if (i / size >= lineSize) {
@@ -249,7 +253,7 @@ public class CPTexturePalette extends CPPalette {
 	}
 
 	class CPTextureButtonAction extends AbstractAction {
-		CPGreyBmp texture;
+		final CPGreyBmp texture;
 
 		public CPTextureButtonAction(CPGreyBmp texture) {
 			this.texture = texture;
@@ -266,10 +270,10 @@ public class CPTexturePalette extends CPPalette {
 		final static int height = 200;
 		final static int previewSize = 64;
 
-		JCheckBox cbInverse;
-		JCheckBox cbMirror;
-		CPSlider slBrightness;
-		CPSlider slContrast;
+		final JCheckBox cbInverse;
+		final JCheckBox cbMirror;
+		final CPSlider slBrightness;
+		final CPSlider slContrast;
 
 		public CPOptionsPanel() {
 
