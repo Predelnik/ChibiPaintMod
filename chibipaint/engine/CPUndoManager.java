@@ -38,7 +38,7 @@ public class CPUndoManager {
     private final CPArtwork artwork;
     private final ArrayList<CPUndo> pendingUndoList = new ArrayList<CPUndo> ();
     private boolean preservedActiveLayerVisibility;
-    private final Vector<Boolean> preservedLayerCheckState = new Vector<Boolean> ();
+    private final ArrayList<Boolean> preservedLayerCheckState = new ArrayList<Boolean> ();
 
     public CPSelection getPreservedSelection() {
         return preservedSelection;
@@ -111,6 +111,8 @@ public class CPUndoManager {
         }
         else
         {
+            appendUndoToList(new CPMultiUndo (pendingUndoList));
+            pendingUndoList.clear ();
             // Create MultiUndo
         }
     }
@@ -204,11 +206,11 @@ public class CPUndoManager {
 
     public void preserveLayersCheckState() {
 
-        preservedLayerCheckState.setSize (artwork.getLayersVector().size ());
+        preservedLayerCheckState.clear ();
         boolean first = false;
         for (int i = 0; i < preservedLayerCheckState.size (); i++)
         {
-            preservedLayerCheckState.setElementAt(artwork.getLayersVector().elementAt (i).isVisible(), i);
+            preservedLayerCheckState.set (i, artwork.getLayersVector().elementAt (i).isVisible());
         }
     }
 
@@ -643,6 +645,35 @@ public class CPUndoManager {
         }
     }
 
+    class CPMultiUndo extends CPUndo {
+        final ArrayList <CPUndo> undoList = new ArrayList<CPUndo> ();
+        public CPMultiUndo (ArrayList <CPUndo> undoListArg) {
+            for (CPUndo undo : undoListArg)
+                  undoList.add(undo);
+        }
+
+        @Override
+        public void undo() {
+            // undoing it backwards.
+            for (int i =  undoList.size() - 1; i >= 0; i--)
+                undoList.get(i).undo ();
+        }
+
+        @Override
+        public void redo() {
+            for (CPUndo undo : undoList)
+                undo.redo();
+        }
+
+        @Override
+        public long getMemoryUsed(boolean undone, Object param) {
+            int memoryUsed = 0;
+            for (CPUndo undo : undoList)
+                memoryUsed += undo.getMemoryUsed(undone, param);
+            return memoryUsed;
+        }
+    }
+
     static class CPUndoLayerMode extends CPUndo {
 
         final int layer;
@@ -729,11 +760,11 @@ public class CPUndoManager {
 
     static class CPUndoToggleLayers extends CPUndo
     {
-        final Vector<Boolean> mask;
+        final ArrayList<Boolean> mask;
         boolean         toggleType; // true - we checking everything, false - unchecking
         private CPArtwork artwork;
 
-        public CPUndoToggleLayers(CPArtwork artwork, Vector<Boolean> maskArg) {
+        public CPUndoToggleLayers(CPArtwork artwork, ArrayList<Boolean> maskArg) {
             this.artwork = artwork;
             mask = maskArg;
             boolean first = false;
@@ -750,7 +781,7 @@ public class CPUndoManager {
         @Override
         public void undo() {
             for (int i = 0; i < artwork.getLayersVector().size (); i++)
-                artwork.getLayersVector().elementAt (i).setVisible(mask.elementAt(i));
+                artwork.getLayersVector().elementAt (i).setVisible(mask.get (i));
             artwork.invalidateFusion();
             artwork.callListenersLayerChange();
         }
