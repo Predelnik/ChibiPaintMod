@@ -93,7 +93,7 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 		CPArtwork artwork = controller.getArtwork();
 		if (artwork != null) {
 			docMem = artwork.getDocMemoryUsed() / (1024f * 1024f);
-			undoMem = artwork.getUndoMemoryUsed() / (1024f * 1024f);
+			undoMem = artwork.undoManager.getUndoMemoryUsed(artwork) / (1024f * 1024f);
 		}
 
 		if ((docMem + undoMem) / maxMemory > .5) {

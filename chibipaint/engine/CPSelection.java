@@ -173,6 +173,18 @@ public class CPSelection extends CPGreyBmp {
         return copySelection;
     }
 
+    public void copyFrom (CPSelection selection) {
+        if (selection.width != width || selection.height != height) {
+            width = selection.width;
+            height = selection.height;
+            data = new byte[width * height];
+            markerArray = new byte[(width + 1) * (height + 1)];
+        }
+        System.arraycopy(selection.data, 0, data, 0, data.length);
+
+        precalculateSelection();
+    }
+
     public void multiplyDataBySelection(int dataArg[])
     {
         for (int j = 0; j < height; j++)
@@ -287,10 +299,6 @@ public class CPSelection extends CPGreyBmp {
             PixelCoords currentPoint = new PixelCoords(startingPoint);
             boolean Finished = false;
             do {
-                minX = Math.min(minX, currentPoint.x);
-                maxX = Math.max(maxX, currentPoint.x);
-                minY = Math.min(minY, currentPoint.y);
-                maxY = Math.max(maxY, currentPoint.y);
                 int scanningDirection = GetNextDirectionNum(currentPoint, sL.get(sL.size() - 1));
                 if (scanningDirection == -1)
                     break;
@@ -433,6 +441,20 @@ public class CPSelection extends CPGreyBmp {
         // And then the MAGICS!
         // g2d.setStroke(stroke);
     }
+    private void CalculateBoundingBox ()
+    {
+        for (int i = 0; i < width; i++)
+            for (int j = 0; j < height; j++)
+                {
+                    if (data[j * width + i] != 0)
+                    {
+                       minX = Math.min(minX, i);
+                       maxX = Math.max(maxX, i);
+                       minY = Math.min(minY, j);
+                       maxY = Math.max(maxY, j);
+                    }
+                }
+    }
 
     public void precalculateSelection() {
 
@@ -440,6 +462,7 @@ public class CPSelection extends CPGreyBmp {
         maxX = 0;
         minY = height;
         maxY = 0;
+        CalculateBoundingBox (); // Warning: We count everything non-zero into bounding box, so the function is separate.
         // First step: we're dividing everything on separate 4-connected regions
         ArrayList<Lump> lumps = new ArrayList<Lump>();
         Arrays.fill(markerArray, (byte) 0);
@@ -450,7 +473,6 @@ public class CPSelection extends CPGreyBmp {
                     lumps.add(MakeLumpByScanLines(i, j));
                 }
             }
-
 
         Arrays.fill(markerArray, (byte) 0);
         // Now we've got our pixels lumped according to 4-connections, now let's build their boundary

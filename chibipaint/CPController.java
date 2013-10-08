@@ -159,7 +159,7 @@ public abstract class CPController implements ActionListener {
 	public void setArtwork(CPArtwork artwork) {
 		this.artwork = artwork;
 		if (isRunningAsApplication ())
-			this.artwork.maxUndo = 50;
+			this.artwork.getUndoManager().setMaxUndo (50);
 	}
 
 	public void setCanvas(CPCanvas canvas) {
@@ -385,26 +385,32 @@ public abstract class CPController implements ActionListener {
 
 		if (e.getActionCommand().equals("CPLayerToggleAll")) {
 			artwork.toggleLayers ();
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPLayerDuplicate")) {
 			artwork.duplicateLayer();
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPLayerMergeDown")) {
-			artwork.mergeDown(true);
+			artwork.mergeDown();
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPLayerMergeAll")) {
-			artwork.mergeAllLayers(true);
+			artwork.mergeAllLayers();
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPFill")) {
 			artwork.fill(getCurColorRgb() | 0xff000000, canvas.getApplyToAllLayers ());
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPClear")) {
 			artwork.clear(canvas.getApplyToAllLayers ());
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPSelectAll")) {
@@ -419,46 +425,57 @@ public abstract class CPController implements ActionListener {
 
 		if (e.getActionCommand().equals("CPHFlip")) {
 			artwork.hFlip(canvas.getApplyToAllLayers ());
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPVFlip")) {
 			artwork.vFlip(canvas.getApplyToAllLayers ());
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPMNoise")) {
 			artwork.monochromaticNoise(canvas.getApplyToAllLayers ());
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPCNoise")) {
 			artwork.colorNoise(canvas.getApplyToAllLayers ());
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPFXBoxBlur")) {
 			showBoxBlurDialog();
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPFXInvert")) {
 			artwork.invert(canvas.getApplyToAllLayers ());
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPFXMakeMonochromeByIntensity")) {
 			artwork.makeMonochrome(canvas.getApplyToAllLayers (), 0);
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPFXMakeMonochromeByValue")) {
 			artwork.makeMonochrome(canvas.getApplyToAllLayers (), 1);
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPFXMakeMonochromeByLightness")) {
 			artwork.makeMonochrome(canvas.getApplyToAllLayers (), 2);
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPFXMakeMonochromeByLuma")) {
 			artwork.makeMonochrome(canvas.getApplyToAllLayers (), 3);
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPFXMakeMonochromeBySelColor")) {
 			artwork.makeMonochrome(canvas.getApplyToAllLayers (), 4);
+            artwork.finalizeUndo();
 		}
 
 		if (e.getActionCommand().equals("CPApplyToAllLayers")) {

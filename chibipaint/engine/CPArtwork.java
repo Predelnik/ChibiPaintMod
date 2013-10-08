@@ -22,7 +22,6 @@
 
 package chibipaint.engine;
 
-import java.awt.event.InputEvent;
 import java.util.*;
 
 import chibipaint.*;
@@ -42,9 +41,7 @@ public class CPArtwork {
 
 	private final CPLayer fusion;
     private final CPLayer opacityBuffer;
-	Vector<CPLayer> undoBufferAll;
 	private final CPRect fusionArea;
-    CPRect undoArea;
     private final CPRect opacityArea;
 
     CPSelection curSelection;
@@ -55,30 +52,40 @@ public class CPArtwork {
         return undoManager;
     }
 
-    private final CPUndoManager undoManager = new CPUndoManager(this);
+    public final CPUndoManager undoManager = new CPUndoManager(this);
 
-    public void DoSelection(int modifiers, CPSelection selection)
+    public CPClip getClipboard() {
+        return clipboard;
+    }
+
+    public enum SelectionTypeOfAppliance
     {
-        boolean ShiftPressed = (modifiers & InputEvent.SHIFT_DOWN_MASK) != 0;
-        boolean ControlPressed = (modifiers & InputEvent.CTRL_DOWN_MASK) != 0;
-        CPSelection pastSelection = curSelection.copy();
-        if (ShiftPressed || ControlPressed)
-        {
-            if (ShiftPressed)
-            {
-                if (!ControlPressed)
-                    curSelection.AddToSelection (selection);
-                else
-                    curSelection.IntersectWithSelection(selection);
-            }
-            else
+      CREATE,
+      SUBTRACT,
+      ADD,
+      INTERSECT
+    };
+
+    public void DoSelection(SelectionTypeOfAppliance type, CPSelection selection)
+    {
+        undoManager.preserveCurSelection();
+        switch (type) {
+            case CREATE:
+                curSelection = selection;
+                break;
+            case SUBTRACT:
                 curSelection.SubtractFromSelection (selection);
+                break;
+            case ADD:
+                curSelection.AddToSelection (selection);
+                break;
+            case INTERSECT:
+                curSelection.IntersectWithSelection(selection);
+                break;
         }
-        else
-            curSelection = selection;
-        CPRect rect = pastSelection.getBoundingRect ();
-        rect.union (curSelection.getBoundingRect ());
-        addUndo (new CPUndoManager.CPUndoSelection(this, pastSelection, rect));
+        CPRect rect = undoManager.getPreservedSelection ().getBoundingRect();
+        rect.union(curSelection.getBoundingRect());
+        undoManager.selectionChanged ();
     }
 
     public CPSelection getCurSelection() {
@@ -99,6 +106,10 @@ public class CPArtwork {
 
     public CPLayer getCurLayer() {
         return curLayer;
+    }
+
+    public void finalizeUndo() {
+        undoManager.finalizeUndo();
     }
 
     public interface ICPArtworkListener {
@@ -137,8 +148,6 @@ public class CPArtwork {
     private float lastPressure;
 	private int[] brushBuffer = null;
 
-	public int maxUndo = 30;
-
 	//
 	// Current Engine Parameters
 	//
@@ -169,7 +178,6 @@ public class CPArtwork {
 
 		curLayer = getLayersVector().get(0);
 		fusionArea = new CPRect(0, 0, width, height);
-		undoArea = new CPRect();
 		opacityArea = new CPRect();
 		setActiveLayerNum(0);
 
@@ -184,25 +192,7 @@ public class CPArtwork {
 				+ (clipboard != null ? clipboard.bmp.getWidth() * clipboard.bmp.getHeight() * 4 : 0);
 	}
 
-	public long getUndoMemoryUsed() {
-		long total = 0;
-
-		CPColorBmp lastBitmap = clipboard != null ? clipboard.bmp : null;
-
-		for (int i = undoManager.getRedoList().size() - 1; i >= 0; i--) {
-			CPUndo undo = undoManager.getRedoList().get(i);
-
-			total += undo.getMemoryUsed(true, lastBitmap);
-		}
-
-		for (CPUndo undo : undoManager.getUndoList()) {
-			total += undo.getMemoryUsed(false, lastBitmap);
-		}
-
-		return total;
-	}
-
-	public CPLayer getDisplayBM() {
+    public CPLayer getDisplayBM() {
 		fusionLayers();
 		return fusion;
 
@@ -308,6 +298,7 @@ public class CPArtwork {
 		}
 
 		paintingModes[curBrush.paintMode].endStroke();
+        undoManager.finalizeUndo();
 	}
 
 	void mergeOpacityBuffer(int color, boolean clear) {
@@ -323,7 +314,7 @@ public class CPArtwork {
 
 			// Allow to eraser lower alpha with 'lock alpha' because it's all more logical and comfortable (look at gimp and other stuff)
 			if (isLockAlpha() && curBrush.paintMode != CPBrushInfo.M_ERASE) {
-				undoManager.restoreCurLayerAlpha(opacityArea);
+				undoManager.restoreActiveLayerAlpha(opacityArea);
 			}
 
 			if (clear) {
@@ -348,10 +339,11 @@ public class CPArtwork {
 
 	abstract class CPBrushToolBase extends CPBrushTool {
 
-		@Override
+        private final CPRect undoArea = new CPRect ();
+
+        @Override
 		public void beginStroke(float x, float y, float pressure) {
-            undoManager.preserveCurLayerState ();
-			undoArea.makeEmpty();
+            undoManager.preserveActiveLayerState();
 
 			opacityBuffer.clear();
 			opacityArea.makeEmpty();
@@ -388,7 +380,8 @@ public class CPArtwork {
 			undoArea.clip(getSize());
 			if (!undoArea.isEmpty()) {
 				mergeOpacityBuffer(curColor, false);
-				addUndo(new CPUndoManager.CPUndoPaint(CPArtwork.this));
+				undoManager.currentLayerChanged(undoArea);
+                undoArea.makeEmpty();
 			}
 			brushBuffer = null;
 		}
@@ -448,7 +441,7 @@ public class CPArtwork {
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.getData();
-			int[] undoData = undoManager.getCurLayerPreservedData ();
+			int[] undoData = undoManager.getActiveLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
 				int dstOffset = dstRect.left + j * getWidth();
@@ -520,7 +513,7 @@ public class CPArtwork {
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.getData();
-			int[] undoData = undoManager.getCurLayerPreservedData();
+			int[] undoData = undoManager.getActiveLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
 				int dstOffset = dstRect.left + j * getWidth();
@@ -543,7 +536,7 @@ public class CPArtwork {
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.getData();
-			int[] undoData = undoManager.getCurLayerPreservedData();
+			int[] undoData = undoManager.getActiveLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
 				int dstOffset = dstRect.left + j * getWidth();
@@ -581,7 +574,7 @@ public class CPArtwork {
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.getData();
-			int[] undoData = undoManager.getCurLayerPreservedData();
+			int[] undoData = undoManager.getActiveLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
 				int dstOffset = dstRect.left + j * getWidth();
@@ -624,7 +617,7 @@ public class CPArtwork {
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.getData();
-			int[] undoData = undoManager.getCurLayerPreservedData();
+			int[] undoData = undoManager.getActiveLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
 				int dstOffset = dstRect.left + j * getWidth();
@@ -682,7 +675,7 @@ public class CPArtwork {
 		@Override
 		public void mergeOpacityBuf(CPRect dstRect, int color) {
 			int[] opacityData = opacityBuffer.getData();
-			int[] undoData = undoManager.getCurLayerPreservedData();
+			int[] undoData = undoManager.getActiveLayerPreservedData();
 
 			for (int j = dstRect.top; j < dstRect.bottom; j++) {
 				int dstOffset = dstRect.left + j * getWidth();
@@ -980,7 +973,7 @@ public class CPArtwork {
 				smudgePasteBuffer(srcRect, dstRect, brushBuffer, dab.brush, dab.width);
 
 				if (isLockAlpha()) {
-					undoManager.restoreCurLayerAlpha(dstRect);
+					undoManager.restoreActiveLayerAlpha(dstRect);
 				}
 			}
 			opacityArea.makeEmpty();
@@ -1079,7 +1072,7 @@ public class CPArtwork {
 		}
 
 		private void smudgePasteBuffer(CPRect srcRect, CPRect dstRect, int[] buffer, byte[] brush, int w) {
-			int[] undoData = undoManager.getCurLayerPreservedData();
+			int[] undoData = undoManager.getActiveLayerPreservedData();
 
 			int by = srcRect.top;
 			for (int j = dstRect.top; j < dstRect.bottom; j++, by++) {
@@ -1170,23 +1163,6 @@ public class CPArtwork {
 
 	boolean canRedo() {
 		return !undoManager.getRedoList().isEmpty();
-	}
-
-    // TODO: Move to undo manager
-	void addUndo(CPUndo undo) {
-		if (undoManager.getUndoList().isEmpty() || !(undoManager.getUndoList().getFirst()).merge(undo)) {
-			if (undoManager.getUndoList().size() >= maxUndo) {
-                undoManager.getUndoList().removeLast();
-			}
-            undoManager.getUndoList().addFirst(undo);
-		} else {
-			// Two merged changes can mean no change at all
-			// don't leave a useless undo in the list
-			if ((undoManager.getUndoList().getFirst()).noChange()) {
-                undoManager.getUndoList().removeFirst();
-			}
-		}
-        undoManager.getRedoList().clear();
 	}
 
 	public void clearHistory() {
@@ -1288,19 +1264,21 @@ public class CPArtwork {
 	}
 
 	public void setLayerVisibility(int layer, boolean visible) {
-		addUndo(new CPUndoManager.CPUndoLayerVisible(this, layer, getLayer(layer).isVisible(), visible));
+
+        boolean oldVisibility = getLayer (layer).isVisible();
 		getLayer(layer).setVisible(visible);
 		invalidateFusion();
 		callListenersLayerChange();
+        undoManager.activeLayerVisibilityChanged (layer, oldVisibility);
 	}
 
 	public void addLayer() {
-		addUndo(new CPUndoManager.CPUndoAddLayer(this, getActiveLayerNum()));
 
 		CPLayer newLayer = new CPLayer(getWidth(), getHeight());
 		newLayer.setName(getDefaultLayerName());
 		getLayersVector().add(getActiveLayerNum() + 1, newLayer);
 		setActiveLayer(getActiveLayerNum() + 1);
+        undoManager.layerWasAppended ();
 
 		invalidateFusion();
 		callListenersLayerChange();
@@ -1308,9 +1286,11 @@ public class CPArtwork {
 
 	public void removeLayer() {
 		if (getLayersVector().size() > 1) {
-			addUndo(new CPUndoManager.CPUndoRemoveLayer(this, getActiveLayerNum(), getCurLayer()));
+            int previouslyActiveLayerNum = getActiveLayerNum();
+            undoManager.preserveActiveLayerState();
 			getLayersVector().remove(getActiveLayerNum());
 			setActiveLayer(getActiveLayerNum() < getLayersVector().size() ? getActiveLayerNum() : getActiveLayerNum() - 1);
+            undoManager.layerWasRemoved (previouslyActiveLayerNum);
 			invalidateFusion();
 			callListenersLayerChange();
 		}
@@ -1318,8 +1298,8 @@ public class CPArtwork {
 
 	public void toggleLayers ()
 	{
+        undoManager.preserveLayersCheckState();
 		int i, first_unchecked_pos = 0;
-		addUndo (new CPUndoToggleLayers ());
 		for (i = 0; i < getLayersVector().size (); i++)
 			if (!getLayersVector().elementAt (i).isVisible())
 				break;
@@ -1328,14 +1308,15 @@ public class CPArtwork {
 		for (i = 0; i < getLayersVector().size (); i++)
 			getLayersVector().elementAt (i).setVisible((first_unchecked_pos < getLayersVector().size ()));
 
+        undoManager.layersCheckStateWasToggled();
+
 		invalidateFusion();
 		callListenersLayerChange();
 	}
 
-	public void duplicateLayer() {
+    public void duplicateLayer() {
 		String copySuffix = " Copy";
 
-		addUndo(new CPUndoManager.CPUndoDuplicateLayer(this, getActiveLayerNum()));
 		CPLayer newLayer = new CPLayer(getWidth(), getHeight());
 		newLayer.copyFrom(getLayersVector().elementAt(getActiveLayerNum()));
 		if (!newLayer.getName().endsWith(copySuffix)) {
@@ -1344,16 +1325,14 @@ public class CPArtwork {
 		getLayersVector().add(getActiveLayerNum() + 1, newLayer);
 
 		setActiveLayer(getActiveLayerNum() + 1);
+        undoManager.layerDuplicationTookPlace ();
 		invalidateFusion();
 		callListenersLayerChange();
 	}
 
-	public void mergeDown(boolean createUndo) {
+	public void mergeDown() {
 		if (getLayersVector().size() > 0 && getActiveLayerNum() > 0) {
-			if (createUndo) {
-				addUndo(new CPUndoManager.CPUndoMergeDownLayer(this, getActiveLayerNum()));
-			}
-
+            undoManager.beforeMergingLayer();
 			getLayersVector().elementAt(getActiveLayerNum()).fusionWithFullAlpha(getLayersVector().elementAt(getActiveLayerNum() - 1),
 					new CPRect(getWidth(), getHeight()));
 			getLayersVector().remove(getActiveLayerNum());
@@ -1364,11 +1343,10 @@ public class CPArtwork {
 		}
 	}
 
-	public void mergeAllLayers(boolean createUndo) {
+	public void mergeAllLayers() {
 		if (getLayersVector().size() > 1) {
-			if (createUndo) {
-				addUndo(new CPUndoManager.CPUndoMergeAllLayers(this));
-			}
+
+            undoManager.beforeMergingAllLayers();
 
 			fusionLayers();
 			getLayersVector().clear();
@@ -1388,7 +1366,7 @@ public class CPArtwork {
 		if (from < 0 || from >= getLayersNb() || to < 0 || to > getLayersNb() || from == to) {
 			return;
 		}
-		addUndo(new CPUndoManager.CPUndoMoveLayer(this, from, to));
+        undoManager.beforeLayerMove (from, to);
 		moveLayerReal(from, to);
 	}
 
@@ -1408,7 +1386,7 @@ public class CPArtwork {
 
 	public void setLayerAlpha(int layer, int alpha) {
 		if (getLayer(layer).getAlpha() != alpha) {
-			addUndo(new CPUndoManager.CPUndoLayerAlpha(this, layer, alpha));
+            undoManager.beforeLayerAlphaChange (this, layer, alpha);
 			getLayer(layer).setAlpha(alpha);
 			invalidateFusion();
 			callListenersLayerChange();
@@ -1417,7 +1395,7 @@ public class CPArtwork {
 
 	public void setBlendMode(int layer, int blendMode) {
 		if (getLayer(layer).getBlendMode() != blendMode) {
-			addUndo(new CPUndoManager.CPUndoLayerMode(this, layer, blendMode));
+            undoManager.beforeChangingLayerBlendMode (layer, blendMode);
 			getLayer(layer).setBlendMode(blendMode);
 			invalidateFusion();
 			callListenersLayerChange();
@@ -1426,46 +1404,41 @@ public class CPArtwork {
 
 	public void setLayerName(int layer, String name) {
 		if (!getLayer(layer).getName().equals(name)) {
-			addUndo(new CPUndoManager.CPUndoLayerRename(this, layer, name));
+            undoManager.beforeLayerRename(layer, name);
 			getLayer(layer).setName(name);
 			callListenersLayerChange();
 		}
 	}
 
 	public void floodFill(float x, float y, int colorDistance) {
-        undoManager.preserveCurLayerState();
-		undoArea = new CPRect(getWidth(), getHeight());
+        undoManager.preserveActiveLayerState();
 
 		getCurLayer().floodFill((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers() ? fusion : getCurLayer(), colorDistance);
 
-		addUndo(new CPUndoManager.CPUndoPaint(this));
+        undoManager.currentLayerChanged(new CPRect(getWidth(), getHeight()));
 		invalidateFusion();
 	}
 
 	public void fill(int color, boolean applyToAllLayers) {
         // TODO: Limit to selection
         CPRect r = getSize();
-		undoArea = r;
 
 		if (!applyToAllLayers)
 		{
-			undoManager.preserveCurLayerState();
+			undoManager.preserveActiveLayerState();
 
 			getCurLayer().clear(r, color);
-			addUndo(new CPUndoManager.CPUndoPaint(this));
+            undoManager.currentLayerChanged(getSize());
 		}
 		else
 		{
-			undoBufferAll = new Vector <CPLayer> (getLayersVector().size ());
-			undoBufferAll.setSize (getLayersVector().size ());
+            undoManager.preserveAllLayersState();
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
-				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).clear (r, color);
 
 			}
-			addUndo(new CPUndoManager.CPUndoPaintAll(this));
+            undoManager.allLayersChanged(getSize());
 		}
 
 		invalidateFusion();
@@ -1476,191 +1449,162 @@ public class CPArtwork {
 	}
 
 	public void hFlip(boolean applyToAllLayers) {
-		undoArea = getSize();
-
 		if (!applyToAllLayers)
 		{
-            undoManager.preserveCurLayerState();
+            undoManager.preserveActiveLayerState();
 
-			getCurLayer().copyRegionHFlip(getSize(), undoManager.getCurLayerPreservedData());
-			addUndo(new CPUndoManager.CPUndoPaint(this));
+			getCurLayer().copyRegionHFlip(getSize(), undoManager.getActiveLayerPreservedData());
+            undoManager.currentLayerChanged(getSize());
 		}
 		else
 		{
-			undoBufferAll = new Vector <CPLayer> (getLayersVector().size ());
-			undoBufferAll.setSize (getLayersVector().size ());
+            undoManager.preserveAllLayersState();
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
-				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
-				getLayersVector().elementAt(i).copyRegionHFlip(getSize(), undoBufferAll.elementAt(i).getData());
+				getLayersVector().elementAt(i).copyRegionHFlip(getSize(), undoManager.getPreservedAllLayers().elementAt(i).getData());
 
 			}
-			addUndo(new CPUndoManager.CPUndoPaintAll(this));
+            undoManager.allLayersChanged(getSize());
 		}
 
 		invalidateFusion();
 	}
 
 	public void vFlip(boolean applyToAllLayers) {
-		undoArea = getSize ();
 
 		if (!applyToAllLayers)
 		{
-            undoManager.preserveCurLayerState();
+            undoManager.preserveActiveLayerState();
 
-			getCurLayer().copyRegionVFlip(getSize(), undoManager.getCurLayerPreservedData());
-			addUndo(new CPUndoManager.CPUndoPaint(this));
+			getCurLayer().copyRegionVFlip(getSize(), undoManager.getActiveLayerPreservedData());
+            undoManager.currentLayerChanged(getSize());
 		}
 		else
 		{
-			undoBufferAll = new Vector <CPLayer> (getLayersVector().size ());
-			undoBufferAll.setSize (getLayersVector().size ());
+            undoManager.preserveAllLayersState();
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
-				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
-				getLayersVector().elementAt(i).copyRegionVFlip(getSize(), undoBufferAll.elementAt(i).getData());
+				getLayersVector().elementAt(i).copyRegionVFlip(getSize(), undoManager.getPreservedAllLayers().elementAt(i).getData());
 
 			}
-			addUndo(new CPUndoManager.CPUndoPaintAll(this));
+            undoManager.allLayersChanged(getSize());
 		}
 		invalidateFusion();
 	}
 
 	public void monochromaticNoise(boolean applyToAllLayers) {
-		undoArea = getSize();
 
 		if (!applyToAllLayers)
 		{
-            undoManager.preserveCurLayerState();
+            undoManager.preserveActiveLayerState();
 
 			getCurLayer().fillWithNoise(getSize());
-			addUndo(new CPUndoManager.CPUndoPaint(this));
+            undoManager.currentLayerChanged(getSize());
 		}
 		else
 		{
-			undoBufferAll = new Vector <CPLayer> (getLayersVector().size ());
-			undoBufferAll.setSize (getLayersVector().size ());
+            undoManager.preserveAllLayersState();
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
-				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).fillWithNoise(getSize());
 
 			}
-			addUndo(new CPUndoManager.CPUndoPaintAll(this));
+            undoManager.allLayersChanged(getSize());
 		}
 
 		invalidateFusion();
 	}
 
 	public void colorNoise(boolean applyToAllLayers) {
-		undoArea = getSize();
 
 		if (!applyToAllLayers)
 		{
-            undoManager.preserveCurLayerState();
+            undoManager.preserveActiveLayerState();
 
 			getCurLayer().fillWithColorNoise(getSize());
-			addUndo(new CPUndoManager.CPUndoPaint(this));
+            undoManager.currentLayerChanged(getSize());
 		}
 		else
 		{
-			undoBufferAll = new Vector <CPLayer> (getLayersVector().size ());
-			undoBufferAll.setSize (getLayersVector().size ());
+            undoManager.preserveAllLayersState();
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
-				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).fillWithColorNoise(getSize());
 
 			}
-			addUndo(new CPUndoManager.CPUndoPaintAll(this));
+            undoManager.allLayersChanged(getSize());
 		}
 
 		invalidateFusion();
 	}
 
 	public void boxBlur(int radiusX, int radiusY, int iterations, boolean applyToAllLayers) {
-		undoArea = getSize();
 
 		if (!applyToAllLayers)
 		{
-            undoManager.preserveCurLayerState();
+            undoManager.preserveActiveLayerState();
 
 			for (int c = 0; c < iterations; c++) {
 				getCurLayer().boxBlur(getSize(), radiusX, radiusY);
 			}
-			addUndo(new CPUndoManager.CPUndoPaint(this));
+            undoManager.currentLayerChanged(getSize());
 		}
 		else
 		{
-			undoBufferAll = new Vector <CPLayer> (getLayersVector().size ());
-			undoBufferAll.setSize (getLayersVector().size ());
+            undoManager.preserveAllLayersState();
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
-				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				for (int c = 0; c < iterations; c++) {
 					getLayersVector().elementAt(i).boxBlur(getSize(), radiusX, radiusY);
 				}
 			}
-			addUndo(new CPUndoManager.CPUndoPaintAll(this));
+            undoManager.allLayersChanged(getSize());
 		}
 
 		invalidateFusion();
 	}
 
 	public void invert(boolean applyToAllLayers) {
-		undoArea = getSize();
 
 		if (!applyToAllLayers)
 		{
-            undoManager.preserveCurLayerState();
+            undoManager.preserveActiveLayerState();
 
 			getCurLayer().invert(getSize());
 
-			addUndo(new CPUndoManager.CPUndoPaint(this));
+            undoManager.currentLayerChanged(getSize());
 		}
 		else
 		{
-			undoBufferAll = new Vector <CPLayer> (getLayersVector().size ());
-			undoBufferAll.setSize (getLayersVector().size ());
+            undoManager.preserveAllLayersState();
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
-				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).invert(getSize());
 			}
-			addUndo(new CPUndoManager.CPUndoPaintAll(this));
+            undoManager.allLayersChanged(getSize());
 		}
 
 		invalidateFusion();
 	}
 
 	public void makeMonochrome(boolean applyToAllLayers, int type) {
-		undoArea = getSize();
 
 		if (!applyToAllLayers)
 		{
-            undoManager.preserveCurLayerState();
+            undoManager.preserveActiveLayerState();
 
 			getCurLayer().makeMonochrome(getSize(), type, curColor);
 
-			addUndo(new CPUndoManager.CPUndoPaint(this));
+            undoManager.currentLayerChanged(getSize());
 		}
 		else
 		{
-			undoBufferAll = new Vector <CPLayer> (getLayersVector().size ());
-			undoBufferAll.setSize (getLayersVector().size ());
+            undoManager.preserveAllLayersState();
 			for (int i = 0; i < getLayersVector().size (); i++)
 			{
-				undoBufferAll.setElementAt(new CPLayer (getWidth(), getHeight()), i);
-				undoBufferAll.elementAt(i).copyFrom (getLayer (i));
 				getLayersVector().elementAt(i).makeMonochrome(getSize(), type, curColor);
 			}
-			addUndo(new CPUndoManager.CPUndoPaintAll(this));
+            undoManager.allLayersChanged(getSize());
 		}
 
 		invalidateFusion();
@@ -1711,43 +1655,6 @@ public class CPArtwork {
 
 	public boolean isSampleAllLayers() {
 		return sampleAllLayers;
-	}
-
-    class CPUndoToggleLayers extends CPUndo
-	{
-		final Vector<Boolean> mask;
-		boolean         toggleType; // true - we checking everything, false - unchecking
-		public CPUndoToggleLayers() {
-			mask = new Vector<Boolean> ();
-			mask.setSize (getLayersVector().size ());
-			boolean first = false;
-			toggleType = false;
-			for (int i = 0; i < getLayersVector().size (); i++)
-			{
-				if (!first && !getLayersVector().elementAt(i).isVisible())
-				{
-					toggleType = true;
-					first = true;
-				}
-				mask.setElementAt(getLayersVector().elementAt (i).isVisible(), i);
-			}
-		}
-
-		@Override
-		public void undo() {
-			for (int i = 0; i < getLayersVector().size (); i++)
-				getLayersVector().elementAt (i).setVisible(mask.elementAt(i));
-			invalidateFusion();
-			callListenersLayerChange();
-		}
-
-		@Override
-		public void redo() {
-			for (int i = 0; i < getLayersVector().size (); i++)
-				getLayersVector().elementAt (i).setVisible(toggleType);
-			invalidateFusion();
-			callListenersLayerChange();
-		}
 	}
 
 }

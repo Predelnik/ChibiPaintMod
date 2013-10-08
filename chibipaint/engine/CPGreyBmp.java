@@ -76,6 +76,15 @@ public class CPGreyBmp extends CPBitmap {
         }
     }
 
+    public void copyDataFrom(CPGreyBmp bmp) {
+        if (bmp.width != width || bmp.height != height) {
+            width = bmp.width;
+            height = bmp.height;
+            data = new byte[width * height];
+        }
+        System.arraycopy(bmp.data, 0, data, 0, data.length);
+    }
+
 	public void mirrorHorizontally() {
 		byte[] newData = new byte[width*height];
 

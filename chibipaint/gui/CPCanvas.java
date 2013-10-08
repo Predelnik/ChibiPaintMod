@@ -35,6 +35,8 @@ import chibipaint.*;
 import chibipaint.engine.*;
 import chibipaint.util.*;
 
+import static chibipaint.engine.CPArtwork.SelectionTypeOfAppliance;
+
 public class CPCanvas extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener,
         ComponentListener, KeyListener, CPController.ICPToolListener, CPController.ICPModeListener,
         CPArtwork.ICPArtworkListener {
@@ -139,6 +141,23 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
     {
         return controller.isRunningAsApplication();
     }
+
+    private static SelectionTypeOfAppliance modifiersToSelectionApplianceType (int modifiers)
+    {
+        boolean ShiftPressed = (modifiers & InputEvent.SHIFT_DOWN_MASK) != 0;
+        boolean ControlPressed = (modifiers & InputEvent.CTRL_DOWN_MASK) != 0;
+        if (!ShiftPressed && !ControlPressed)
+            return SelectionTypeOfAppliance.CREATE;
+        else if (ShiftPressed)
+        {
+            if (ControlPressed)
+                return SelectionTypeOfAppliance.INTERSECT;
+            else
+                return SelectionTypeOfAppliance.ADD;
+        }
+        else return SelectionTypeOfAppliance.SUBTRACT;
+    }
+
 
     public void initCanvas(CPController ctrl) {
         this.controller = ctrl;
@@ -942,7 +961,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
                     CPImageUtils.PasteImageToOrigin(artwork.getActiveLayer(), imageInClipboard);
                     CPSelection selection = new CPSelection(artwork.getWidth(), artwork.getHeight());
                     selection.makeSelectionFromAlpha(artwork.getActiveLayer().getData());
-                    artwork.DoSelection(0, selection);
+                    artwork.DoSelection(SelectionTypeOfAppliance.CREATE, selection);
                     artwork.invalidateFusion();
                     break;
                 case KeyEvent.VK_C:
@@ -1334,7 +1353,6 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
             if (dragLeft && getButton() == MouseEvent.BUTTON1) {
                 dragLeft = false;
                 artwork.endStroke();
-
                 setActiveMode(defaultMode); // yield control to the default mode
             }
         }
@@ -1642,6 +1660,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
             if (artwork.isPointWithin(pf.x, pf.y)) {
                 artwork.floodFill(pf.x, pf.y, controller.getColorDistance());
+                artwork.finalizeUndo();
                 repaint();
             }
 
@@ -1700,7 +1719,8 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
             CPSelection Rect = new CPSelection(artwork.getWidth(), artwork.getHeight());
             Rect.makeRectangularSelection(curRect);
-            artwork.DoSelection(getModifiers(), Rect);
+            artwork.DoSelection(modifiersToSelectionApplianceType (getModifiers()), Rect);
+            artwork.finalizeUndo ();
 
             setActiveMode(defaultMode); // yield control to the default mode
             repaint();
@@ -1742,8 +1762,8 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
 
             CPSelection polygonSelection = new CPSelection(artwork.getWidth(), artwork.getHeight());
             polygonSelection.makeSelectionFromPolygon(polygon);
-            artwork.DoSelection(getModifiers(), polygonSelection);
-
+            artwork.DoSelection(modifiersToSelectionApplianceType (getModifiers()), polygonSelection);
+            artwork.finalizeUndo();
             setActiveMode(defaultMode); // yield control to the default mode
             repaint();
         }

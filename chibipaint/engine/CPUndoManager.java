@@ -25,24 +25,37 @@ package chibipaint.engine;
 
 import chibipaint.util.CPRect;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Vector;
 
 public class CPUndoManager {
 
+    public int maxUndo = 30;
+
     private final LinkedList<CPUndo> undoList = new LinkedList<CPUndo>();
     private final LinkedList<CPUndo> redoList = new LinkedList<CPUndo>();
     private final CPArtwork artwork;
+    private final ArrayList<CPUndo> pendingUndoList = new ArrayList<CPUndo> ();
+    private boolean preservedActiveLayerVisibility;
+    private final Vector<Boolean> preservedLayerCheckState = new Vector<Boolean> ();
 
-    public CPLayer getUndoBuffer() {
-        return undoBuffer;
+    public CPSelection getPreservedSelection() {
+        return preservedSelection;
     }
 
-    final CPLayer undoBuffer;
+    final CPSelection preservedSelection;
+    final CPLayer preservedActiveLayer;
+    Vector <CPLayer> preservedAllLayers;
+
+    public CPLayer getPreservedActiveLayer() {
+        return preservedActiveLayer;
+    }
 
     public CPUndoManager(CPArtwork artworkArg) {
         artwork = artworkArg;
-        undoBuffer = new CPLayer (artwork.getWidth(), artwork.getHeight());
+        preservedActiveLayer = new CPLayer (artwork.getWidth(), artwork.getHeight());
+        preservedSelection = new CPSelection (artwork.getWidth(), artwork.getHeight());
     }
 
     public LinkedList<CPUndo> getUndoList() {
@@ -53,33 +66,190 @@ public class CPUndoManager {
         return redoList;
     }
 
-    void restoreCurLayerAlpha(CPRect r) {
-        artwork.getActiveLayer().copyAlphaFrom(undoBuffer, r);
+    void restoreActiveLayerAlpha(CPRect r) {
+        artwork.getActiveLayer().copyAlphaFrom(preservedActiveLayer, r);
     }
 
-    public void preserveCurLayerState() {
-        undoBuffer.copyFrom(artwork.getCurLayer());
+    public void preserveActiveLayerState() {
+        preservedActiveLayer.copyFrom(artwork.getCurLayer());
     }
 
-    public int[] getCurLayerPreservedData() {
-        return undoBuffer.getData();
+    public void preserveAllLayersState ()
+    {
+        preservedAllLayers = new Vector <CPLayer> (artwork.getLayersVector().size ());
+        preservedAllLayers.setSize (artwork.getLayersVector().size ());
+        for (int i = 0; i < artwork.getLayersVector().size (); i++)
+        {
+            preservedAllLayers.setElementAt(new CPLayer (artwork.getWidth(), artwork.getHeight()), i);
+            preservedAllLayers.elementAt(i).copyFrom (artwork.getLayer(i));
+        }
     }
 
-    static class CPUndoPaint extends CPUndo {
+    public int[] getActiveLayerPreservedData() {
+        return preservedActiveLayer.getData();
+    }
+
+    public void preserveCurSelection() {
+        preservedSelection.copyFrom(artwork.getCurSelection());
+    }
+
+    public void selectionChanged() {
+        CPRect rect = preservedSelection.getBoundingRect();
+        rect.union(artwork.getCurSelection().getBoundingRect());
+        CPUndoSelection undo = new CPUndoSelection (artwork, preservedSelection, rect);
+        pendingUndoList.add(undo);
+    }
+
+    public void finalizeUndo () {
+        if (pendingUndoList.size() == 0)
+            return;
+
+        if (pendingUndoList.size() == 1)
+        {
+            appendUndoToList(pendingUndoList.get(0));
+            pendingUndoList.clear ();
+        }
+        else
+        {
+            // Create MultiUndo
+        }
+    }
+
+    public void discardUndo ()
+    {
+        pendingUndoList.clear ();
+    }
+
+    void appendUndoToList(CPUndo undo) {
+        if (undoList.isEmpty() || !(undoList.getFirst()).merge(undo)) {
+            if (undoList.size() >= maxUndo) {
+                undoList.removeLast();
+            }
+            undoList.addFirst(undo);
+        } else {
+            // Two merged changes can mean no change at all
+            // don't leave a useless undo in the list
+            if ((undoList.getFirst()).noChange()) {
+                undoList.removeFirst();
+            }
+        }
+        redoList.clear();
+    }
+
+    public void setMaxUndo(int maxUndo) {
+        this.maxUndo = maxUndo;
+    }
+
+    public void currentLayerChanged (CPRect rect) {
+        CPUndo undo = new CPUndoPaint (rect);
+        pendingUndoList.add(undo);
+    }
+
+    public void allLayersChanged (CPRect rect) {
+        CPUndo undo = new CPUndoPaintAll (artwork, rect);
+        pendingUndoList.add(undo);
+    }
+
+    public Vector<CPLayer> getPreservedAllLayers() {
+        return preservedAllLayers;
+    }
+
+    public void activeLayerVisibilityChanged(int layer, boolean oldVisibility) {
+        CPUndo undo = new CPUndoLayerVisible (artwork, layer, oldVisibility, artwork.getLayer(layer).isVisible());
+        pendingUndoList.add (undo);
+    }
+
+    public long getUndoMemoryUsed(CPArtwork artwork) {
+        long total = 0;
+
+        CPColorBmp lastBitmap = artwork.getClipboard() != null ? artwork.getClipboard().bmp : null;
+
+        for (int i = getRedoList().size() - 1; i >= 0; i--) {
+            CPUndo undo = getRedoList().get(i);
+
+            total += undo.getMemoryUsed(true, lastBitmap);
+        }
+
+        for (CPUndo undo : getUndoList()) {
+            total += undo.getMemoryUsed(false, lastBitmap);
+        }
+
+        return total;
+    }
+
+    public void layerWasAppended() {
+        CPUndo undo = new CPUndoAddLayer (artwork, artwork.getActiveLayerNum () - 1);
+        pendingUndoList.add (undo);
+    }
+
+    public void layerWasRemoved(int previouslyActiveLayerNum) {
+        CPUndo undo = new CPUndoRemoveLayer (artwork, previouslyActiveLayerNum, preservedActiveLayer);
+        pendingUndoList.add(undo);
+    }
+
+    public void layerDuplicationTookPlace() {
+        CPUndo undo = new CPUndoDuplicateLayer(artwork, artwork.getActiveLayerNum() - 1);
+        pendingUndoList.add(undo);
+    }
+
+    public void beforeMergingLayer() {
+        CPUndo undo = new CPUndoMergeDownLayer(artwork, artwork.getActiveLayerNum());
+        pendingUndoList.add(undo);
+    }
+
+    public void beforeMergingAllLayers() {
+        CPUndo undo = new CPUndoMergeAllLayers(artwork);
+        pendingUndoList.add (undo);
+    }
+
+    public void preserveLayersCheckState() {
+
+        preservedLayerCheckState.setSize (artwork.getLayersVector().size ());
+        boolean first = false;
+        for (int i = 0; i < preservedLayerCheckState.size (); i++)
+        {
+            preservedLayerCheckState.setElementAt(artwork.getLayersVector().elementAt (i).isVisible(), i);
+        }
+    }
+
+    public void layersCheckStateWasToggled() {
+        CPUndo undo = new CPUndoToggleLayers(artwork, preservedLayerCheckState);
+        pendingUndoList.add(undo);
+    }
+
+    public void beforeLayerMove(int from, int to) {
+        CPUndo undo = new CPUndoMoveLayer(artwork, from, to);
+        pendingUndoList.add (undo);
+    }
+
+    public void beforeLayerAlphaChange(CPArtwork artwork, int layer, int alpha) {
+        CPUndo undo = new CPUndoLayerAlpha(artwork, layer, alpha);
+        pendingUndoList.add (undo);
+    }
+
+    public void beforeChangingLayerBlendMode(int layer, int blendMode) {
+        CPUndo undo = new CPUndoManager.CPUndoLayerMode(artwork, layer, blendMode);
+        pendingUndoList.add (undo);
+    }
+
+    public void beforeLayerRename(int layer, String name) {
+        CPUndo undo = new CPUndoManager.CPUndoLayerRename(artwork, layer, name);
+        pendingUndoList.add (undo);
+    }
+
+
+    class CPUndoPaint extends CPUndo {
 
         final int layer;
         final CPRect rect;
         final int[] data;
-        private final CPArtwork artwork;
 
 
-        public CPUndoPaint(CPArtwork artwork) {
-            this.artwork = artwork;
+        public CPUndoPaint(CPRect rectArg) {
             layer = artwork.getActiveLayerNb();
-            rect = new CPRect(artwork.undoArea);
+            rect = new CPRect(rectArg);
 
-            data = artwork.getUndoManager().getUndoBuffer().copyRectXOR(artwork.getCurLayer(), rect);
-            artwork.undoArea.makeEmpty();
+            data = getPreservedActiveLayer().copyRectXOR(artwork.getCurLayer(), rect);
         }
 
         @Override
@@ -100,21 +270,21 @@ public class CPUndoManager {
         }
     }
 
-    static class CPUndoPaintAll extends CPUndo {
+    class CPUndoPaintAll extends CPUndo {
 
         final Vector<int[]> data;
         final CPRect rect;
         private final CPArtwork artwork;
 
-        public CPUndoPaintAll(CPArtwork artwork) {
+        public CPUndoPaintAll(CPArtwork artwork, CPRect rectArg) {
             this.artwork = artwork;
             data = new Vector<int[]>(artwork.getLayersVector().size());
             data.setSize(artwork.getLayersVector().size());
-            rect = new CPRect(artwork.undoArea);
+            rect = new CPRect(rectArg);
             for (int i = 0; i < artwork.getLayersVector().size(); i++)
-                data.setElementAt(artwork.undoBufferAll.elementAt(i).copyRectXOR(artwork.getLayersVector().elementAt(i), rect), i);
+                data.setElementAt(preservedAllLayers.elementAt(i).copyRectXOR(artwork.getLayersVector().elementAt(i), rect), i);
 
-            artwork.undoBufferAll = null; // Hope gc will be a good boy
+            preservedAllLayers = null;
         }
 
         @Override
@@ -182,7 +352,7 @@ public class CPUndoManager {
         }
     }
 
-    static class CPUndoMergeAllLayers extends CPUndo {
+    class CPUndoMergeAllLayers extends CPUndo {
 
         final Vector<CPLayer> oldLayers;
         final int oldActiveLayer;
@@ -207,7 +377,8 @@ public class CPUndoManager {
 
         @Override
         public void redo() {
-            artwork.mergeAllLayers(false);
+            artwork.mergeAllLayers();
+            discardUndo ();
         }
 
         @Override
@@ -216,7 +387,7 @@ public class CPUndoManager {
         }
     }
 
-    static class CPUndoMergeDownLayer extends CPUndo {
+    class CPUndoMergeDownLayer extends CPUndo {
 
         final int layer;
         CPLayer layerBottom, layerTop;
@@ -249,7 +420,8 @@ public class CPUndoManager {
             layerTop = artwork.getLayersVector().elementAt(layer);
 
             artwork.setActiveLayer(layer);
-            artwork.mergeDown(false);
+            artwork.mergeDown();
+            discardUndo ();
         }
 
         @Override
@@ -552,6 +724,43 @@ public class CPUndoManager {
         @Override
         public boolean noChange() {
             return from.equals(to);
+        }
+    }
+
+    static class CPUndoToggleLayers extends CPUndo
+    {
+        final Vector<Boolean> mask;
+        boolean         toggleType; // true - we checking everything, false - unchecking
+        private CPArtwork artwork;
+
+        public CPUndoToggleLayers(CPArtwork artwork, Vector<Boolean> maskArg) {
+            this.artwork = artwork;
+            mask = maskArg;
+            boolean first = false;
+            for (int i = 0; i < maskArg.size (); i++)
+            {
+                if (!first && !mask.get (i))
+                {
+                    toggleType = true;
+                    first = true;
+                }
+            }
+        }
+
+        @Override
+        public void undo() {
+            for (int i = 0; i < artwork.getLayersVector().size (); i++)
+                artwork.getLayersVector().elementAt (i).setVisible(mask.elementAt(i));
+            artwork.invalidateFusion();
+            artwork.callListenersLayerChange();
+        }
+
+        @Override
+        public void redo() {
+            for (int i = 0; i < artwork.getLayersVector().size (); i++)
+                artwork.getLayersVector().elementAt (i).setVisible(toggleType);
+            artwork.invalidateFusion();
+            artwork.callListenersLayerChange();
         }
     }
 }

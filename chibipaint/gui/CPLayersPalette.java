@@ -157,12 +157,15 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 		CPArtwork artwork = controller.getArtwork();
 		if (e.getActionCommand().equals("CPAddLayer")) {
 			artwork.addLayer();
+            artwork.finalizeUndo();
 		}
-		if (e.getActionCommand().equals("CPRemoveLayer")) {
+		else if (e.getActionCommand().equals("CPRemoveLayer")) {
 			artwork.removeLayer();
+            artwork.finalizeUndo();
 		}
-		if (e.getSource() == blendCombo) {
+		else if (e.getSource() == blendCombo) {
 			artwork.setBlendMode(artwork.getActiveLayerNb(), blendCombo.getSelectedIndex());
+            artwork.finalizeUndo();
 		}
 	}
 
@@ -325,6 +328,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 					CPLayer layer = artwork.getLayer(layerIndex);
 					if (p.x < eyeW) {
 						artwork.setLayerVisibility(layerIndex, !layer.isVisible());
+                        artwork.finalizeUndo();
 					} else {
 						artwork.setActiveLayer(layerIndex);
 					}
@@ -361,6 +365,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 				if (layerOver >= 0 && layerOver <= layers.length && layerOver != layerDragNb
 						&& layerOver != layerDragNb + 1) {
 					artwork.moveLayer(layerDragNb, layerOver);
+                    artwork.finalizeUndo();
 				}
 
 				layerDrag = false;
@@ -395,6 +400,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 			title = "Opacity: " + value + "%";
 			CPArtwork artwork = controller.getArtwork();
 			artwork.setLayerAlpha(artwork.getActiveLayerNb(), value);
+            artwork.finalizeUndo();
 		}
 	}
 
@@ -435,6 +441,7 @@ public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkLi
 
 			if (layerNb >= 0 && layerNb < artwork.getLayersNb()) {
 				artwork.setLayerName(layerNb, getText());
+                artwork.finalizeUndo();
 			}
 
 			layerNb = -1;
