@@ -22,36 +22,42 @@
 
 package chibipaint.engine;
 
-import chibipaint.util.*;
+import chibipaint.util.CPRect;
 
-public class CPBitmap {
-	// The real width and height of the bitmap in memory
-	int width, height;
+public class CPBitmap
+{
+// The real width and height of the bitmap in memory
+int width, height;
 
-	CPBitmap(int width, int height) {
-		this.width = width;
-		this.height = height;
-	}
-	
-	public int getWidth() {
-		return width;
-	}
+CPBitmap (int width, int height)
+{
+  this.width = width;
+  this.height = height;
+}
 
-	public int getHeight() {
-		return height;
-	}
+public int getWidth ()
+{
+  return width;
+}
 
-	CPRect getSize() {
-		return new CPRect(width, height);
-	}
+public int getHeight ()
+{
+  return height;
+}
 
-	//
-	// Clipping related methods
-	//
+CPRect getSize ()
+{
+  return new CPRect (width, height);
+}
 
-	boolean isInside(int x, int y) {
-		return x >= 0 && y >= 0 && x < width && y < height;
-	}
+//
+// Clipping related methods
+//
+
+boolean isInside (int x, int y)
+{
+  return x >= 0 && y >= 0 && x < width && y < height;
+}
 
 
 }

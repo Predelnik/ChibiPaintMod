@@ -22,204 +22,241 @@
 
 package chibipaint;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.net.*;
-
-import javax.imageio.*;
-import javax.swing.*;
-
-import chibipaint.engine.*;
+import chibipaint.engine.CPArtwork;
 import chibipaint.file.CPChibiFile;
-import chibipaint.gui.*;
+import chibipaint.gui.CPMainGUI;
 
-public class ChibiPaint extends JApplet {
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.PixelGrabber;
+import java.net.URL;
+import java.net.URLConnection;
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 1L;
-	private CPControllerApplet controller;
-	private CPMainGUI mainGUI;
+public class ChibiPaint extends JApplet
+{
 
-	private boolean floatingMode = false;
-	private JPanel floatingPlaceholder;
-	private JFrame floatingFrame;
+/**
+ *
+ */
+private static final long serialVersionUID = 1L;
+private CPControllerApplet controller;
+private CPMainGUI mainGUI;
 
-	@Override
-	public void init() {
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
+private boolean floatingMode = false;
+private JPanel floatingPlaceholder;
+private JFrame floatingFrame;
 
-				@Override
-				public void run() {
-					createApplet();
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+@Override
+public void init ()
+{
+  try
+    {
+      SwingUtilities.invokeAndWait (new Runnable ()
+      {
 
-	@Override
-	public void destroy() {
+        @Override
+        public void run ()
+        {
+          createApplet ();
+        }
+      });
+    }
+  catch (Exception e)
+    {
+      e.printStackTrace ();
+    }
+}
 
-		// The following bit of voodoo prevents the Java plugin
-		// from leaking too much. In many cases it will keep
-		// a reference to this JApplet object alive forever.
-		// So have to make sure that we remove references
-		// to the rest of ChibiPaintMod so that they can be
-		// garbage collected normally.
+@Override
+public void destroy ()
+{
 
-		setContentPane(new JPanel());
-		setJMenuBar(null);
+  // The following bit of voodoo prevents the Java plugin
+  // from leaking too much. In many cases it will keep
+  // a reference to this JApplet object alive forever.
+  // So have to make sure that we remove references
+  // to the rest of ChibiPaintMod so that they can be
+  // garbage collected normally.
 
-		floatingPlaceholder = null;
-		floatingFrame = null;
-		controller = null;
-		mainGUI = null;
-	}
+  setContentPane (new JPanel ());
+  setJMenuBar (null);
 
-	void createApplet() {
-		controller = new CPControllerApplet(this);
-		controller.setArtwork(createArtwork());
+  floatingPlaceholder = null;
+  floatingFrame = null;
+  controller = null;
+  mainGUI = null;
+}
 
-		// FIXME: set a default tool so that we can start drawing
-		controller.setTool(CPController.T_PEN);
+void createApplet ()
+{
+  controller = new CPControllerApplet (this);
+  controller.setArtwork (createArtwork ());
 
-		createFloatingPlaceholder();
+  // FIXME: set a default tool so that we can start drawing
+  controller.setTool (CPController.T_PEN);
 
-		mainGUI = new CPMainGUI(controller);
+  createFloatingPlaceholder ();
 
-		setContentPane(mainGUI.getGUI());
-		setJMenuBar(mainGUI.getMenuBar());
+  mainGUI = new CPMainGUI (controller);
 
-		validate(); // calling validate is recommended to ensure compatibility
-	}
+  setContentPane (mainGUI.getGUI ());
+  setJMenuBar (mainGUI.getMenuBar ());
 
-	private CPArtwork createArtwork() {
-		CPArtwork artwork = null;
-		int w = -1, h = -1;
+  validate (); // calling validate is recommended to ensure compatibility
+}
 
-		if ((w < 1 || h < 1) && getParameter("loadChibiFile") != null) {
-			try {
-				URL url = new URL(getDocumentBase(), getParameter("loadChibiFile"));
-				URLConnection connec = url.openConnection();
-				connec.setUseCaches(false); // Bypassing the cache is important
+private CPArtwork createArtwork ()
+{
+  CPArtwork artwork = null;
+  int w = -1, h = -1;
 
-				CPChibiFile file = new CPChibiFile ();
-				artwork = file.read(connec.getInputStream());
-				w = artwork.getWidth();
-				h = artwork.getHeight();
-			} catch (Exception ignored) {
-				// Ignored
-			}
-		}
+  if ((w < 1 || h < 1) && getParameter ("loadChibiFile") != null)
+    {
+      try
+        {
+          URL url = new URL (getDocumentBase (), getParameter ("loadChibiFile"));
+          URLConnection connec = url.openConnection ();
+          connec.setUseCaches (false); // Bypassing the cache is important
 
-		Image loadImage = null;
-		if ((w < 1 || h < 1) && getParameter("loadImage") != null) {
+          CPChibiFile file = new CPChibiFile ();
+          artwork = file.read (connec.getInputStream ());
+          w = artwork.getWidth ();
+          h = artwork.getHeight ();
+        }
+      catch (Exception ignored)
+        {
+          // Ignored
+        }
+    }
 
-			// NOTE: loads the image using a URLConnection
-			// to be able to bypass the cache that was causing problems
+  Image loadImage = null;
+  if ((w < 1 || h < 1) && getParameter ("loadImage") != null)
+    {
 
-			try {
-				URL url = new URL(getDocumentBase(), getParameter("loadImage"));
-				URLConnection connec = url.openConnection();
-				connec.setUseCaches(false); // Bypassing the cache is important
+      // NOTE: loads the image using a URLConnection
+      // to be able to bypass the cache that was causing problems
 
-				loadImage = ImageIO.read(connec.getInputStream());
-				w = loadImage.getWidth(null);
-				h = loadImage.getHeight(null);
-			} catch (Exception ignored) {
-				// Ignored
-			}
-		}
+      try
+        {
+          URL url = new URL (getDocumentBase (), getParameter ("loadImage"));
+          URLConnection connec = url.openConnection ();
+          connec.setUseCaches (false); // Bypassing the cache is important
 
-		if (w < 1 || h < 1) {
-			loadImage = null;
-			if (getParameter("canvasWidth") != null && getParameter("canvasHeight") != null) {
-				w = Integer.parseInt(getParameter("canvasWidth"));
-				h = Integer.parseInt(getParameter("canvasHeight"));
-			} else {
-				w = 320;
-				h = 240;
-			}
-		}
-		w = Math.max(1, Math.min(1024, w));
-		h = Math.max(1, Math.min(1024, h));
+          loadImage = ImageIO.read (connec.getInputStream ());
+          w = loadImage.getWidth (null);
+          h = loadImage.getHeight (null);
+        }
+      catch (Exception ignored)
+        {
+          // Ignored
+        }
+    }
 
-		if (artwork == null) {
-			artwork = new CPArtwork(w, h);
-		}
+  if (w < 1 || h < 1)
+    {
+      loadImage = null;
+      if (getParameter ("canvasWidth") != null && getParameter ("canvasHeight") != null)
+        {
+          w = Integer.parseInt (getParameter ("canvasWidth"));
+          h = Integer.parseInt (getParameter ("canvasHeight"));
+        }
+      else
+        {
+          w = 320;
+          h = 240;
+        }
+    }
+  w = Math.max (1, Math.min (1024, w));
+  h = Math.max (1, Math.min (1024, h));
 
-		if (loadImage != null) {
-			PixelGrabber grabber = new PixelGrabber(loadImage, 0, 0, w, h, artwork.getActiveLayer().getData(), 0, w);
-			try {
-				grabber.grabPixels();
-			} catch (InterruptedException e) {
-				// Ignored
-			}
-		}
+  if (artwork == null)
+    {
+      artwork = new CPArtwork (w, h);
+    }
 
-		return artwork;
-	}
+  if (loadImage != null)
+    {
+      PixelGrabber grabber = new PixelGrabber (loadImage, 0, 0, w, h, artwork.getActiveLayer ().getData (), 0, w);
+      try
+        {
+          grabber.grabPixels ();
+        }
+      catch (InterruptedException e)
+        {
+          // Ignored
+        }
+    }
 
-	void createFloatingPlaceholder() {
-		// Build the panel that will be displayed in the applet when user switches to floating mode
-		floatingPlaceholder = new JPanel(new BorderLayout());
-		JLabel label = new JLabel("ChibiPaintMod is running in floating mode.\n\nDO NOT CLOSE THIS WINDOW!", SwingConstants.CENTER);
-		label.setFont(new Font("Serif", Font.PLAIN, 16));
-		floatingPlaceholder.add(label);
-	}
+  return artwork;
+}
 
-	void floatingMode() {
-		if (!floatingMode) {
-			// Going to floating mode
+void createFloatingPlaceholder ()
+{
+  // Build the panel that will be displayed in the applet when user switches to floating mode
+  floatingPlaceholder = new JPanel (new BorderLayout ());
+  JLabel label = new JLabel ("ChibiPaintMod is running in floating mode.\n\nDO NOT CLOSE THIS WINDOW!", SwingConstants.CENTER);
+  label.setFont (new Font ("Serif", Font.PLAIN, 16));
+  floatingPlaceholder.add (label);
+}
 
-			JFrame.setDefaultLookAndFeelDecorated(false);
-			floatingFrame = new CPFloatingFrame();
-			floatingFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-			floatingFrame.setSize(800, 600);
+void floatingMode ()
+{
+  if (!floatingMode)
+    {
+      // Going to floating mode
 
-			setContentPane(floatingPlaceholder);
-			setJMenuBar(null);
-			floatingPlaceholder.revalidate();
-			floatingMode = true;
+      JFrame.setDefaultLookAndFeelDecorated (false);
+      floatingFrame = new CPFloatingFrame ();
+      floatingFrame.setDefaultCloseOperation (WindowConstants.DO_NOTHING_ON_CLOSE);
+      floatingFrame.setSize (800, 600);
 
-			floatingFrame.setContentPane(mainGUI.getGUI());
-			floatingFrame.setJMenuBar(mainGUI.getMenuBar());
-			floatingFrame.setVisible(true);
-			floatingFrame.validate();
+      setContentPane (floatingPlaceholder);
+      setJMenuBar (null);
+      floatingPlaceholder.revalidate ();
+      floatingMode = true;
 
-			controller.setFloatingFrame(floatingFrame);
-		} else {
-			// Going back to normal mode
+      floatingFrame.setContentPane (mainGUI.getGUI ());
+      floatingFrame.setJMenuBar (mainGUI.getMenuBar ());
+      floatingFrame.setVisible (true);
+      floatingFrame.validate ();
 
-			// close the frame
-			floatingFrame.setVisible(false);
-			floatingFrame = null;
-			controller.setFloatingFrame(null);
-			floatingMode = false;
+      controller.setFloatingFrame (floatingFrame);
+    }
+  else
+    {
+      // Going back to normal mode
 
-			// restore the applet
-			setContentPane(mainGUI.getGUI());
-			setJMenuBar(mainGUI.getMenuBar());
-			validate();
-		}
-	}
+      // close the frame
+      floatingFrame.setVisible (false);
+      floatingFrame = null;
+      controller.setFloatingFrame (null);
+      floatingMode = false;
 
-	public class CPFloatingFrame extends JFrame {
+      // restore the applet
+      setContentPane (mainGUI.getGUI ());
+      setJMenuBar (mainGUI.getMenuBar ());
+      validate ();
+    }
+}
 
-		public CPFloatingFrame() {
-			super("ChibiPaint");
-			addWindowListener(new WindowAdapter() {
+public class CPFloatingFrame extends JFrame
+{
 
-				@Override
-				public void windowClosing(WindowEvent e) {
-					floatingMode();
-				}
-			});
-		}
-	}
+  public CPFloatingFrame ()
+  {
+    super ("ChibiPaint");
+    addWindowListener (new WindowAdapter ()
+    {
+
+      @Override
+      public void windowClosing (WindowEvent e)
+      {
+        floatingMode ();
+      }
+    });
+  }
+}
 }

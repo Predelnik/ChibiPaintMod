@@ -22,147 +22,180 @@
 
 package chibipaint.gui;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.LinkedList;
 
-class CPIconButton extends JComponent implements MouseListener {
+class CPIconButton extends JComponent implements MouseListener
+{
 
-	private final Image icons;
-	private final int iconW;
-    private final int iconH;
-    private final int iconIndex;
-    private final int border;
-	private String actionCommand;
-    private String actionCommandDoubleClick = null;
-	private final LinkedList<ActionListener> actionListeners = new LinkedList<ActionListener>();
+private final Image icons;
+private final int iconW;
+private final int iconH;
+private final int iconIndex;
+private final int border;
+private String actionCommand;
+private String actionCommandDoubleClick = null;
+private final LinkedList<ActionListener> actionListeners = new LinkedList<ActionListener> ();
 
-	private boolean mouseOver = false;
-    private boolean mousePressed = false;
-    private boolean selected = false;
-	private final boolean onClickDown = false;
+private boolean mouseOver = false;
+private boolean mousePressed = false;
+private boolean selected = false;
+private final boolean onClickDown = false;
 
-	public CPIconButton(Image icons, int iconW, int iconH, int iconIndex, int border) {
-		this.icons = icons;
-		this.iconW = iconW;
-		this.iconH = iconH;
-		this.iconIndex = iconIndex;
-		this.border = border;
+public CPIconButton (Image icons, int iconW, int iconH, int iconIndex, int border)
+{
+  this.icons = icons;
+  this.iconW = iconW;
+  this.iconH = iconH;
+  this.iconIndex = iconIndex;
+  this.border = border;
 
-		MediaTracker tracker = new MediaTracker(this);
-		tracker.addImage(icons, 0);
-		try {
-			tracker.waitForAll();
-		} catch (Exception ignored) {
-		}
+  MediaTracker tracker = new MediaTracker (this);
+  tracker.addImage (icons, 0);
+  try
+    {
+      tracker.waitForAll ();
+    }
+  catch (Exception ignored)
+    {
+    }
 
-		addMouseListener(this);
-	}
+  addMouseListener (this);
+}
 
-	public void setSelected(boolean s) {
-		if (selected != s) {
-			selected = s;
-			repaint();
-		}
-	}
+public void setSelected (boolean s)
+{
+  if (selected != s)
+    {
+      selected = s;
+      repaint ();
+    }
+}
 
-	@Override
-	public void paint(Graphics g) {
-		Dimension d = getSize();
-		g.drawImage(icons, border, border, iconW + border, iconH + border, 0, iconIndex * iconH, iconW, (iconIndex + 1)
-				* iconH, null);
+@Override
+public void paint (Graphics g)
+{
+  Dimension d = getSize ();
+  g.drawImage (icons, border, border, iconW + border, iconH + border, 0, iconIndex * iconH, iconW, (iconIndex + 1)
+          * iconH, null);
 
-		if (mouseOver && !mousePressed) {
-			g.setColor(Color.orange);
-		} else if (selected || mousePressed) {
-			g.setColor(Color.red);
-		} else {
-			g.setColor(Color.black);
-		}
+  if (mouseOver && !mousePressed)
+    {
+      g.setColor (Color.orange);
+    }
+  else if (selected || mousePressed)
+    {
+      g.setColor (Color.red);
+    }
+  else
+    {
+      g.setColor (Color.black);
+    }
 
-		g.drawRect(0, 0, d.width - 1, d.height - 1);
-	}
+  g.drawRect (0, 0, d.width - 1, d.height - 1);
+}
 
-	@Override
-	public void mouseClicked(MouseEvent e) {
-		if (!onClickDown && e.getClickCount() == 2 && actionCommandDoubleClick != null) {
-			callActionListenersDouble();
-		}
-	}
+@Override
+public void mouseClicked (MouseEvent e)
+{
+  if (!onClickDown && e.getClickCount () == 2 && actionCommandDoubleClick != null)
+    {
+      callActionListenersDouble ();
+    }
+}
 
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		mouseOver = true;
-		repaint();
-	}
+@Override
+public void mouseEntered (MouseEvent e)
+{
+  mouseOver = true;
+  repaint ();
+}
 
-	@Override
-	public void mouseExited(MouseEvent e) {
-		mouseOver = false;
-		repaint();
-	}
+@Override
+public void mouseExited (MouseEvent e)
+{
+  mouseOver = false;
+  repaint ();
+}
 
-	@Override
-	public void mousePressed(MouseEvent e) {
-		requestFocusInWindow();
+@Override
+public void mousePressed (MouseEvent e)
+{
+  requestFocusInWindow ();
 
-		mousePressed = true;
-		repaint();
-		if (onClickDown) {
-			callActionListeners();
-		}
-	}
+  mousePressed = true;
+  repaint ();
+  if (onClickDown)
+    {
+      callActionListeners ();
+    }
+}
 
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		if (!onClickDown && mouseOver) {
-			callActionListeners();
-		}
-		mousePressed = false;
-		repaint();
-	}
+@Override
+public void mouseReleased (MouseEvent e)
+{
+  if (!onClickDown && mouseOver)
+    {
+      callActionListeners ();
+    }
+  mousePressed = false;
+  repaint ();
+}
 
-	void addCPActionListener(ActionListener l) {
-		actionListeners.addLast(l);
-	}
+void addCPActionListener (ActionListener l)
+{
+  actionListeners.addLast (l);
+}
 
-	void setCPActionCommand(String command) {
-		actionCommand = command;
-	}
+void setCPActionCommand (String command)
+{
+  actionCommand = command;
+}
 
-	public void setCPActionCommandDouble(String action) {
-		actionCommandDoubleClick = action;
-	}
+public void setCPActionCommandDouble (String action)
+{
+  actionCommandDoubleClick = action;
+}
 
-	void callActionListeners() {
-		for (Object l : actionListeners) {
-			ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, actionCommand);
-			((ActionListener) l).actionPerformed(e);
-		}
-	}
+void callActionListeners ()
+{
+  for (Object l : actionListeners)
+    {
+      ActionEvent e = new ActionEvent (this, ActionEvent.ACTION_PERFORMED, actionCommand);
+      ((ActionListener) l).actionPerformed (e);
+    }
+}
 
-	void callActionListenersDouble() {
-		for (Object l : actionListeners) {
-			ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, actionCommandDoubleClick);
-			((ActionListener) l).actionPerformed(e);
-		}
-	}
+void callActionListenersDouble ()
+{
+  for (Object l : actionListeners)
+    {
+      ActionEvent e = new ActionEvent (this, ActionEvent.ACTION_PERFORMED, actionCommandDoubleClick);
+      ((ActionListener) l).actionPerformed (e);
+    }
+}
 
-	@Override
-	public Dimension getPreferredSize() {
-		return new Dimension(iconW + 2 * border, iconH + 2 * border);
-	}
+@Override
+public Dimension getPreferredSize ()
+{
+  return new Dimension (iconW + 2 * border, iconH + 2 * border);
+}
 
-	@Override
-	public Dimension getMaximumSize() {
-		return getPreferredSize();
-	}
+@Override
+public Dimension getMaximumSize ()
+{
+  return getPreferredSize ();
+}
 
-	@Override
-	public Dimension getMinimumSize() {
-		return getPreferredSize();
-	}
+@Override
+public Dimension getMinimumSize ()
+{
+  return getPreferredSize ();
+}
 
 }

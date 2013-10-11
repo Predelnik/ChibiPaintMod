@@ -24,83 +24,101 @@ package chibipaint.engine;
 
 import chibipaint.util.CPRect;
 
-public class CPGreyBmp extends CPBitmap {
+public class CPGreyBmp extends CPBitmap
+{
 
-	public byte[] data;
+public byte[] data;
 
-	// Allocates a new bitmap
-	public CPGreyBmp(int width, int height) {
-		super(width, height);
-		this.data = new byte[width * height];
-	}
+// Allocates a new bitmap
+public CPGreyBmp (int width, int height)
+{
+  super (width, height);
+  this.data = new byte[width * height];
+}
 
-	public CPGreyBmp(CPGreyBmp original) {
-		super(original.width, original.height);
-		this.data = new byte[width * height];
+public CPGreyBmp (CPGreyBmp original)
+{
+  super (original.width, original.height);
+  this.data = new byte[width * height];
 
-		System.arraycopy(original.data, 0, data, 0, width*height);
-	}
+  System.arraycopy (original.data, 0, data, 0, width * height);
+}
 
-	public void inverse() {
-		for (int i=0, size=width*height; i<size; i++) {
-			data[i] = (byte) (255 - data[i]);
-		}
-	}
-
-    public byte[] copyRectXOR(CPGreyBmp bmp, CPRect rect) {
-        CPRect r = new CPRect(0, 0, width, height);
-        r.clip(rect);
-
-        byte[] buffer = new byte[r.getWidth() * r.getHeight()];
-        int w = r.getWidth();
-        int h = r.getHeight();
-        for (int j = 0; j < h; j++) {
-            for (int i = 0; i < w; i++) {
-                buffer[i + j * w] = (byte) (data[(j + r.top) * width + i + r.left] ^ bmp.data[(j + r.top) * width + i + r.left]);
-            }
-        }
-
-        return buffer;
+public void inverse ()
+{
+  for (int i = 0, size = width * height; i < size; i++)
+    {
+      data[i] = (byte) (255 - data[i]);
     }
+}
 
-    public void setRectXOR(byte[] buffer, CPRect rect) {
-        CPRect r = new CPRect(0, 0, width, height);
-        r.clip(rect);
+public byte[] copyRectXOR (CPGreyBmp bmp, CPRect rect)
+{
+  CPRect r = new CPRect (0, 0, width, height);
+  r.clip (rect);
 
-        int w = r.getWidth();
-        int h = r.getHeight();
-        for (int j = 0; j < h; j++) {
-            for (int i = 0; i < w; i++) {
-                data[(j + r.top) * width + i + r.left] = (byte) (data[(j + r.top) * width + i + r.left] ^ buffer[i + j * w]);
-            }
+  byte[] buffer = new byte[r.getWidth () * r.getHeight ()];
+  int w = r.getWidth ();
+  int h = r.getHeight ();
+  for (int j = 0; j < h; j++)
+    {
+      for (int i = 0; i < w; i++)
+        {
+          buffer[i + j * w] = (byte) (data[(j + r.top) * width + i + r.left] ^ bmp.data[(j + r.top) * width + i + r.left]);
         }
     }
 
-    public void copyDataFrom(CPGreyBmp bmp) {
-        if (bmp.width != width || bmp.height != height) {
-            width = bmp.width;
-            height = bmp.height;
-            data = new byte[width * height];
+  return buffer;
+}
+
+public void setRectXOR (byte[] buffer, CPRect rect)
+{
+  CPRect r = new CPRect (0, 0, width, height);
+  r.clip (rect);
+
+  int w = r.getWidth ();
+  int h = r.getHeight ();
+  for (int j = 0; j < h; j++)
+    {
+      for (int i = 0; i < w; i++)
+        {
+          data[(j + r.top) * width + i + r.left] = (byte) (data[(j + r.top) * width + i + r.left] ^ buffer[i + j * w]);
         }
-        System.arraycopy(bmp.data, 0, data, 0, data.length);
+    }
+}
+
+public void copyDataFrom (CPGreyBmp bmp)
+{
+  if (bmp.width != width || bmp.height != height)
+    {
+      width = bmp.width;
+      height = bmp.height;
+      data = new byte[width * height];
+    }
+  System.arraycopy (bmp.data, 0, data, 0, data.length);
+}
+
+public void mirrorHorizontally ()
+{
+  byte[] newData = new byte[width * height];
+
+  for (int j = 0; j < height; j++)
+    {
+      for (int i = 0; i < width; i++)
+        {
+          newData[j * width + i] = data[j * width + width - i - 1];
+        }
     }
 
-	public void mirrorHorizontally() {
-		byte[] newData = new byte[width*height];
+  data = newData;
+}
 
-		for (int j=0; j<height; j++) {
-			for (int i=0; i<width; i++) {
-				newData[j*width + i] = data[j*width + width-i-1];
-			}
-		}
-
-		data = newData;
-	}
-
-	public void applyLUT(CPLookUpTable lut) {
-		for (int i=0, size=width*height; i<size; i++) {
-			data[i] = (byte) lut.table[data[i] & 0xff];
-		}
-	}
+public void applyLUT (CPLookUpTable lut)
+{
+  for (int i = 0, size = width * height; i < size; i++)
+    {
+      data[i] = (byte) lut.table[data[i] & 0xff];
+    }
+}
 
 }

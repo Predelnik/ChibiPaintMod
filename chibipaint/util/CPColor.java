@@ -22,170 +22,203 @@
 
 package chibipaint.util;
 
-public class CPColor implements Cloneable {
+public class CPColor implements Cloneable
+{
 
-	public int rgb;
-	private int hue;
-    private int saturation;
-    private int value;
+public int rgb;
+private int hue;
+private int saturation;
+private int value;
 
-	public CPColor() {
-		setRgb(0);
-	}
+public CPColor ()
+{
+  setRgb (0);
+}
 
-	public CPColor(int rgb) {
-		setRgb(rgb);
-	}
+public CPColor (int rgb)
+{
+  setRgb (rgb);
+}
 
-	public CPColor(int hue, int saturation, int value) {
-		setHsv(hue, saturation, value);
-	}
+public CPColor (int hue, int saturation, int value)
+{
+  setHsv (hue, saturation, value);
+}
 
-	void setRgb(int rgb) {
-		this.rgb = rgb;
-		rgbToHsv();
-	}
+void setRgb (int rgb)
+{
+  this.rgb = rgb;
+  rgbToHsv ();
+}
 
-	void setHsv(int hue, int value, int saturation) {
-		this.hue = hue;
-		this.saturation = saturation;
-		this.value = value;
+void setHsv (int hue, int value, int saturation)
+{
+  this.hue = hue;
+  this.saturation = saturation;
+  this.value = value;
 
-		hsvToRgb();
-	}
+  hsvToRgb ();
+}
 
-	void rgbToHsv() {
-		int r = rgb >> 16;
-		int g = (rgb >> 8) & 0xff;
-		int b = rgb & 0xff;
+void rgbToHsv ()
+{
+  int r = rgb >> 16;
+  int g = (rgb >> 8) & 0xff;
+  int b = rgb & 0xff;
 
-		// Value
-		value = Math.max(r, Math.max(g, b));
+  // Value
+  value = Math.max (r, Math.max (g, b));
 
-		// Saturation
-		int mini = Math.min(r, Math.min(g, b));
-		if (value == 0) {
-			saturation = 0;
-		} else {
-			saturation = (int) ((float) (value - mini) / (float) value * 255.f);
-		}
+  // Saturation
+  int mini = Math.min (r, Math.min (g, b));
+  if (value == 0)
+    {
+      saturation = 0;
+    }
+  else
+    {
+      saturation = (int) ((float) (value - mini) / (float) value * 255.f);
+    }
 
-		// Hue
-		if (saturation == 0) {
-			hue = 0;
-		} else {
-			float cr = (float) (value - r) / (float) (value - mini);
-			float cg = (float) (value - g) / (float) (value - mini);
-			float cb = (float) (value - b) / (float) (value - mini);
+  // Hue
+  if (saturation == 0)
+    {
+      hue = 0;
+    }
+  else
+    {
+      float cr = (float) (value - r) / (float) (value - mini);
+      float cg = (float) (value - g) / (float) (value - mini);
+      float cb = (float) (value - b) / (float) (value - mini);
 
-			float _hue = 0;
-			if (value == r) {
-				_hue = cb - cg;
-			}
-			if (value == g) {
-				_hue = 2 + cr - cb;
-			}
-			if (value == b) {
-				_hue = 4 + cg - cr;
-			}
+      float _hue = 0;
+      if (value == r)
+        {
+          _hue = cb - cg;
+        }
+      if (value == g)
+        {
+          _hue = 2 + cr - cb;
+        }
+      if (value == b)
+        {
+          _hue = 4 + cg - cr;
+        }
 
-			_hue *= 60;
-			if (_hue < 0) {
-				_hue += 360;
-			}
+      _hue *= 60;
+      if (_hue < 0)
+        {
+          _hue += 360;
+        }
 
-			hue = (int) (_hue);
-		}
-	}
+      hue = (int) (_hue);
+    }
+}
 
-	void hsvToRgb() {
-		// no saturation means it's just a shade of grey
-		if (saturation == 0) {
-			rgb = (value << 16) | (value << 8) | value;
-		}
+void hsvToRgb ()
+{
+  // no saturation means it's just a shade of grey
+  if (saturation == 0)
+    {
+      rgb = (value << 16) | (value << 8) | value;
+    }
 
-		float f = (hue) / 60.f;
-		f = f - (float) Math.floor(f);
+  float f = (hue) / 60.f;
+  f = f - (float) Math.floor (f);
 
-		float s = saturation / 255.f;
-		int m = (int) (value * (1 - s));
-		int n = (int) (value * (1 - s * f));
-		int k = (int) (value * (1 - s * (1 - f)));
+  float s = saturation / 255.f;
+  int m = (int) (value * (1 - s));
+  int n = (int) (value * (1 - s * f));
+  int k = (int) (value * (1 - s * (1 - f)));
 
-		switch (hue / 60) {
-		case 0:
-			rgb = (value << 16) | (k << 8) | m;
-			break;
-		case 1:
-			rgb = (n << 16) | (value << 8) | m;
-			break;
-		case 2:
-			rgb = (m << 16) | (value << 8) | k;
-			break;
-		case 3:
-			rgb = (m << 16) | (n << 8) | value;
-			break;
-		case 4:
-			rgb = (k << 16) | (m << 8) | value;
-			break;
-		case 5:
-			rgb = (value << 16) | (m << 8) | n;
-			break;
-		default:
-			rgb = 0; // invalid hue
-			break;
-		}
-	}
+  switch (hue / 60)
+    {
+    case 0:
+      rgb = (value << 16) | (k << 8) | m;
+      break;
+    case 1:
+      rgb = (n << 16) | (value << 8) | m;
+      break;
+    case 2:
+      rgb = (m << 16) | (value << 8) | k;
+      break;
+    case 3:
+      rgb = (m << 16) | (n << 8) | value;
+      break;
+    case 4:
+      rgb = (k << 16) | (m << 8) | value;
+      break;
+    case 5:
+      rgb = (value << 16) | (m << 8) | n;
+      break;
+    default:
+      rgb = 0; // invalid hue
+      break;
+    }
+}
 
-	public void setHue(int hue) {
-		this.hue = hue;
-		hsvToRgb();
-	}
+public void setHue (int hue)
+{
+  this.hue = hue;
+  hsvToRgb ();
+}
 
-	public void setSaturation(int saturation) {
-		this.saturation = saturation;
-		hsvToRgb();
-	}
+public void setSaturation (int saturation)
+{
+  this.saturation = saturation;
+  hsvToRgb ();
+}
 
-	public void setValue(int value) {
-		this.value = value;
-		hsvToRgb();
-	}
+public void setValue (int value)
+{
+  this.value = value;
+  hsvToRgb ();
+}
 
-	public int getRgb() {
-		return rgb;
-	}
+public int getRgb ()
+{
+  return rgb;
+}
 
-	public int getHue() {
-		return hue;
-	}
+public int getHue ()
+{
+  return hue;
+}
 
-	public int getSaturation() {
-		return saturation;
-	}
+public int getSaturation ()
+{
+  return saturation;
+}
 
-	public int getValue() {
-		return value;
-	}
+public int getValue ()
+{
+  return value;
+}
 
-	@Override
-	public Object clone() {
-		try {
-			return super.clone();
-		} catch (Exception ignored) {
-			throw new Error("Uh oh");
-		}
-	}
+@Override
+public Object clone ()
+{
+  try
+    {
+      return super.clone ();
+    }
+  catch (Exception ignored)
+    {
+      throw new Error ("Uh oh");
+    }
+}
 
-	public void copyFrom(CPColor c) {
-		rgb = c.rgb;
-		hue = c.hue;
-		saturation = c.saturation;
-		value = c.value;
-	}
+public void copyFrom (CPColor c)
+{
+  rgb = c.rgb;
+  hue = c.hue;
+  saturation = c.saturation;
+  value = c.value;
+}
 
-	public boolean isEqual(CPColor color) {
-		return rgb == color.rgb && hue == color.hue && saturation == color.saturation && value == color.value;
-	}
+public boolean isEqual (CPColor color)
+{
+  return rgb == color.rgb && hue == color.hue && saturation == color.saturation && value == color.value;
+}
 
 }

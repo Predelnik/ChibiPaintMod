@@ -22,298 +22,345 @@
 
 package chibipaint.gui;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
+import chibipaint.CPController;
+import chibipaint.util.CPColor;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.image.MemoryImageSource;
 
-import chibipaint.*;
-import chibipaint.util.*;
+public class CPColorPalette extends CPPalette implements chibipaint.CPController.ICPColorListener
+{
 
-public class CPColorPalette extends CPPalette implements chibipaint.CPController.ICPColorListener {
+private final CPColor curColor = new CPColor ();
+private final CPColorSelect colorSelect;
+private final CPColorSlider colorSlider;
+private final CPColorShow colorShow;
 
-	private final CPColor curColor = new CPColor();
-	private final CPColorSelect colorSelect;
-	private final CPColorSlider colorSlider;
-	private final CPColorShow colorShow;
+public CPColorPalette (CPController controller)
+{
+  super (controller);
 
-	public CPColorPalette(CPController controller) {
-		super(controller);
+  // setSize(175, 185);
 
-		// setSize(175, 185);
+  title = "Color";
+  // setBounds(getInnerDimensions());
 
-		title = "Color";
-		// setBounds(getInnerDimensions());
+  setLayout (new FlowLayout ());
+  colorSelect = new CPColorSelect ();
+  add (colorSelect);
+  colorSlider = new CPColorSlider (colorSelect);
+  add (colorSlider);
 
-		setLayout(new FlowLayout());
-		colorSelect = new CPColorSelect();
-		add(colorSelect);
-		colorSlider = new CPColorSlider(colorSelect);
-		add(colorSlider);
+  colorShow = new CPColorShow ();
+  colorShow.setPreferredSize (new Dimension (160, 20));
+  colorShow.color = controller.getCurColorRgb ();
+  add (colorShow);
 
-		colorShow = new CPColorShow();
-		colorShow.setPreferredSize(new Dimension(160, 20));
-		colorShow.color = controller.getCurColorRgb();
-		add(colorShow);
+  controller.addColorListener (this);
+}
 
-		controller.addColorListener(this);
-	}
+@Override
+public void newColor (CPColor color)
+{
+  if (!curColor.isEqual (color))
+    {
+      curColor.copyFrom (color);
+      colorSelect.setColor (color);
+      colorSlider.setHue (curColor.getHue ());
+    }
+  colorShow.color = color.getRgb ();
+  colorShow.repaint ();
+}
 
-	@Override
-	public void newColor(CPColor color) {
-		if (!curColor.isEqual(color)) {
-			curColor.copyFrom(color);
-			colorSelect.setColor(color);
-			colorSlider.setHue(curColor.getHue());
-		}
-		colorShow.color = color.getRgb();
-		colorShow.repaint();
-	}
+public class CPColorSelect extends JComponent implements MouseListener, MouseMotionListener
+{
 
-	public class CPColorSelect extends JComponent implements MouseListener, MouseMotionListener {
+  final int[] data;
+  final int w;
+  final int h;
+  final Image img;
+  final CPColor color;
+  boolean needRefresh;
 
-		final int[] data;
-		final int w;
-        final int h;
-		final Image img;
-		final CPColor color;
-		boolean needRefresh;
+  public CPColorSelect ()
+  {
+    w = h = 128;
+    setBackground (Color.black); // tmp to help see refresh problems
+    setSize (new Dimension (w, h));
 
-		public CPColorSelect() {
-			w = h = 128;
-			setBackground(Color.black); // tmp to help see refresh problems
-			setSize(new Dimension(w, h));
+    data = new int[w * h];
+    img = createImage (new MemoryImageSource (w, h, data, 0, w));
+    color = new CPColor ();
 
-			data = new int[w * h];
-			img = createImage(new MemoryImageSource(w, h, data, 0, w));
-			color = new CPColor();
+    makeBitmap ();
+    needRefresh = false;
 
-			makeBitmap();
-			needRefresh = false;
+    addMouseListener (this);
+    addMouseMotionListener (this);
+  }
 
-			addMouseListener(this);
-			addMouseMotionListener(this);
-		}
+  public void setHue (int hue)
+  {
+    if (color.getHue () != hue)
+      {
+        color.setHue (hue);
+        needRefresh = true;
+        repaint ();
+        controller.setCurColor (color);
+      }
+  }
 
-		public void setHue(int hue) {
-			if (color.getHue() != hue) {
-				color.setHue(hue);
-				needRefresh = true;
-				repaint();
-				controller.setCurColor(color);
-			}
-		}
+  public void setColor (CPColor newColor)
+  {
+    if (!color.isEqual (newColor))
+      {
+        color.copyFrom (newColor);
+        needRefresh = true;
+        repaint ();
+        controller.setCurColor (color);
+      }
+  }
 
-		public void setColor(CPColor newColor) {
-			if (!color.isEqual(newColor)) {
-				color.copyFrom(newColor);
-				needRefresh = true;
-				repaint();
-				controller.setCurColor(color);
-			}
-		}
+  void makeBitmap ()
+  {
+    CPColor col = (CPColor) color.clone ();
+    for (int j = 0; j < h; j++)
+      {
+        col.setValue (255 - (j * 255) / h);
+        for (int i = 0; i < w; i++)
+          {
+            col.setSaturation ((i * 255) / w);
+            data[i + j * w] = 0xff000000 | col.rgb;
+          }
+      }
+  }
 
-		void makeBitmap() {
-			CPColor col = (CPColor) color.clone();
-			for (int j = 0; j < h; j++) {
-				col.setValue(255 - (j * 255) / h);
-				for (int i = 0; i < w; i++) {
-					col.setSaturation((i * 255) / w);
-					data[i + j * w] = 0xff000000 | col.rgb;
-				}
-			}
-		}
+  @Override
+  public void update (Graphics g)
+  {
+    paint (g);
+  }
 
-		@Override
-		public void update(Graphics g) {
-			paint(g);
-		}
+  @Override
+  public void paint (Graphics g)
+  {
+    if (needRefresh)
+      {
+        makeBitmap ();
+        needRefresh = false;
+      }
+    img.flush ();
+    g.drawImage (img, 0, 0, Color.red, null);
 
-		@Override
-		public void paint(Graphics g) {
-			if (needRefresh) {
-				makeBitmap();
-				needRefresh = false;
-			}
-			img.flush();
-			g.drawImage(img, 0, 0, Color.red, null);
+    int x = color.getSaturation () * w / 255;
+    int y = (255 - color.getValue ()) * h / 255;
+    g.setColor (Color.white);
+    g.setXORMode (Color.black);
+    g.drawOval (x - 5, y - 5, 10, 10);
+  }
 
-			int x = color.getSaturation() * w / 255;
-			int y = (255 - color.getValue()) * h / 255;
-			g.setColor(Color.white);
-			g.setXORMode(Color.black);
-			g.drawOval(x - 5, y - 5, 10, 10);
-		}
+  public void mouseSelect (MouseEvent e)
+  {
+    int sat = e.getX () * 255 / w;
+    int value = 255 - e.getY () * 255 / h;
 
-		public void mouseSelect(MouseEvent e) {
-			int sat = e.getX() * 255 / w;
-			int value = 255 - e.getY() * 255 / h;
+    color.setSaturation (Math.max (0, Math.min (255, sat)));
+    color.setValue (Math.max (0, Math.min (255, value)));
 
-			color.setSaturation(Math.max(0, Math.min(255, sat)));
-			color.setValue(Math.max(0, Math.min(255, value)));
+    repaint ();
+    controller.setCurColor (color);
+  }
 
-			repaint();
-			controller.setCurColor(color);
-		}
+  @Override
+  public void mouseEntered (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseEntered(MouseEvent e) {
-		}
+  @Override
+  public void mouseExited (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseExited(MouseEvent e) {
-		}
+  @Override
+  public void mouseClicked (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseClicked(MouseEvent e) {
-		}
+  @Override
+  public void mousePressed (MouseEvent e)
+  {
+    mouseSelect (e);
+  }
 
-		@Override
-		public void mousePressed(MouseEvent e) {
-			mouseSelect(e);
-		}
+  @Override
+  public void mouseReleased (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseReleased(MouseEvent e) {
-		}
+  @Override
+  public void mouseMoved (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseMoved(MouseEvent e) {
-		}
+  @Override
+  public void mouseDragged (MouseEvent e)
+  {
+    mouseSelect (e);
+  }
 
-		@Override
-		public void mouseDragged(MouseEvent e) {
-			mouseSelect(e);
-		}
+  @Override
+  public Dimension getPreferredSize ()
+  {
+    return new Dimension (w, h);
+  }
+}
 
-		@Override
-		public Dimension getPreferredSize() {
-			return new Dimension(w, h);
-		}
-	}
+public class CPColorSlider extends JComponent implements MouseListener, MouseMotionListener
+{
 
-	public class CPColorSlider extends JComponent implements MouseListener, MouseMotionListener {
+  final int[] data;
+  final int w;
+  final int h;
+  final Image img;
+  int hue;
 
-		final int[] data;
-		final int w;
-        final int h;
-		final Image img;
-		int hue;
+  final CPColorSelect selecter;
 
-		final CPColorSelect selecter;
+  public CPColorSlider (CPColorSelect selecter)
+  {
+    w = 24;
+    h = 128;
 
-		public CPColorSlider(CPColorSelect selecter) {
-			w = 24;
-			h = 128;
+    this.selecter = selecter;
 
-			this.selecter = selecter;
+    setBackground (Color.black); // tmp to help see refresh problems
+    setSize (new Dimension (w, h));
 
-			setBackground(Color.black); // tmp to help see refresh problems
-			setSize(new Dimension(w, h));
+    data = new int[w * h];
+    img = createImage (new MemoryImageSource (w, h, data, 0, w));
+    hue = 0;
 
-			data = new int[w * h];
-			img = createImage(new MemoryImageSource(w, h, data, 0, w));
-			hue = 0;
+    makeBitmap ();
 
-			makeBitmap();
+    addMouseListener (this);
+    addMouseMotionListener (this);
+  }
 
-			addMouseListener(this);
-			addMouseMotionListener(this);
-		}
+  void makeBitmap ()
+  {
+    CPColor color = new CPColor (0, 255, 255);
+    for (int j = 0; j < h; j++)
+      {
+        color.setHue ((j * 359) / h);
+        for (int i = 0; i < w; i++)
+          {
+            data[i + j * w] = 0xff000000 | color.rgb;
+          }
+      }
+  }
 
-		void makeBitmap() {
-			CPColor color = new CPColor(0, 255, 255);
-			for (int j = 0; j < h; j++) {
-				color.setHue((j * 359) / h);
-				for (int i = 0; i < w; i++) {
-					data[i + j * w] = 0xff000000 | color.rgb;
-				}
-			}
-		}
+  @Override
+  public void update (Graphics g)
+  {
+    paint (g);
+  }
 
-		@Override
-		public void update(Graphics g) {
-			paint(g);
-		}
+  @Override
+  public void paint (Graphics g)
+  {
+    img.flush ();
+    g.drawImage (img, 0, 0, Color.red, null);
 
-		@Override
-		public void paint(Graphics g) {
-			img.flush();
-			g.drawImage(img, 0, 0, Color.red, null);
+    int y = (hue * h) / 360;
+    g.setColor (Color.white);
+    g.setXORMode (Color.black);
+    g.drawLine (0, y, w, y);
+  }
 
-			int y = (hue * h) / 360;
-			g.setColor(Color.white);
-			g.setXORMode(Color.black);
-			g.drawLine(0, y, w, y);
-		}
+  public void mouseSelect (MouseEvent e)
+  {
+    int _hue = e.getY () * 360 / h;
+    hue = Math.max (0, Math.min (359, _hue));
+    repaint ();
 
-		public void mouseSelect(MouseEvent e) {
-			int _hue = e.getY() * 360 / h;
-			hue = Math.max(0, Math.min(359, _hue));
-			repaint();
+    if (selecter != null)
+      {
+        selecter.setHue (hue);
+        // controller.setCurColor(color.GetRgb());
+      }
+  }
 
-			if (selecter != null) {
-				selecter.setHue(hue);
-				// controller.setCurColor(color.GetRgb());
-			}
-		}
+  @Override
+  public void mouseEntered (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseEntered(MouseEvent e) {
-		}
+  @Override
+  public void mouseExited (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseExited(MouseEvent e) {
-		}
+  @Override
+  public void mouseClicked (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseClicked(MouseEvent e) {
-		}
+  @Override
+  public void mousePressed (MouseEvent e)
+  {
+    mouseSelect (e);
+  }
 
-		@Override
-		public void mousePressed(MouseEvent e) {
-			mouseSelect(e);
-		}
+  @Override
+  public void mouseReleased (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseReleased(MouseEvent e) {
-		}
+  @Override
+  public void mouseMoved (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseMoved(MouseEvent e) {
-		}
+  @Override
+  public void mouseDragged (MouseEvent e)
+  {
+    mouseSelect (e);
+  }
 
-		@Override
-		public void mouseDragged(MouseEvent e) {
-			mouseSelect(e);
-		}
+  void setHue (int h)
+  {
+    hue = h;
+    repaint ();
+  }
 
-		void setHue(int h) {
-			hue = h;
-			repaint();
-		}
+  @Override
+  public Dimension getPreferredSize ()
+  {
+    return new Dimension (w, h);
+  }
+}
 
-		@Override
-		public Dimension getPreferredSize() {
-			return new Dimension(w, h);
-		}
-	}
+public class CPColorShow extends JComponent
+{
 
-	public class CPColorShow extends JComponent {
+  int color;
 
-		int color;
+  @Override
+  public void update (Graphics g)
+  {
+    paint (g);
+  }
 
-		@Override
-		public void update(Graphics g) {
-			paint(g);
-		}
-
-		@Override
-		public void paint(Graphics g) {
-			Dimension d = getSize();
-			g.setColor(new Color(color));
-			g.fillRect(0, 0, d.width, d.height);
-		}
-	}
+  @Override
+  public void paint (Graphics g)
+  {
+    Dimension d = getSize ();
+    g.setColor (new Color (color));
+    g.fillRect (0, 0, d.width, d.height);
+  }
+}
 }

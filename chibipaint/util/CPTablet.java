@@ -22,71 +22,89 @@
 
 package chibipaint.util;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
 
-public class CPTablet {
+public class CPTablet
+{
 
-	private static CPTablet ref;
+private static CPTablet ref;
 
-	public static CPTablet getRef() {
-		if (ref == null) {
-			ref = new CPTablet();
-		}
-		return ref;
-	}
+public static CPTablet getRef ()
+{
+  if (ref == null)
+    {
+      ref = new CPTablet ();
+    }
+  return ref;
+}
 
-	private boolean tabletOK = false;
-	private Object tablet;
-	private Method mPoll;
-    private Method mGetPressure;
-    private Method mGetPressureExtent;
+private boolean tabletOK = false;
+private Object tablet;
+private Method mPoll;
+private Method mGetPressure;
+private Method mGetPressureExtent;
 
-	private int pressure = 0;
-    private int pressureExtent = 1;
+private int pressure = 0;
+private int pressureExtent = 1;
 
-	private CPTablet() {
-		try {
-			Class<?> tabletClass = Class.forName("cello.tablet.JTablet");
-			tablet = tabletClass.newInstance();
+private CPTablet ()
+{
+  try
+    {
+      Class<?> tabletClass = Class.forName ("cello.tablet.JTablet");
+      tablet = tabletClass.newInstance ();
 
-			mPoll = tabletClass.getMethod("poll", (Class[]) null);
-			mGetPressure = tabletClass.getMethod("getPressure", (Class[]) null);
-			mGetPressureExtent = tabletClass.getMethod("getPressureExtent", (Class[]) null);
-			// tablet_getAngle = jtablet.getMethod("getAngle",null);
-			//
-			// tablet_getOrientation = jtablet.getMethod("getOrientation",null);
-			// tablet_getButtons = jtablet.getMethod("getButtons",null);
+      mPoll = tabletClass.getMethod ("poll", (Class[]) null);
+      mGetPressure = tabletClass.getMethod ("getPressure", (Class[]) null);
+      mGetPressureExtent = tabletClass.getMethod ("getPressureExtent", (Class[]) null);
+      // tablet_getAngle = jtablet.getMethod("getAngle",null);
+      //
+      // tablet_getOrientation = jtablet.getMethod("getOrientation",null);
+      // tablet_getButtons = jtablet.getMethod("getButtons",null);
 
-			tabletOK = true;
-		} catch (Exception e) {
-			System.out.print(e.toString());
-		}
-	}
+      tabletOK = true;
+    }
+  catch (Exception e)
+    {
+      System.out.print (e.toString ());
+    }
+}
 
-	private void getTabletInfo() {
-		if (tabletOK) {
-			try {
-				if (((Boolean) mPoll.invoke(tablet, (Object[]) null)).booleanValue()) {
-					pressure = (Integer) mGetPressure.invoke(tablet, (Object[]) null);
-					pressureExtent = (Integer) mGetPressureExtent.invoke(tablet, (Object[]) null);
-				}
-			} catch (Exception e) {
-				System.out.print(e.toString());
-			}
-		}
-	}
+private void getTabletInfo ()
+{
+  if (tabletOK)
+    {
+      try
+        {
+          if (((Boolean) mPoll.invoke (tablet, (Object[]) null)).booleanValue ())
+            {
+              pressure = (Integer) mGetPressure.invoke (tablet, (Object[]) null);
+              pressureExtent = (Integer) mGetPressureExtent.invoke (tablet, (Object[]) null);
+            }
+        }
+      catch (Exception e)
+        {
+          System.out.print (e.toString ());
+        }
+    }
+}
 
-	public float getPressure() {
-		getTabletInfo();
-		if (!tabletOK) {
-			return 1.f;
-		} else {
-			return (float) pressure / pressureExtent;
-		}
-	}
+public float getPressure ()
+{
+  getTabletInfo ();
+  if (!tabletOK)
+    {
+      return 1.f;
+    }
+  else
+    {
+      return (float) pressure / pressureExtent;
+    }
+}
 
-	public void mouseDetect() {
-		pressure = pressureExtent = 1;
-		getTabletInfo();
-	}
+public void mouseDetect ()
+{
+  pressure = pressureExtent = 1;
+  getTabletInfo ();
+}
 }

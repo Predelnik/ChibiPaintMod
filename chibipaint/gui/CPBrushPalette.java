@@ -22,457 +22,524 @@
 
 package chibipaint.gui;
 
+import chibipaint.CPController;
+import chibipaint.engine.CPBrushInfo;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import javax.swing.*;
-
-import chibipaint.engine.*;
-import chibipaint.CPController;
-
-public class CPBrushPalette extends CPPalette implements CPController.ICPToolListener, ActionListener {
-
-	private final CPAlphaSlider alphaSlider;
-	private final CPSizeSlider sizeSlider;
-
-	private final CPCheckBox alphaCB;
-    private final CPCheckBox sizeCB;
-    private final CPCheckBox scatteringCB;
-	private final CPSlider resatSlider;
-    private final CPSlider bleedSlider;
-    private final CPSlider spacingSlider;
-    private final CPSlider scatteringSlider;
-    private final CPSlider smoothingSlider;
-	private final CPBrushPreview brushPreview;
-
-	// For Floodfill
-    private final CPSlider colorDistanceSlider;
-
-	private final JComboBox tipCombo;
-	private final String[] tipNames = { "Round Pixelated", "Round Hard Edge", "Round Soft", "Square Pixelated", "Square Hard Edge" };
-
-	@SuppressWarnings("serial")
-	public CPBrushPalette(CPController ctrlr) {
-		super(ctrlr);
-
-		setSize(160, 270);
-
-		title = "Brush";
-		// setBounds(getInnerDimensions());
-
-		setLayout(null);
-		colorDistanceSlider = new CPColorDistanceSlider ();
-		colorDistanceSlider.setLocation(20, 25);
-		colorDistanceSlider.setSize (130, 16);
-		add(colorDistanceSlider);
-
-		alphaSlider = new CPAlphaSlider();
-		alphaSlider.setLocation(20, 120);
-		alphaSlider.setSize(130, 16);
-		add(alphaSlider);
-
-		brushPreview = new CPBrushPreview();
-		brushPreview.setLocation(5, 25);
-		add(brushPreview);
-
-		// Label l = new Label("Opacity: ");
-		// c.add(l);
-		// l.setLocation(5, 70);
-
-		alphaCB = new CPAlphaCB();
-		alphaCB.setLocation(2, 120);
-		alphaCB.setSize(16, 16);
-		add(alphaCB);
-
-		sizeSlider = new CPSizeSlider();
-		sizeSlider.setLocation(20, 95);
-		sizeSlider.setSize(130, 16);
-		add(sizeSlider);
-
-		sizeCB = new CPSizeCB();
-		sizeCB.setLocation(2, 95);
-		sizeCB.setSize(16, 16);
-		add(sizeCB);
-
-		tipCombo = new JComboBox(tipNames);
-		tipCombo.addActionListener(this);
-		tipCombo.setLocation(5, 5);
-		tipCombo.setSize(120, 16);
-		add(tipCombo);
-
-		resatSlider = new CPSlider(100) {
-
-			@Override
-			public void onValueChange() {
-				controller.getBrushInfo().resat = value / 100f;
-				controller.callToolListeners();
-				title = "Color: " + value + "%";
-			}
-		};
-		resatSlider.setLocation(20, 145);
-		resatSlider.setSize(130, 16);
-		add(resatSlider);
-
-		bleedSlider = new CPSlider(100) {
-
-			@Override
-			public void onValueChange() {
-				controller.getBrushInfo().bleed = value / 100f;
-				controller.callToolListeners();
-				title = "Blend: " + value + "%";
-			}
-		};
-		bleedSlider.setLocation(20, 170);
-		bleedSlider.setSize(130, 16);
-		add(bleedSlider);
-
-		spacingSlider = new CPSlider(100) {
-
-			@Override
-			public void onValueChange() {
-				controller.getBrushInfo().spacing = value / 100f;
-				controller.callToolListeners();
-				title = "Spacing: " + value + "%";
-			}
-		};
-		spacingSlider.setLocation(20, 195);
-		spacingSlider.setSize(130, 16);
-		add(spacingSlider);
-
-		scatteringCB = new CPCheckBox() {
-
-			@Override
-			public void onValueChange() {
-				controller.getBrushInfo().pressureScattering = state;
-				controller.callToolListeners();
-			}
-		};
-		scatteringCB.setLocation(2, 220);
-		scatteringCB.setSize(16, 16);
-		add(scatteringCB);
-
-		scatteringSlider = new CPSlider(1000) {
-
-			@Override
-			public void onValueChange() {
-				controller.getBrushInfo().scattering = value / 100f;
-				controller.callToolListeners();
-				title = "Scattering: " + value + "%";
-			}
-		};
-		scatteringSlider.setLocation(20, 220);
-		scatteringSlider.setSize(130, 16);
-		add(scatteringSlider);
-
-		smoothingSlider = new CPSlider(100) {
-
-			@Override
-			public void onValueChange() {
-				controller.getBrushInfo().smoothing = value / 100f;
-				controller.callToolListeners();
-				title = "Smoothing: " + value + "%";
-			}
-		};
-		smoothingSlider.setLocation(20, 245);
-		smoothingSlider.setSize(130, 16);
-		add(smoothingSlider);
-
-		colorDistanceSlider.setValue(ctrlr.getColorDistance () );
-		alphaSlider.setValue(ctrlr.getAlpha());
-		sizeSlider.setValue(ctrlr.getBrushSize());
-		sizeCB.setValue(ctrlr.getBrushInfo().pressureSize);
-		alphaCB.setValue(ctrlr.getBrushInfo().pressureAlpha);
-		tipCombo.setSelectedIndex(ctrlr.getBrushInfo().type);
-
-		resatSlider.setValue((int) (ctrlr.getBrushInfo().resat * 100));
-		bleedSlider.setValue((int) (ctrlr.getBrushInfo().bleed * 100));
-		spacingSlider.setValue((int) (ctrlr.getBrushInfo().spacing * 100));
-		scatteringCB.setValue(ctrlr.getBrushInfo().pressureScattering);
-		scatteringSlider.setValue((int) (ctrlr.getBrushInfo().scattering * 100));
-		smoothingSlider.setValue((int) (ctrlr.getBrushInfo().smoothing * 100));
-
-		ctrlr.addToolListener(this);
-		newTool (0, null); // Just to figure out visibility
-	}
-
-	@Override
-	public void newTool(int tool, CPBrushInfo toolInfo) {
-		JComponent [] brush_controls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
-				bleedSlider, spacingSlider, scatteringSlider, smoothingSlider, tipCombo, brushPreview};
-		JComponent [] flood_fill_controls = {colorDistanceSlider};
-		for (JComponent jc : brush_controls)
-			jc.setVisible (false);
-
-		for (JComponent jc : flood_fill_controls)
-			jc.setVisible (false);
-
-		switch (controller.getCurMode ())
-		{
-		case CPController.M_DRAW:
-			for (JComponent jc : brush_controls)
-				jc.setVisible (true);
-			break;
-		case CPController.M_FLOODFILL:
-			for (JComponent jc : flood_fill_controls)
-				jc.setVisible (true);
-			break;
-		}
-
-		if (toolInfo == null)
-			return;
-
-		if (controller.getColorDistance () != colorDistanceSlider.value)
-			colorDistanceSlider.setValue(controller.getColorDistance ());
-
-		if (toolInfo.alpha != alphaSlider.value) {
-			alphaSlider.setValue(toolInfo.alpha);
-		}
-
-		if (toolInfo.size != sizeSlider.value) {
-			sizeSlider.setValue(toolInfo.size);
-		}
-
-		if (toolInfo.pressureSize != sizeCB.state) {
-			sizeCB.setValue(toolInfo.pressureSize);
-		}
-
-		if (toolInfo.pressureAlpha != alphaCB.state) {
-			alphaCB.setValue(toolInfo.pressureAlpha);
-		}
-
-		if (toolInfo.type != tipCombo.getSelectedIndex()) {
-			tipCombo.setSelectedIndex(toolInfo.type);
-		}
-
-		if ((int) (toolInfo.resat * 100.f) != resatSlider.value) {
-			resatSlider.setValue((int) (toolInfo.resat * 100.f));
-		}
-
-		if ((int) (toolInfo.bleed * 100.f) != bleedSlider.value) {
-			bleedSlider.setValue((int) (toolInfo.bleed * 100.f));
-		}
-
-		if ((int) (toolInfo.spacing * 100.f) != spacingSlider.value) {
-			spacingSlider.setValue((int) (toolInfo.spacing * 100.f));
-		}
-
-		if (toolInfo.pressureScattering != scatteringCB.state) {
-			scatteringCB.setValue(toolInfo.pressureScattering);
-		}
-
-		if ((int) (toolInfo.scattering * 100.f) != scatteringSlider.value) {
-			scatteringSlider.setValue((int) (toolInfo.scattering * 100.f));
-		}
-
-		if ((int) (toolInfo.smoothing * 100.f) != smoothingSlider.value) {
-			smoothingSlider.setValue((int) (toolInfo.smoothing * 100.f));
-		}
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == tipCombo) {
-			controller.getBrushInfo().type = tipCombo.getSelectedIndex();
-		}
-	}
-
-	class CPBrushPreview extends JComponent implements MouseListener, MouseMotionListener, CPController.ICPToolListener {
-
-		final int w;
-        final int h;
-		int size;
-
-		public CPBrushPreview() {
-			w = h = 64;
-			setBackground(Color.white);
-			setSize(new Dimension(w, h));
-
-			addMouseListener(this);
-			addMouseMotionListener(this);
-			controller.addToolListener(this);
-
-			size = 16;
-		}
-
-		@Override
-		public void paint(Graphics g) {
-			g.drawOval(w / 2 - size / 2, h / 2 - size / 2, size, size);
-		}
-
-		public void mouseSelect(MouseEvent e) {
-			int x = e.getX() - w / 2;
-			int y = e.getY() - h / 2;
-
-			int newSize = (int) Math.sqrt((x * x + y * y)) * 2;
-			size = Math.max(1, Math.min(200, newSize));
-
-			repaint();
-			controller.setBrushSize(size);
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-			// To implement interface
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-			// To implement interface
-		}
-
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			// To implement interface
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-			mouseSelect(e);
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-			// To implement interface
-		}
-
-		@Override
-		public void mouseMoved(MouseEvent e) {
-			// To implement interface
-		}
-
-		@Override
-		public void mouseDragged(MouseEvent e) {
-			mouseSelect(e);
-		}
-
-		@Override
-		public Dimension getPreferredSize() {
-			return new Dimension(w, h);
-		}
-
-		@Override
-		public void newTool(int tool, CPBrushInfo toolInfo) {
-			if (toolInfo.size != size) {
-				size = toolInfo.size;
-				repaint();
-			}
-		}
-	}
-
-	class CPAlphaSlider extends CPSlider {
-
-		public CPAlphaSlider() {
-			super(255);
-			minValue = 1;
-		}
-
-		@Override
-		public void onValueChange() {
-			controller.setAlpha(value);
-			title = "Opacity: " + value;
-		}
-	}
-
-	class CPColorDistanceSlider extends CPSlider {
-
-		public CPColorDistanceSlider() {
-			super(255);
-			minValue = 0;
-		}
-
-		@Override
-		public void onValueChange() {
-			controller.setColorDistance (value);
-			title = "Color distance: " + value;
-		}
-	}
-
-	class CPSizeSlider extends CPSlider {
-
-		public CPSizeSlider() {
-			super(200);
-			minValue = 1;
-		}
-
-		@Override
-		public void onValueChange() {
-			controller.setBrushSize(value);
-			title = "Brush Size: " + value;
-		}
-	}
-
-	class CPCheckBox extends JComponent implements MouseListener {
-
-		boolean state = false;
-
-		public CPCheckBox() {
-			addMouseListener(this);
-		}
-
-		@Override
-		public void paint(Graphics g) {
-			Dimension d = getSize();
-
-			if (state) {
-				g.fillOval(3, 3, d.width - 5, d.height - 5);
-			} else {
-				g.drawOval(3, 3, d.width - 6, d.height - 6);
-			}
-		}
-
-		public void setValue(boolean b) {
-			state = b;
-			onValueChange();
-			repaint();
-		}
-
-		public void onValueChange() {
-			// To implement interface
-		}
-
-		@Override
-		public void mouseClicked(MouseEvent e) {
-			// To implement interface
-		}
-
-		@Override
-		public void mouseEntered(MouseEvent e) {
-			// To implement interface
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-			// To implement interface
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-			setValue(!state);
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-			// To implement interface
-		}
-	}
-
-	class CPAlphaCB extends CPCheckBox {
-
-		@Override
-		public void onValueChange() {
-			controller.getBrushInfo().pressureAlpha = state;
-			controller.callToolListeners();
-		}
-	}
-
-	class CPSizeCB extends CPCheckBox {
-
-		@Override
-		public void onValueChange() {
-			controller.getBrushInfo().pressureSize = state;
-			controller.callToolListeners();
-		}
-	}
+public class CPBrushPalette extends CPPalette implements CPController.ICPToolListener, ActionListener
+{
+
+private final CPAlphaSlider alphaSlider;
+private final CPSizeSlider sizeSlider;
+
+private final CPCheckBox alphaCB;
+private final CPCheckBox sizeCB;
+private final CPCheckBox scatteringCB;
+private final CPSlider resatSlider;
+private final CPSlider bleedSlider;
+private final CPSlider spacingSlider;
+private final CPSlider scatteringSlider;
+private final CPSlider smoothingSlider;
+private final CPBrushPreview brushPreview;
+
+// For Floodfill
+private final CPSlider colorDistanceSlider;
+
+private final JComboBox tipCombo;
+private final String[] tipNames = {"Round Pixelated", "Round Hard Edge", "Round Soft", "Square Pixelated", "Square Hard Edge"};
+
+@SuppressWarnings ("serial")
+public CPBrushPalette (CPController ctrlr)
+{
+  super (ctrlr);
+
+  setSize (160, 270);
+
+  title = "Brush";
+  // setBounds(getInnerDimensions());
+
+  setLayout (null);
+  colorDistanceSlider = new CPColorDistanceSlider ();
+  colorDistanceSlider.setLocation (20, 25);
+  colorDistanceSlider.setSize (130, 16);
+  add (colorDistanceSlider);
+
+  alphaSlider = new CPAlphaSlider ();
+  alphaSlider.setLocation (20, 120);
+  alphaSlider.setSize (130, 16);
+  add (alphaSlider);
+
+  brushPreview = new CPBrushPreview ();
+  brushPreview.setLocation (5, 25);
+  add (brushPreview);
+
+  // Label l = new Label("Opacity: ");
+  // c.add(l);
+  // l.setLocation(5, 70);
+
+  alphaCB = new CPAlphaCB ();
+  alphaCB.setLocation (2, 120);
+  alphaCB.setSize (16, 16);
+  add (alphaCB);
+
+  sizeSlider = new CPSizeSlider ();
+  sizeSlider.setLocation (20, 95);
+  sizeSlider.setSize (130, 16);
+  add (sizeSlider);
+
+  sizeCB = new CPSizeCB ();
+  sizeCB.setLocation (2, 95);
+  sizeCB.setSize (16, 16);
+  add (sizeCB);
+
+  tipCombo = new JComboBox (tipNames);
+  tipCombo.addActionListener (this);
+  tipCombo.setLocation (5, 5);
+  tipCombo.setSize (120, 16);
+  add (tipCombo);
+
+  resatSlider = new CPSlider (100)
+  {
+
+    @Override
+    public void onValueChange ()
+    {
+      controller.getBrushInfo ().resat = value / 100f;
+      controller.callToolListeners ();
+      title = "Color: " + value + "%";
+    }
+  };
+  resatSlider.setLocation (20, 145);
+  resatSlider.setSize (130, 16);
+  add (resatSlider);
+
+  bleedSlider = new CPSlider (100)
+  {
+
+    @Override
+    public void onValueChange ()
+    {
+      controller.getBrushInfo ().bleed = value / 100f;
+      controller.callToolListeners ();
+      title = "Blend: " + value + "%";
+    }
+  };
+  bleedSlider.setLocation (20, 170);
+  bleedSlider.setSize (130, 16);
+  add (bleedSlider);
+
+  spacingSlider = new CPSlider (100)
+  {
+
+    @Override
+    public void onValueChange ()
+    {
+      controller.getBrushInfo ().spacing = value / 100f;
+      controller.callToolListeners ();
+      title = "Spacing: " + value + "%";
+    }
+  };
+  spacingSlider.setLocation (20, 195);
+  spacingSlider.setSize (130, 16);
+  add (spacingSlider);
+
+  scatteringCB = new CPCheckBox ()
+  {
+
+    @Override
+    public void onValueChange ()
+    {
+      controller.getBrushInfo ().pressureScattering = state;
+      controller.callToolListeners ();
+    }
+  };
+  scatteringCB.setLocation (2, 220);
+  scatteringCB.setSize (16, 16);
+  add (scatteringCB);
+
+  scatteringSlider = new CPSlider (1000)
+  {
+
+    @Override
+    public void onValueChange ()
+    {
+      controller.getBrushInfo ().scattering = value / 100f;
+      controller.callToolListeners ();
+      title = "Scattering: " + value + "%";
+    }
+  };
+  scatteringSlider.setLocation (20, 220);
+  scatteringSlider.setSize (130, 16);
+  add (scatteringSlider);
+
+  smoothingSlider = new CPSlider (100)
+  {
+
+    @Override
+    public void onValueChange ()
+    {
+      controller.getBrushInfo ().smoothing = value / 100f;
+      controller.callToolListeners ();
+      title = "Smoothing: " + value + "%";
+    }
+  };
+  smoothingSlider.setLocation (20, 245);
+  smoothingSlider.setSize (130, 16);
+  add (smoothingSlider);
+
+  colorDistanceSlider.setValue (ctrlr.getColorDistance ());
+  alphaSlider.setValue (ctrlr.getAlpha ());
+  sizeSlider.setValue (ctrlr.getBrushSize ());
+  sizeCB.setValue (ctrlr.getBrushInfo ().pressureSize);
+  alphaCB.setValue (ctrlr.getBrushInfo ().pressureAlpha);
+  tipCombo.setSelectedIndex (ctrlr.getBrushInfo ().type);
+
+  resatSlider.setValue ((int) (ctrlr.getBrushInfo ().resat * 100));
+  bleedSlider.setValue ((int) (ctrlr.getBrushInfo ().bleed * 100));
+  spacingSlider.setValue ((int) (ctrlr.getBrushInfo ().spacing * 100));
+  scatteringCB.setValue (ctrlr.getBrushInfo ().pressureScattering);
+  scatteringSlider.setValue ((int) (ctrlr.getBrushInfo ().scattering * 100));
+  smoothingSlider.setValue ((int) (ctrlr.getBrushInfo ().smoothing * 100));
+
+  ctrlr.addToolListener (this);
+  newTool (0, null); // Just to figure out visibility
+}
+
+@Override
+public void newTool (int tool, CPBrushInfo toolInfo)
+{
+  JComponent[] brush_controls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
+          bleedSlider, spacingSlider, scatteringSlider, smoothingSlider, tipCombo, brushPreview};
+  JComponent[] flood_fill_controls = {colorDistanceSlider};
+  for (JComponent jc : brush_controls)
+    jc.setVisible (false);
+
+  for (JComponent jc : flood_fill_controls)
+    jc.setVisible (false);
+
+  switch (controller.getCurMode ())
+    {
+    case CPController.M_DRAW:
+      for (JComponent jc : brush_controls)
+        jc.setVisible (true);
+      break;
+    case CPController.M_FLOODFILL:
+      for (JComponent jc : flood_fill_controls)
+        jc.setVisible (true);
+      break;
+    }
+
+  if (toolInfo == null)
+    return;
+
+  if (controller.getColorDistance () != colorDistanceSlider.value)
+    colorDistanceSlider.setValue (controller.getColorDistance ());
+
+  if (toolInfo.alpha != alphaSlider.value)
+    {
+      alphaSlider.setValue (toolInfo.alpha);
+    }
+
+  if (toolInfo.size != sizeSlider.value)
+    {
+      sizeSlider.setValue (toolInfo.size);
+    }
+
+  if (toolInfo.pressureSize != sizeCB.state)
+    {
+      sizeCB.setValue (toolInfo.pressureSize);
+    }
+
+  if (toolInfo.pressureAlpha != alphaCB.state)
+    {
+      alphaCB.setValue (toolInfo.pressureAlpha);
+    }
+
+  if (toolInfo.type != tipCombo.getSelectedIndex ())
+    {
+      tipCombo.setSelectedIndex (toolInfo.type);
+    }
+
+  if ((int) (toolInfo.resat * 100.f) != resatSlider.value)
+    {
+      resatSlider.setValue ((int) (toolInfo.resat * 100.f));
+    }
+
+  if ((int) (toolInfo.bleed * 100.f) != bleedSlider.value)
+    {
+      bleedSlider.setValue ((int) (toolInfo.bleed * 100.f));
+    }
+
+  if ((int) (toolInfo.spacing * 100.f) != spacingSlider.value)
+    {
+      spacingSlider.setValue ((int) (toolInfo.spacing * 100.f));
+    }
+
+  if (toolInfo.pressureScattering != scatteringCB.state)
+    {
+      scatteringCB.setValue (toolInfo.pressureScattering);
+    }
+
+  if ((int) (toolInfo.scattering * 100.f) != scatteringSlider.value)
+    {
+      scatteringSlider.setValue ((int) (toolInfo.scattering * 100.f));
+    }
+
+  if ((int) (toolInfo.smoothing * 100.f) != smoothingSlider.value)
+    {
+      smoothingSlider.setValue ((int) (toolInfo.smoothing * 100.f));
+    }
+}
+
+@Override
+public void actionPerformed (ActionEvent e)
+{
+  if (e.getSource () == tipCombo)
+    {
+      controller.getBrushInfo ().type = tipCombo.getSelectedIndex ();
+    }
+}
+
+class CPBrushPreview extends JComponent implements MouseListener, MouseMotionListener, CPController.ICPToolListener
+{
+
+  final int w;
+  final int h;
+  int size;
+
+  public CPBrushPreview ()
+  {
+    w = h = 64;
+    setBackground (Color.white);
+    setSize (new Dimension (w, h));
+
+    addMouseListener (this);
+    addMouseMotionListener (this);
+    controller.addToolListener (this);
+
+    size = 16;
+  }
+
+  @Override
+  public void paint (Graphics g)
+  {
+    g.drawOval (w / 2 - size / 2, h / 2 - size / 2, size, size);
+  }
+
+  public void mouseSelect (MouseEvent e)
+  {
+    int x = e.getX () - w / 2;
+    int y = e.getY () - h / 2;
+
+    int newSize = (int) Math.sqrt ((x * x + y * y)) * 2;
+    size = Math.max (1, Math.min (200, newSize));
+
+    repaint ();
+    controller.setBrushSize (size);
+  }
+
+  @Override
+  public void mouseEntered (MouseEvent e)
+  {
+    // To implement interface
+  }
+
+  @Override
+  public void mouseExited (MouseEvent e)
+  {
+    // To implement interface
+  }
+
+  @Override
+  public void mouseClicked (MouseEvent e)
+  {
+    // To implement interface
+  }
+
+  @Override
+  public void mousePressed (MouseEvent e)
+  {
+    mouseSelect (e);
+  }
+
+  @Override
+  public void mouseReleased (MouseEvent e)
+  {
+    // To implement interface
+  }
+
+  @Override
+  public void mouseMoved (MouseEvent e)
+  {
+    // To implement interface
+  }
+
+  @Override
+  public void mouseDragged (MouseEvent e)
+  {
+    mouseSelect (e);
+  }
+
+  @Override
+  public Dimension getPreferredSize ()
+  {
+    return new Dimension (w, h);
+  }
+
+  @Override
+  public void newTool (int tool, CPBrushInfo toolInfo)
+  {
+    if (toolInfo.size != size)
+      {
+        size = toolInfo.size;
+        repaint ();
+      }
+  }
+}
+
+class CPAlphaSlider extends CPSlider
+{
+
+  public CPAlphaSlider ()
+  {
+    super (255);
+    minValue = 1;
+  }
+
+  @Override
+  public void onValueChange ()
+  {
+    controller.setAlpha (value);
+    title = "Opacity: " + value;
+  }
+}
+
+class CPColorDistanceSlider extends CPSlider
+{
+
+  public CPColorDistanceSlider ()
+  {
+    super (255);
+    minValue = 0;
+  }
+
+  @Override
+  public void onValueChange ()
+  {
+    controller.setColorDistance (value);
+    title = "Color distance: " + value;
+  }
+}
+
+class CPSizeSlider extends CPSlider
+{
+
+  public CPSizeSlider ()
+  {
+    super (200);
+    minValue = 1;
+  }
+
+  @Override
+  public void onValueChange ()
+  {
+    controller.setBrushSize (value);
+    title = "Brush Size: " + value;
+  }
+}
+
+class CPCheckBox extends JComponent implements MouseListener
+{
+
+  boolean state = false;
+
+  public CPCheckBox ()
+  {
+    addMouseListener (this);
+  }
+
+  @Override
+  public void paint (Graphics g)
+  {
+    Dimension d = getSize ();
+
+    if (state)
+      {
+        g.fillOval (3, 3, d.width - 5, d.height - 5);
+      }
+    else
+      {
+        g.drawOval (3, 3, d.width - 6, d.height - 6);
+      }
+  }
+
+  public void setValue (boolean b)
+  {
+    state = b;
+    onValueChange ();
+    repaint ();
+  }
+
+  public void onValueChange ()
+  {
+    // To implement interface
+  }
+
+  @Override
+  public void mouseClicked (MouseEvent e)
+  {
+    // To implement interface
+  }
+
+  @Override
+  public void mouseEntered (MouseEvent e)
+  {
+    // To implement interface
+  }
+
+  @Override
+  public void mouseExited (MouseEvent e)
+  {
+    // To implement interface
+  }
+
+  @Override
+  public void mousePressed (MouseEvent e)
+  {
+    setValue (!state);
+  }
+
+  @Override
+  public void mouseReleased (MouseEvent e)
+  {
+    // To implement interface
+  }
+}
+
+class CPAlphaCB extends CPCheckBox
+{
+
+  @Override
+  public void onValueChange ()
+  {
+    controller.getBrushInfo ().pressureAlpha = state;
+    controller.callToolListeners ();
+  }
+}
+
+class CPSizeCB extends CPCheckBox
+{
+
+  @Override
+  public void onValueChange ()
+  {
+    controller.getBrushInfo ().pressureSize = state;
+    controller.callToolListeners ();
+  }
+}
 
 }
 

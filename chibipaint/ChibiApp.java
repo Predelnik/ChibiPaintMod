@@ -22,187 +22,205 @@
 
 package chibipaint;
 
+import chibipaint.engine.CPArtwork;
+import chibipaint.gui.CPLayersPalette;
+import chibipaint.gui.CPMainGUI;
+
+import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.prefs.Preferences;
 
-import javax.swing.*;
-import javax.swing.UIManager.LookAndFeelInfo;
+public class ChibiApp extends JFrame
+{
 
-import chibipaint.engine.*;
-import chibipaint.gui.*;
+/**
+ *
+ */
+private static final long serialVersionUID = 1L;
+private final CPControllerApplication controller;
+private final CPMainGUI mainGUI;
 
-public class ChibiApp extends JFrame {
+public enum appState
+{
+  FREE,
+  SAVING,
+  LOADING
+}
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 1L;
-	private final CPControllerApplication controller;
-	private final CPMainGUI mainGUI;
-	public enum appState {
-		FREE,
-		SAVING,
-		LOADING
-	}
-	private appState curAppState = appState.FREE;
+private appState curAppState = appState.FREE;
 
-	// Returns true if it is ok to continue operation
-	boolean confirmDialog ()
-	{
-		if (this.controller.changed)
-		{
-			int result =JOptionPane.showConfirmDialog(this,
-					"Save the Changes to Image '" +
-							(this.controller.getCurrentFile() != null ? this.controller.getCurrentFile().getName ()
-									: "Untitled") + "' Before Closing?", "Existing file",
-									JOptionPane.YES_NO_CANCEL_OPTION);
-			switch(result){
-			case JOptionPane.YES_OPTION:
-				return this.controller.save ();
-			case JOptionPane.NO_OPTION:
-				break;
-			case JOptionPane.CLOSED_OPTION:
-			case JOptionPane.CANCEL_OPTION:
-			default:
-				return false;
-			}
-		}
-		return true;
-	}
+// Returns true if it is ok to continue operation
+boolean confirmDialog ()
+{
+  if (this.controller.changed)
+    {
+      int result = JOptionPane.showConfirmDialog (this,
+                                                  "Save the Changes to Image '" +
+                                                          (this.controller.getCurrentFile () != null ? this.controller.getCurrentFile ().getName ()
+                                                                                                     : "Untitled") + "' Before Closing?", "Existing file",
+                                                  JOptionPane.YES_NO_CANCEL_OPTION);
+      switch (result)
+        {
+        case JOptionPane.YES_OPTION:
+          return this.controller.save ();
+        case JOptionPane.NO_OPTION:
+          break;
+        case JOptionPane.CLOSED_OPTION:
+        case JOptionPane.CANCEL_OPTION:
+        default:
+          return false;
+        }
+    }
+  return true;
+}
 
-	private ChibiApp() {
-		super("ChibiPaintMod");
+private ChibiApp ()
+{
+  super ("ChibiPaintMod");
 
-		controller = new CPControllerApplication(this);
+  controller = new CPControllerApplication (this);
 
-		controller.setCurrentFile (null);
-		controller.setArtwork(new CPArtwork(600, 450));
+  controller.setCurrentFile (null);
+  controller.setArtwork (new CPArtwork (600, 450));
 
-		controller.loadUrgentSettings ();
-		mainGUI = new CPMainGUI(controller);
+  controller.loadUrgentSettings ();
+  mainGUI = new CPMainGUI (controller);
 
-		setContentPane(mainGUI.getGUI());
-		setJMenuBar(mainGUI.getMenuBar());
+  setContentPane (mainGUI.getGUI ());
+  setJMenuBar (mainGUI.getMenuBar ());
 
 
-		mainGUI.getPaletteManager ().loadPalettesSettings();
-		controller.canvas.loadCanvasSettings ();
-		controller.loadControllerSettings ();
+  mainGUI.getPaletteManager ().loadPalettesSettings ();
+  controller.canvas.loadCanvasSettings ();
+  controller.loadControllerSettings ();
 
-		final ChibiApp frame = this;
+  final ChibiApp frame = this;
 
-		frame.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent e) {
-				while (curAppState != appState.FREE)
-				{
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e1) {
-                        e1.printStackTrace();
-					}
-					// Waiting while it would be safe exit (all changes saved)
-				}
+  frame.addWindowListener (new WindowAdapter ()
+  {
+    @Override
+    public void windowClosing (WindowEvent e)
+    {
+      while (curAppState != appState.FREE)
+        {
+          try
+            {
+              Thread.sleep (100);
+            }
+          catch (InterruptedException e1)
+            {
+              e1.printStackTrace ();
+            }
+          // Waiting while it would be safe exit (all changes saved)
+        }
 
-				if (!confirmDialog ())
-					return;
+      if (!confirmDialog ())
+        return;
 
-				SaveWindowSettings (frame);
-				mainGUI.getPaletteManager ().savePalettesSettings ();
-				controller.canvas.saveCanvasSettings ();
-                controller.canvas.killTimers ();
-				controller.saveControllerSettings ();
-				dispose ();
-			}
-		});
-	}
+      SaveWindowSettings (frame);
+      mainGUI.getPaletteManager ().savePalettesSettings ();
+      controller.canvas.saveCanvasSettings ();
+      controller.canvas.killTimers ();
+      controller.saveControllerSettings ();
+      dispose ();
+    }
+  });
+}
 
-	private static void LoadWindowSettings (JFrame frame) {
+private static void LoadWindowSettings (JFrame frame)
+{
 
-		Preferences userRoot = Preferences.userRoot();
-		Preferences preferences = userRoot.node( "chibipaintmod" );
-		int s = preferences.getInt ("window_state", -1);
-		int h = preferences.getInt("window_height" , -1);
-		int w = preferences.getInt("window_width" , -1);
-		if (s != -1)
-		{
-			frame.setExtendedState (s);
-		}
-		if (h != -1 && w != -1)
-			frame.setSize (w, h);
-		else
-			frame.setSize(800, 600);
+  Preferences userRoot = Preferences.userRoot ();
+  Preferences preferences = userRoot.node ("chibipaintmod");
+  int s = preferences.getInt ("window_state", -1);
+  int h = preferences.getInt ("window_height", -1);
+  int w = preferences.getInt ("window_width", -1);
+  if (s != -1)
+    {
+      frame.setExtendedState (s);
+    }
+  if (h != -1 && w != -1)
+    frame.setSize (w, h);
+  else
+    frame.setSize (800, 600);
 
-		frame.validate();
-		frame.setVisible(true);
-	}
+  frame.validate ();
+  frame.setVisible (true);
+}
 
-	private static void SaveWindowSettings(JFrame frame) {
+private static void SaveWindowSettings (JFrame frame)
+{
 
-		Preferences userRoot = Preferences.userRoot();
-		Preferences preferences = userRoot.node( "chibipaintmod" );
-		int s = frame.getExtendedState ();
-        preferences.putInt ("window_state", s);
-		int h = frame.getHeight ();
-		int w = frame.getWidth ();
-		preferences.putInt ("window_height", h);
-		preferences.putInt ("window_width", w);
-	}
+  Preferences userRoot = Preferences.userRoot ();
+  Preferences preferences = userRoot.node ("chibipaintmod");
+  int s = frame.getExtendedState ();
+  preferences.putInt ("window_state", s);
+  int h = frame.getHeight ();
+  int w = frame.getWidth ();
+  preferences.putInt ("window_height", h);
+  preferences.putInt ("window_width", w);
+}
 
-	private static void createChibiApp() {
-		JFrame frame = new ChibiApp();
-		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		LoadWindowSettings (frame);
-	}
+private static void createChibiApp ()
+{
+  JFrame frame = new ChibiApp ();
+  frame.setDefaultCloseOperation (WindowConstants.DO_NOTHING_ON_CLOSE);
+  LoadWindowSettings (frame);
+}
 
-	public static void main(String[] args) {
-		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+public static void main (String[] args)
+{
+  javax.swing.SwingUtilities.invokeLater (new Runnable ()
+  {
 
-			@Override
-			public void run() {
-				createChibiApp();
-			}
-		});
-	}
+    @Override
+    public void run ()
+    {
+      createChibiApp ();
+    }
+  });
+}
 
-	public void recreateEverything(CPArtwork artwork)
-	{
-		mainGUI.getPaletteManager ().savePalettesSettings ();
-		controller.canvas.saveCanvasSettings ();
-		controller.saveControllerSettings ();
+public void recreateEverything (CPArtwork artwork)
+{
+  mainGUI.getPaletteManager ().savePalettesSettings ();
+  controller.canvas.saveCanvasSettings ();
+  controller.saveControllerSettings ();
 
-		controller.canvas.KillCanvas (); // Kind of disconnecting previous canvas from everything
-		controller.canvas.setArtwork (null);
-		controller.artwork = null;
-		mainGUI.recreateMenuBar ();
+  controller.canvas.KillCanvas (); // Kind of disconnecting previous canvas from everything
+  controller.canvas.setArtwork (null);
+  controller.artwork = null;
+  mainGUI.recreateMenuBar ();
 
-		setJMenuBar(mainGUI.getMenuBar());
-		controller.setArtwork (artwork);
-		controller.canvas.initCanvas (controller); // Reinit canvas
-		((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes().get("layers")).removeListener ();
-		((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes().get("layers")).addListener ();
+  setJMenuBar (mainGUI.getMenuBar ());
+  controller.setArtwork (artwork);
+  controller.canvas.initCanvas (controller); // Reinit canvas
+  ((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers")).removeListener ();
+  ((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers")).addListener ();
 
-		controller.loadControllerSettings ();
-		mainGUI.getPaletteManager ().loadPalettesSettings();
-		controller.canvas.loadCanvasSettings ();
-	}
+  controller.loadControllerSettings ();
+  mainGUI.getPaletteManager ().loadPalettesSettings ();
+  controller.canvas.loadCanvasSettings ();
+}
 
-	public void resetMainMenu ()
-	{
-		controller.canvas.saveCanvasSettings ();
-		mainGUI.recreateMenuBar ();
-		controller.canvas.loadCanvasSettings ();
+public void resetMainMenu ()
+{
+  controller.canvas.saveCanvasSettings ();
+  mainGUI.recreateMenuBar ();
+  controller.canvas.loadCanvasSettings ();
 
-		setJMenuBar(mainGUI.getMenuBar());
-	}
+  setJMenuBar (mainGUI.getMenuBar ());
+}
 
-	public void setAppState(appState value) {
-		curAppState = value;
-		controller.updateTitle ();
-	}
+public void setAppState (appState value)
+{
+  curAppState = value;
+  controller.updateTitle ();
+}
 
-	public appState getAppState() {
-		return curAppState;
-	}
+public appState getAppState ()
+{
+  return curAppState;
+}
 }

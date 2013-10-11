@@ -22,92 +22,109 @@
 
 package chibipaint.gui;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.text.*;
+import chibipaint.CPController;
+import chibipaint.engine.CPArtwork;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.DecimalFormat;
 
-import chibipaint.*;
-import chibipaint.engine.*;
+public class CPStatusBar extends JPanel implements CPController.ICPViewListener, CPController.ICPEventListener
+{
 
-public class CPStatusBar extends JPanel implements CPController.ICPViewListener, CPController.ICPEventListener {
+private final CPController controller;
+private final JLabel memory;
+private final JLabel zoom;
 
-	private final CPController controller;
-	private final JLabel memory;
-    private final JLabel zoom;
+public CPStatusBar (CPController controller)
+{
+  super (new BorderLayout ());
+  this.controller = controller;
 
-    public CPStatusBar(CPController controller) {
-		super(new BorderLayout());
-		this.controller = controller;
+  zoom = new JLabel ("Zoom: 100%");
+  add (zoom, BorderLayout.LINE_START);
 
-		zoom = new JLabel("Zoom: 100%");
-		add(zoom, BorderLayout.LINE_START);
+  memory = new JLabel ("");
+  add (memory, BorderLayout.LINE_END);
+  memory.addMouseListener (new MouseAdapter ()
+  {
 
-		memory = new JLabel("");
-		add(memory, BorderLayout.LINE_END);
-		memory.addMouseListener(new MouseAdapter() {
+    @Override
+    public void mouseClicked (MouseEvent e)
+    {
+      if (e.getClickCount () == 2)
+        {
+          Runtime r = Runtime.getRuntime ();
+          r.gc ();
+        }
+    }
+  });
 
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					Runtime r = Runtime.getRuntime();
-					r.gc();
-				}
-			}
-		});
+  updateMemory ();
+  controller.addViewListener (this);
+  // controller.addCPEventListener(this);
 
-		updateMemory();
-		controller.addViewListener(this);
-		// controller.addCPEventListener(this);
+  Timer timer = null;
+  if (timer == null)
+    {
+      timer = new Timer (2000, new ActionListener ()
+      {
 
-        Timer timer = null;
-        if (timer == null) {
-			timer = new Timer(2000, new ActionListener() {
+        @Override
+        public void actionPerformed (ActionEvent e)
+        {
+          updateMemory ();
+        }
+      });
+      timer.setRepeats (true);
+      timer.start ();
+    }
+}
 
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					updateMemory();
-				}
-			});
-			timer.setRepeats(true);
-			timer.start();
-		}
-	}
+@Override
+public void viewChange (CPController.CPViewInfo viewInfo)
+{
+  DecimalFormat format = new DecimalFormat ("0.0%");
+  zoom.setText ("Zoom: " + format.format (viewInfo.zoom));
+}
 
-	@Override
-	public void viewChange(CPController.CPViewInfo viewInfo) {
-		DecimalFormat format = new DecimalFormat("0.0%");
-		zoom.setText("Zoom: " + format.format(viewInfo.zoom));
-	}
+void updateMemory ()
+{
+  DecimalFormat format = new DecimalFormat ("0.0");
 
-	void updateMemory() {
-		DecimalFormat format = new DecimalFormat("0.0");
+  Runtime rt = java.lang.Runtime.getRuntime ();
+  float maxMemory = rt.maxMemory () / (1024f * 1024f);
+  float totalUsed = (rt.totalMemory () - rt.freeMemory ()) / (1024f * 1024f);
+  float docMem = 0;
+  float undoMem = 0;
 
-		Runtime rt = java.lang.Runtime.getRuntime();
-		float maxMemory = rt.maxMemory() / (1024f * 1024f);
-		float totalUsed = (rt.totalMemory() - rt.freeMemory()) / (1024f * 1024f);
-		float docMem = 0;
-		float undoMem = 0;
+  CPArtwork artwork = controller.getArtwork ();
+  if (artwork != null)
+    {
+      docMem = artwork.getDocMemoryUsed () / (1024f * 1024f);
+      undoMem = artwork.undoManager.getUndoMemoryUsed (artwork) / (1024f * 1024f);
+    }
 
-		CPArtwork artwork = controller.getArtwork();
-		if (artwork != null) {
-			docMem = artwork.getDocMemoryUsed() / (1024f * 1024f);
-			undoMem = artwork.undoManager.getUndoMemoryUsed(artwork) / (1024f * 1024f);
-		}
+  if ((docMem + undoMem) / maxMemory > .5)
+    {
+      memory.setForeground (Color.RED);
+    }
+  else
+    {
+      memory.setForeground (Color.BLACK);
+    }
 
-		if ((docMem + undoMem) / maxMemory > .5) {
-			memory.setForeground(Color.RED);
-		} else {
-			memory.setForeground(Color.BLACK);
-		}
+  memory.setText ("Mem: " + format.format (totalUsed) + "/" + format.format (maxMemory) + ",D"
+                          + format.format (docMem) + " U" + format.format (undoMem));
+}
 
-		memory.setText("Mem: " + format.format(totalUsed) + "/" + format.format(maxMemory) + ",D"
-				+ format.format(docMem) + " U" + format.format(undoMem));
-	}
-
-	@Override
-	public void cpEvent() {
-		updateMemory();
-	}
+@Override
+public void cpEvent ()
+{
+  updateMemory ();
+}
 }

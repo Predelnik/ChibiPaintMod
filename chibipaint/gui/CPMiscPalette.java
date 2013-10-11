@@ -22,63 +22,65 @@
 
 package chibipaint.gui;
 
-import java.awt.*;
+import chibipaint.CPController;
 
 import javax.swing.*;
+import java.awt.*;
 
-import chibipaint.*;
+class CPMiscPalette extends CPPalette
+{
 
-class CPMiscPalette extends CPPalette {
+public CPMiscPalette (CPController controller)
+{
+  super (controller);
 
-	public CPMiscPalette(CPController controller) {
-		super(controller);
+  title = "Misc";
+  setLayout (new FlowLayout ());
 
-		title = "Misc";
-		setLayout(new FlowLayout());
+  Image icons = controller.loadImage ("icons.png");
 
-		Image icons = controller.loadImage("icons.png");
+  Component spacer;
 
-		Component spacer;
+  CPIconButton button = new CPIconButton (icons, 32, 32, 13, 1);
+  add (button);
+  button.addCPActionListener (controller);
+  button.setCPActionCommand ("CPZoomIn");
 
-		CPIconButton button = new CPIconButton(icons, 32, 32, 13, 1);
-		add(button);
-		button.addCPActionListener(controller);
-		button.setCPActionCommand("CPZoomIn");
+  button = new CPIconButton (icons, 32, 32, 14, 1);
+  add (button);
+  button.addCPActionListener (controller);
+  button.setCPActionCommand ("CPZoomOut");
 
-		button = new CPIconButton(icons, 32, 32, 14, 1);
-		add(button);
-		button.addCPActionListener(controller);
-		button.setCPActionCommand("CPZoomOut");
+  button = new CPIconButton (icons, 32, 32, 15, 1);
+  add (button);
+  button.addCPActionListener (controller);
+  button.setCPActionCommand ("CPZoom100");
 
-		button = new CPIconButton(icons, 32, 32, 15, 1);
-		add(button);
-		button.addCPActionListener(controller);
-		button.setCPActionCommand("CPZoom100");
+  spacer = new JPanel ();
+  spacer.setSize (16, 32);
+  add (spacer);
 
-		spacer = new JPanel();
-		spacer.setSize(16, 32);
-		add(spacer);
+  button = new CPIconButton (icons, 32, 32, 10, 1);
+  add (button);
+  button.addCPActionListener (controller);
+  button.setCPActionCommand ("CPUndo");
 
-		button = new CPIconButton(icons, 32, 32, 10, 1);
-		add(button);
-		button.addCPActionListener(controller);
-		button.setCPActionCommand("CPUndo");
+  button = new CPIconButton (icons, 32, 32, 11, 1);
+  add (button);
+  button.addCPActionListener (controller);
+  button.setCPActionCommand ("CPRedo");
 
-		button = new CPIconButton(icons, 32, 32, 11, 1);
-		add(button);
-		button.addCPActionListener(controller);
-		button.setCPActionCommand("CPRedo");
+  if (controller.isRunningAsApplet ())
+    {
+      spacer = new JPanel ();
+      spacer.setSize (16, 32);
+      add (spacer);
 
-		if (controller.isRunningAsApplet()) {
-			spacer = new JPanel();
-			spacer.setSize(16, 32);
-			add(spacer);
-
-			button = new CPIconButton(icons, 32, 32, 12, 1);
-			add(button);
-			button.addCPActionListener(controller);
-			button.setCPActionCommand("CPSend");
-		}
-	}
+      button = new CPIconButton (icons, 32, 32, 12, 1);
+      add (button);
+      button.addCPActionListener (controller);
+      button.setCPActionCommand ("CPSend");
+    }
+}
 
 }

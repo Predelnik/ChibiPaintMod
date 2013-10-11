@@ -25,170 +25,208 @@ package chibipaint.util;
 // left,mTop: upper left corner, mRight, mBottom: lower right corner,
 // exclusive, right>left && bottom>top if not empty
 
-public class CPRect implements Cloneable {
+public class CPRect implements Cloneable
+{
 
-	public int left, top, right, bottom;
+public int left, top, right, bottom;
 
-	public CPRect(int left, int top, int right, int bottom) {
-		this.left = left;
-		this.top = top;
-		this.right = right;
-		this.bottom = bottom;
-	}
+public CPRect (int left, int top, int right, int bottom)
+{
+  this.left = left;
+  this.top = top;
+  this.right = right;
+  this.bottom = bottom;
+}
 
-	public CPRect(int width, int height) {
-		this.left = 0;
-		this.top = 0;
-		this.right = width;
-		this.bottom = height;
-	}
+public CPRect (int width, int height)
+{
+  this.left = 0;
+  this.top = 0;
+  this.right = width;
+  this.bottom = height;
+}
 
-	public CPRect() {
-		makeEmpty();
-	}
+public CPRect ()
+{
+  makeEmpty ();
+}
 
-	public CPRect(CPRect r) {
-		set(r);
-	}
+public CPRect (CPRect r)
+{
+  set (r);
+}
 
-	public void makeEmpty() {
-		left = 0;
-		top = 0;
-		right = 0;
-		bottom = 0;
-	}
+public void makeEmpty ()
+{
+  left = 0;
+  top = 0;
+  right = 0;
+  bottom = 0;
+}
 
-	public void union(CPRect rect) {
-		if (isEmpty()) {
-			set(rect);
-		} else {
-			left = Math.min(left, rect.left);
-			top = Math.min(top, rect.top);
-			right = Math.max(right, rect.right);
-			bottom = Math.max(bottom, rect.bottom);
-		}
-	}
+public void union (CPRect rect)
+{
+  if (isEmpty ())
+    {
+      set (rect);
+    }
+  else
+    {
+      left = Math.min (left, rect.left);
+      top = Math.min (top, rect.top);
+      right = Math.max (right, rect.right);
+      bottom = Math.max (bottom, rect.bottom);
+    }
+}
 
-	public void clip(CPRect rect) {
-		if (isEmpty()) {
-			return;
-		}
+public void clip (CPRect rect)
+{
+  if (isEmpty ())
+    {
+      return;
+    }
 
-		if (rect.isEmpty()) {
-			makeEmpty();
-		} else {
-			left = Math.max(left, rect.left);
-			top = Math.max(top, rect.top);
-			right = Math.min(right, rect.right);
-			bottom = Math.min(bottom, rect.bottom);
-		}
-	}
+  if (rect.isEmpty ())
+    {
+      makeEmpty ();
+    }
+  else
+    {
+      left = Math.max (left, rect.left);
+      top = Math.max (top, rect.top);
+      right = Math.min (right, rect.right);
+      bottom = Math.min (bottom, rect.bottom);
+    }
+}
 
-	public boolean isInside(CPRect rect) {
-		return left >= rect.left && top >= rect.top && right <= rect.right && bottom <= rect.bottom;
-	}
+public boolean isInside (CPRect rect)
+{
+  return left >= rect.left && top >= rect.top && right <= rect.right && bottom <= rect.bottom;
+}
 
-	// First makes dstRect the same width and height (not modifying its top/left)
-	// Clips the dstRect with this rectangle and changes the srcRect so that
-	// it corresponds to the new clipped rectangle
+// First makes dstRect the same width and height (not modifying its top/left)
+// Clips the dstRect with this rectangle and changes the srcRect so that
+// it corresponds to the new clipped rectangle
 
-	public void clipSourceDest(CPRect srcRect, CPRect dstRect) {
-		dstRect.right = dstRect.left + srcRect.getWidth();
-		dstRect.bottom = dstRect.top + srcRect.getHeight();
+public void clipSourceDest (CPRect srcRect, CPRect dstRect)
+{
+  dstRect.right = dstRect.left + srcRect.getWidth ();
+  dstRect.bottom = dstRect.top + srcRect.getHeight ();
 
-		if (isEmpty() || dstRect.left >= right || dstRect.top >= bottom || dstRect.right <= left
-				|| dstRect.bottom <= top) {
-			srcRect.makeEmpty();
-			dstRect.makeEmpty();
-			return;
-		}
+  if (isEmpty () || dstRect.left >= right || dstRect.top >= bottom || dstRect.right <= left
+          || dstRect.bottom <= top)
+    {
+      srcRect.makeEmpty ();
+      dstRect.makeEmpty ();
+      return;
+    }
 
-		// bottom/right
-		if (dstRect.right > right) {
-			srcRect.right -= dstRect.right - right;
-			dstRect.right = right;
-		}
+  // bottom/right
+  if (dstRect.right > right)
+    {
+      srcRect.right -= dstRect.right - right;
+      dstRect.right = right;
+    }
 
-		if (dstRect.bottom > bottom) {
-			srcRect.bottom -= dstRect.bottom - bottom;
-			dstRect.bottom = bottom;
-		}
+  if (dstRect.bottom > bottom)
+    {
+      srcRect.bottom -= dstRect.bottom - bottom;
+      dstRect.bottom = bottom;
+    }
 
-		// top/left
-		if (dstRect.left < left) {
-			srcRect.left += left - dstRect.left;
-			dstRect.left = left;
-		}
+  // top/left
+  if (dstRect.left < left)
+    {
+      srcRect.left += left - dstRect.left;
+      dstRect.left = left;
+    }
 
-		if (dstRect.top < top) {
-			srcRect.top += top - dstRect.top;
-			dstRect.top = top;
-		}
-	}
+  if (dstRect.top < top)
+    {
+      srcRect.top += top - dstRect.top;
+      dstRect.top = top;
+    }
+}
 
-	public int getWidth() {
-		return right - left;
-	}
+public int getWidth ()
+{
+  return right - left;
+}
 
-	public int getHeight() {
-		return bottom - top;
-	}
+public int getHeight ()
+{
+  return bottom - top;
+}
 
-	public int getLeft() {
-		return left;
-	}
+public int getLeft ()
+{
+  return left;
+}
 
-	public int getTop() {
-		return top;
-	}
+public int getTop ()
+{
+  return top;
+}
 
-	public int getRight() {
-		return right;
-	}
+public int getRight ()
+{
+  return right;
+}
 
-	public int getBottom() {
-		return bottom;
-	}
+public int getBottom ()
+{
+  return bottom;
+}
 
-	public boolean isEmpty() {
-		return right <= left || bottom <= top;
-	}
+public boolean isEmpty ()
+{
+  return right <= left || bottom <= top;
+}
 
-	void set(CPRect r) {
-		left = r.left;
-		top = r.top;
-		right = r.right;
-		bottom = r.bottom;
-	}
+void set (CPRect r)
+{
+  left = r.left;
+  top = r.top;
+  right = r.right;
+  bottom = r.bottom;
+}
 
-	@Override
-	public Object clone() {
-		try {
-			return super.clone();
-		} catch (Exception ignored) {
-			throw new Error("Uh oh");
-		}
-	}
+@Override
+public Object clone ()
+{
+  try
+    {
+      return super.clone ();
+    }
+  catch (Exception ignored)
+    {
+      throw new Error ("Uh oh");
+    }
+}
 
-	public void translate(int x, int y) {
-		left += x;
-		right += x;
-		top += y;
-		bottom += y;
-	}
+public void translate (int x, int y)
+{
+  left += x;
+  right += x;
+  top += y;
+  bottom += y;
+}
 
-	public void moveTo(int x, int y) {
-		translate(x - left, y - top);
-	}
+public void moveTo (int x, int y)
+{
+  translate (x - left, y - top);
+}
 
-	@Override
-	public boolean equals(Object o) {
-		if (o instanceof CPRect) {
-			CPRect r = (CPRect) o;
-			return left == r.left && right == r.right && top == r.top && bottom == r.bottom;
-		}
-		return false;
-	}
+@Override
+public boolean equals (Object o)
+{
+  if (o instanceof CPRect)
+    {
+      CPRect r = (CPRect) o;
+      return left == r.left && right == r.right && top == r.top && bottom == r.bottom;
+    }
+  return false;
+}
 
 
 }

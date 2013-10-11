@@ -22,132 +22,162 @@
 
 package chibipaint.gui;
 
-import java.awt.*;
-import java.awt.event.*;
-
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
-class CPSlider extends JComponent implements MouseListener, MouseMotionListener {
+class CPSlider extends JComponent implements MouseListener, MouseMotionListener
+{
 
-	int value;
-    private final int valueRange;
-	int minValue = 0;
-    private final int maxValue;
-	String title;
+int value;
+private final int valueRange;
+int minValue = 0;
+private final int maxValue;
+String title;
 
-	private boolean dragNormal = false;
-    private boolean dragPrecise = false;
-	private int dragPreciseX;
+private boolean dragNormal = false;
+private boolean dragPrecise = false;
+private int dragPreciseX;
 
-	boolean centerMode = false;
+boolean centerMode = false;
 
-	public CPSlider(int valueRange) {
-		setBackground(Color.white);
+public CPSlider (int valueRange)
+{
+  setBackground (Color.white);
 
-		this.valueRange = valueRange;
-		maxValue = valueRange;
-		value = valueRange;
+  this.valueRange = valueRange;
+  maxValue = valueRange;
+  value = valueRange;
 
-		title = "";
+  title = "";
 
-		addMouseListener(this);
-		addMouseMotionListener(this);
-	}
+  addMouseListener (this);
+  addMouseMotionListener (this);
+}
 
-	@Override
-	public void paint(Graphics g) {
-		Dimension d = getSize();
+@Override
+public void paint (Graphics g)
+{
+  Dimension d = getSize ();
 
-		g.setColor(Color.white);
-		g.fillRect(0, 0, d.width, d.height);
+  g.setColor (Color.white);
+  g.fillRect (0, 0, d.width, d.height);
 
-		g.setColor(Color.black);
-		if (centerMode) {
-			if (value >= valueRange /2) {
-				g.fillRect(d.width / 2, 0, (value - valueRange/2) * d.width / valueRange, d.height);
-			} else {
-				g.fillRect(value * d.width / valueRange, 0, (valueRange/2 - value) * d.width / valueRange, d.height);
-			}
-		} else {
-			g.fillRect(0, 0, value * d.width / valueRange, d.height);
-		}
+  g.setColor (Color.black);
+  if (centerMode)
+    {
+      if (value >= valueRange / 2)
+        {
+          g.fillRect (d.width / 2, 0, (value - valueRange / 2) * d.width / valueRange, d.height);
+        }
+      else
+        {
+          g.fillRect (value * d.width / valueRange, 0, (valueRange / 2 - value) * d.width / valueRange, d.height);
+        }
+    }
+  else
+    {
+      g.fillRect (0, 0, value * d.width / valueRange, d.height);
+    }
 
-		g.setColor(Color.white);
-		g.setXORMode(Color.black);
-		g.drawString(title, 2, 14);
-	}
+  g.setColor (Color.white);
+  g.setXORMode (Color.black);
+  g.drawString (title, 2, 14);
+}
 
-	public void onValueChange() {
-	}
+public void onValueChange ()
+{
+}
 
-	void onFinalValueChange() {
-	}
+void onFinalValueChange ()
+{
+}
 
-	public void setValue(int value) {
-        this.value = Math.max(minValue, Math.min(maxValue, value));
-		onValueChange();
-		repaint();
-	}
+public void setValue (int value)
+{
+  this.value = Math.max (minValue, Math.min (maxValue, value));
+  onValueChange ();
+  repaint ();
+}
 
-	void mouseSelect(MouseEvent e) {
-		Dimension d = getSize();
+void mouseSelect (MouseEvent e)
+{
+  Dimension d = getSize ();
 
-		int x = e.getX();
-		setValue(x * valueRange / d.width);
-	}
+  int x = e.getX ();
+  setValue (x * valueRange / d.width);
+}
 
-	@Override
-	public void mousePressed(MouseEvent e) {
-		boolean drag = dragNormal || dragPrecise;
-		if (!drag && (e.getModifiers() & InputEvent.BUTTON1_MASK) != 0) {
-			dragNormal = true;
-			mouseSelect(e);
-		}
-		if (!drag && (e.getModifiers() & InputEvent.BUTTON3_MASK) != 0) {
-			dragPrecise = true;
-			dragPreciseX = e.getPoint().x;
-		}
-	}
+@Override
+public void mousePressed (MouseEvent e)
+{
+  boolean drag = dragNormal || dragPrecise;
+  if (!drag && (e.getModifiers () & InputEvent.BUTTON1_MASK) != 0)
+    {
+      dragNormal = true;
+      mouseSelect (e);
+    }
+  if (!drag && (e.getModifiers () & InputEvent.BUTTON3_MASK) != 0)
+    {
+      dragPrecise = true;
+      dragPreciseX = e.getPoint ().x;
+    }
+}
 
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		if (dragNormal) {
-			mouseSelect(e);
-		} else if (dragPrecise) {
-			int diff = (e.getPoint().x - dragPreciseX) / 4;
-			if (diff != 0) {
-				setValue(value + diff);
-				dragPreciseX = e.getPoint().x;
-			}
-		}
-	}
+@Override
+public void mouseDragged (MouseEvent e)
+{
+  if (dragNormal)
+    {
+      mouseSelect (e);
+    }
+  else if (dragPrecise)
+    {
+      int diff = (e.getPoint ().x - dragPreciseX) / 4;
+      if (diff != 0)
+        {
+          setValue (value + diff);
+          dragPreciseX = e.getPoint ().x;
+        }
+    }
+}
 
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		if (dragNormal && (e.getModifiers() & InputEvent.BUTTON1_MASK) != 0) {
-			dragNormal = false;
-			onFinalValueChange();
-		}
-		if (dragPrecise && (e.getModifiers() & InputEvent.BUTTON3_MASK) != 0) {
-			dragPrecise = false;
-			onFinalValueChange();
-		}
-	}
+@Override
+public void mouseReleased (MouseEvent e)
+{
+  if (dragNormal && (e.getModifiers () & InputEvent.BUTTON1_MASK) != 0)
+    {
+      dragNormal = false;
+      onFinalValueChange ();
+    }
+  if (dragPrecise && (e.getModifiers () & InputEvent.BUTTON3_MASK) != 0)
+    {
+      dragPrecise = false;
+      onFinalValueChange ();
+    }
+}
 
-	// Unused interface methods
-	@Override
-	public void mouseEntered(MouseEvent e) {
-	}
+// Unused interface methods
+@Override
+public void mouseEntered (MouseEvent e)
+{
+}
 
-	@Override
-	public void mouseExited(MouseEvent e) {
-	}
+@Override
+public void mouseExited (MouseEvent e)
+{
+}
 
-	@Override
-	public void mouseClicked(MouseEvent e) {
-	}
+@Override
+public void mouseClicked (MouseEvent e)
+{
+}
 
-	@Override
-	public void mouseMoved(MouseEvent e) {
-	}
+@Override
+public void mouseMoved (MouseEvent e)
+{
+}
 }

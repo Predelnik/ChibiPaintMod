@@ -22,9 +22,8 @@
 
 package chibipaint.gui;
 
-import java.awt.*;
-
 import javax.swing.*;
+import java.awt.*;
 
 /*
  * This allows the creation of a FlowLayout panel that wraps around based on the current width but can be scrolled
@@ -35,65 +34,78 @@ import javax.swing.*;
  * 
  */
 
-class CPScrollableFlowPanel extends JPanel implements Scrollable {
+class CPScrollableFlowPanel extends JPanel implements Scrollable
+{
 
-	public CPScrollableFlowPanel() {
-		setLayout(new FlowLayout(FlowLayout.LEFT));
-	}
+public CPScrollableFlowPanel ()
+{
+  setLayout (new FlowLayout (FlowLayout.LEFT));
+}
 
-	public JScrollPane wrapInScrollPane() {
-		return new JScrollPane(this, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-	}
+public JScrollPane wrapInScrollPane ()
+{
+  return new JScrollPane (this, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                          ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+}
 
-	@Override
-	public void setBounds(int x, int y, int width, int height) {
-		super.setBounds(x, y, getParent().getWidth(), height);
-	}
+@Override
+public void setBounds (int x, int y, int width, int height)
+{
+  super.setBounds (x, y, getParent ().getWidth (), height);
+}
 
-	@Override
-	public Dimension getPreferredSize() {
-		return new Dimension(getWidth(), getPreferredHeight());
-	}
+@Override
+public Dimension getPreferredSize ()
+{
+  return new Dimension (getWidth (), getPreferredHeight ());
+}
 
-	@Override
-	public Dimension getPreferredScrollableViewportSize() {
-		return super.getPreferredSize();
-	}
+@Override
+public Dimension getPreferredScrollableViewportSize ()
+{
+  return super.getPreferredSize ();
+}
 
-	@Override
-	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-		int hundredth = (orientation == SwingConstants.VERTICAL ?
-				getParent().getHeight() : getParent().getWidth()) / 100;
-		return (hundredth == 0 ? 1 : hundredth);
-	}
+@Override
+public int getScrollableUnitIncrement (Rectangle visibleRect, int orientation, int direction)
+{
+  int hundredth = (orientation == SwingConstants.VERTICAL ?
+                   getParent ().getHeight () : getParent ().getWidth ()) / 100;
+  return (hundredth == 0 ? 1 : hundredth);
+}
 
-	@Override
-	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-		return orientation == SwingConstants.VERTICAL ? getParent().getHeight() : getParent().getWidth();
-	}
+@Override
+public int getScrollableBlockIncrement (Rectangle visibleRect, int orientation, int direction)
+{
+  return orientation == SwingConstants.VERTICAL ? getParent ().getHeight () : getParent ().getWidth ();
+}
 
-	@Override
-	public boolean getScrollableTracksViewportWidth() {
-		return true;
-	}
+@Override
+public boolean getScrollableTracksViewportWidth ()
+{
+  return true;
+}
 
-	@Override
-	public boolean getScrollableTracksViewportHeight() {
-		return false;
-	}
+@Override
+public boolean getScrollableTracksViewportHeight ()
+{
+  return false;
+}
 
-	private int getPreferredHeight() {
-		int maxHeight = 0;
-		for (int i=0, count=getComponentCount(); i<count; i++) {
-			Component component = getComponent(i);
-			Rectangle r = component.getBounds();
-			int height = r.y + r.height;
-			if (height > maxHeight) {
-				maxHeight = height;
-			}
-		}
-		maxHeight += ((FlowLayout) getLayout()).getVgap();
-		return maxHeight;
-	}
+private int getPreferredHeight ()
+{
+  int maxHeight = 0;
+  for (int i = 0, count = getComponentCount (); i < count; i++)
+    {
+      Component component = getComponent (i);
+      Rectangle r = component.getBounds ();
+      int height = r.y + r.height;
+      if (height > maxHeight)
+        {
+          maxHeight = height;
+        }
+    }
+  maxHeight += ((FlowLayout) getLayout ()).getVgap ();
+  return maxHeight;
+}
 }

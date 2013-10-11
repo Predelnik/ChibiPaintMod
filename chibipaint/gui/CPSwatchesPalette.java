@@ -22,105 +22,126 @@
 
 package chibipaint.gui;
 
-import java.awt.*;
-import java.awt.event.*;
+import chibipaint.CPController;
+import chibipaint.util.CPColor;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-import chibipaint.*;
-import chibipaint.util.*;
+class CPSwatchesPalette extends CPPalette
+{
 
-class CPSwatchesPalette extends CPPalette {
+private final int[] initColors = {0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff};
 
-	private final int[] initColors = { 0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff };
+public CPSwatchesPalette (CPController controller)
+{
+  super (controller);
 
-	public CPSwatchesPalette(CPController controller) {
-		super(controller);
+  title = "Color Swatches";
+  // innerContainer.setSize(innerContainer.getPreferredSize());
+  setLayout (new GridLayout (5, 5));
 
-		title = "Color Swatches";
-		// innerContainer.setSize(innerContainer.getPreferredSize());
-		setLayout(new GridLayout(5, 5));
+  CPColorSwatch swatch;
+  for (int i = 0; i < 25; i++)
+    {
+      swatch = new CPColorSwatch ();
+      if (i < initColors.length)
+        {
+          swatch.setColor (initColors[i]);
+        }
+      add (swatch);
+    }
 
-		CPColorSwatch swatch;
-		for (int i = 0; i < 25; i++) {
-			swatch = new CPColorSwatch();
-			if (i < initColors.length) {
-				swatch.setColor(initColors[i]);
-			}
-			add(swatch);
-		}
+  setSize (160, 180);
+}
 
-		setSize(160, 180);
-	}
+public class CPColorSwatch extends JComponent implements MouseListener
+{
 
-	public class CPColorSwatch extends JComponent implements MouseListener {
+  CPColor color = null;
 
-		CPColor color = null;
+  public CPColorSwatch ()
+  {
+    addMouseListener (this);
+  }
 
-		public CPColorSwatch() {
-			addMouseListener(this);
-		}
+  @Override
+  public void update (Graphics g)
+  {
+    paint (g);
+  }
 
-		@Override
-		public void update(Graphics g) {
-			paint(g);
-		}
+  @Override
+  public void paint (Graphics g)
+  {
+    Dimension d = getSize ();
+    if (color != null)
+      {
+        g.setColor (new Color (color.getRgb ()));
+        g.fillRect (0, 0, d.width - 1, d.height - 1);
+      }
+    else
+      {
+        g.setColor (Color.lightGray);
+        g.fillRect (0, 0, d.width - 1, d.height - 1);
 
-		@Override
-		public void paint(Graphics g) {
-			Dimension d = getSize();
-			if (color != null) {
-				g.setColor(new Color(color.getRgb()));
-				g.fillRect(0, 0, d.width - 1, d.height - 1);
-			} else {
-				g.setColor(Color.lightGray);
-				g.fillRect(0, 0, d.width - 1, d.height - 1);
+        g.setColor (Color.black);
+        g.drawLine (0, 0, d.width - 2, d.height - 2);
+        g.drawLine (d.width - 2, 0, 0, d.height - 2);
+      }
+    g.setColor (Color.black);
+    g.drawRect (0, 0, d.width - 2, d.height - 2);
 
-				g.setColor(Color.black);
-				g.drawLine(0, 0, d.width - 2, d.height - 2);
-				g.drawLine(d.width - 2, 0, 0, d.height - 2);
-			}
-			g.setColor(Color.black);
-			g.drawRect(0, 0, d.width - 2, d.height - 2);
+  }
 
-		}
+  @Override
+  public void mousePressed (MouseEvent e)
+  {
+    if ((e.getModifiers () & InputEvent.BUTTON1_MASK) != 0 && color != null)
+      {
+        controller.setCurColor (color);
+        repaint ();
+      }
+    if ((e.getModifiers () & InputEvent.BUTTON2_MASK) != 0 && color != null)
+      {
+        color = null;
+        repaint ();
+      }
+    if ((e.getModifiers () & InputEvent.BUTTON3_MASK) != 0
+            || ((e.getModifiers () & InputEvent.BUTTON1_MASK) != 0 && color == null))
+      {
+        color = (CPColor) controller.getCurColor ().clone ();
+        repaint ();
+      }
+  }
 
-		@Override
-		public void mousePressed(MouseEvent e) {
-			if ((e.getModifiers() & InputEvent.BUTTON1_MASK) != 0 && color != null) {
-				controller.setCurColor(color);
-				repaint();
-			}
-			if ((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0 && color != null) {
-				color = null;
-				repaint();
-			}
-			if ((e.getModifiers() & InputEvent.BUTTON3_MASK) != 0
-					|| ((e.getModifiers() & InputEvent.BUTTON1_MASK) != 0 && color == null)) {
-				color = (CPColor) controller.getCurColor().clone();
-				repaint();
-			}
-		}
+  void setColor (int color)
+  {
+    this.color = new CPColor (color);
+    repaint ();
+  }
 
-		void setColor(int color) {
-			this.color = new CPColor(color);
-			repaint();
-		}
+  @Override
+  public void mouseEntered (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseEntered(MouseEvent e) {
-		}
+  @Override
+  public void mouseExited (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseExited(MouseEvent e) {
-		}
+  @Override
+  public void mouseClicked (MouseEvent e)
+  {
+  }
 
-		@Override
-		public void mouseClicked(MouseEvent e) {
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-		}
-	}
+  @Override
+  public void mouseReleased (MouseEvent e)
+  {
+  }
+}
 }

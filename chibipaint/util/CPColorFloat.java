@@ -22,43 +22,53 @@
 
 package chibipaint.util;
 
-public class CPColorFloat implements Cloneable {
+public class CPColorFloat implements Cloneable
+{
 
-	public float r, g, b;
+public float r, g, b;
 
-	public CPColorFloat() {
-		r = g = b = 0f;
-	}
+public CPColorFloat ()
+{
+  r = g = b = 0f;
+}
 
-	public CPColorFloat(float r, float g, float b) {
-		this.r = r;
-		this.g = g;
-		this.b = b;
-	}
+public CPColorFloat (float r, float g, float b)
+{
+  this.r = r;
+  this.g = g;
+  this.b = b;
+}
 
-	public CPColorFloat(int color) {
-		r = (color >>> 16 & 0xff) / 255f;
-		g = (color >>> 8 & 0xff) / 255f;
-		b = (color & 0xff) / 255f;
-	}
+public CPColorFloat (int color)
+{
+  r = (color >>> 16 & 0xff) / 255f;
+  g = (color >>> 8 & 0xff) / 255f;
+  b = (color & 0xff) / 255f;
+}
 
-	public int toInt() {
-		return Math.max(0, Math.min(255, (int) (r * 255f))) << 16 | Math.max(0, Math.min(255, (int) (g * 255f))) << 8
-				| Math.max(0, Math.min(255, (int) (b * 255f)));
-	}
+public int toInt ()
+{
+  return Math.max (0, Math.min (255, (int) (r * 255f))) << 16 | Math.max (0, Math.min (255, (int) (g * 255f))) << 8
+          | Math.max (0, Math.min (255, (int) (b * 255f)));
+}
 
-	public void mixWith(CPColorFloat color, float alpha) {
-		r = r * (1f - alpha) + color.r * alpha;
-		g = g * (1f - alpha) + color.g * alpha;
-		b = b * (1f - alpha) + color.b * alpha;
-	}
+public void mixWith (CPColorFloat color, float alpha)
+{
+  r = r * (1f - alpha) + color.r * alpha;
+  g = g * (1f - alpha) + color.g * alpha;
+  b = b * (1f - alpha) + color.b * alpha;
+}
 
-	@Override
-	public Object clone() throws CloneNotSupportedException {
-		try {
-			return super.clone();
-		} catch (Exception ignored) {
-			throw new Error("Uh oh");
-		}
-	}
+@Override
+public Object clone () throws CloneNotSupportedException
+{
+  try
+    {
+      return super.clone ();
+    }
+  catch (Exception ignored)
+    {
+      throw new Error ("Uh oh");
+    }
+}
 }

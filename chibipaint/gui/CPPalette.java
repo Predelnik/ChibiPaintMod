@@ -22,27 +22,31 @@
 
 package chibipaint.gui;
 
+import chibipaint.CPController;
+import chibipaint.gui.CPPaletteManager.ICPPaletteContainer;
+
 import javax.swing.*;
 
-import chibipaint.*;
-import chibipaint.gui.CPPaletteManager.*;
+class CPPalette extends JComponent
+{
 
-class CPPalette extends JComponent {
+final CPController controller;
+private ICPPaletteContainer container;
 
-	final CPController controller;
-	private ICPPaletteContainer container;
+String title = "";
 
-	String title = "";
+CPPalette (CPController controller)
+{
+  this.controller = controller;
+}
 
-	CPPalette(CPController controller) {
-		this.controller = controller;
-	}
+public void setContainer (ICPPaletteContainer container)
+{
+  this.container = container;
+}
 
-	public void setContainer(ICPPaletteContainer container) {
-		this.container = container;
-	}
-
-	public ICPPaletteContainer getPaletteContainer() {
-		return container;
-	}
+public ICPPaletteContainer getPaletteContainer ()
+{
+  return container;
+}
 }
