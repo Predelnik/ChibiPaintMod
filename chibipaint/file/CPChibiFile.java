@@ -150,8 +150,8 @@ private static void writeLayer (OutputStream os, CPLayer l) throws IOException
 
 @Override
 public CPArtwork read (InputStream is)
-{
-  try
+{  try
+
     {
       if (!readMagic (is))
         {

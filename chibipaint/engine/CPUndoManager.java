@@ -98,7 +98,7 @@ public int[] getActiveLayerPreservedData ()
   return preservedActiveLayer.getData ();
 }
 
-public void preserveCurSelection ()
+public void preserveCurrentSelection ()
 {
   preservedSelection.copyFrom (artwork.getCurSelection ());
 }
@@ -161,7 +161,7 @@ public void setMaxUndo (int maxUndo)
   this.maxUndo = maxUndo;
 }
 
-public void currentLayerChanged (CPRect rect)
+public void activeLayerDataChange (CPRect rect)
 {
   CPUndo undo = new CPUndoPaint (rect);
   pendingUndoList.add (undo);
@@ -274,6 +274,16 @@ public void beforeLayerRename (int layer, String name)
 {
   CPUndo undo = new CPUndoManager.CPUndoLayerRename (artwork, layer, name);
   pendingUndoList.add (undo);
+}
+
+public void restoreActiveLayerData ()
+{
+  artwork.getActiveLayer ().copyFrom (preservedActiveLayer);
+}
+
+public void restoreSelection ()
+{
+  artwork.getCurSelection ().copyFrom (preservedSelection);
 }
 
 

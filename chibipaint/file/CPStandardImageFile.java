@@ -24,6 +24,7 @@
 package chibipaint.file;
 
 import chibipaint.engine.CPArtwork;
+import com.sun.imageio.plugins.common.ImageUtil;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

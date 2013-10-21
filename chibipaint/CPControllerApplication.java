@@ -136,55 +136,23 @@ public File getCurrentFile ()
 
 public void updateChanges (CPUndo undoAction, CPUndo redoAction)
 {
-  changed = (latestUndoAction != undoAction || latestRedoAction != redoAction); // Trivial
-  // logic
-  // -
-  // our
-  // position
-  // changed
-  // so
-  // file
-  // is
-  // changed
-  if (latestUndoAction == undoAction && redoAction == null) // We have
-    // returned
-    // to our
-    // saved
-    // state
-    // (which
-    // was
-    // without
-    // any redo
-    // action
-    // initially)
-    changed = false; // So file isn't changed (This logic is needed
-  // cause redo action may have changed in the
-  // future)
+  changed = (latestUndoAction != undoAction || latestRedoAction != redoAction);
+  if (latestUndoAction == undoAction && redoAction == null)
+
+    changed = false;
   updateTitle ();
 
-  if ((latestUndoAction == null && latestRedoAction == null) // If
-          // latestRedoAction
-          // wasn't
-          // set at
-          // all
-          || (redoActionMayChange // Or latestRedoAction may change
-          // according to the later logic
-          && (changed) // But change of position has happened
-          && (redoAction != latestUndoAction || latestUndoAction == null))) // And
-    // it's
-    // not
-    // undo
-    // change
+  if ((latestUndoAction == null && latestRedoAction == null)
+          || (redoActionMayChange
+          && (changed)
+          && (redoAction != latestUndoAction || latestUndoAction == null)))
     {
-      latestRedoAction = undoAction; // Then really changing
-      // latestRedoAction
-      redoActionMayChange = false; // And disabling flag
+      latestRedoAction = undoAction;
+      redoActionMayChange = false;
     }
 
-  if (!changed) // lastestRedoAction may change when we returned to
-    // initial (saved) position
-    redoActionMayChange = true; // Cause changes may be rewritten
-  // Some bugs mat still be present, need further testing
+  if (!changed)
+    redoActionMayChange = true;
 }
 
 void setLatestAction (CPUndo undoAction, CPUndo redoAction)
@@ -404,7 +372,7 @@ private boolean saveLoadImageFile (
                            selectedFile.getAbsolutePath ());
         }
 
-      // settting that app is busy so program won't exit until saving is done
+      // setting that app is busy so program won't exit until saving is done
       // also telling a user what's going on currently
       ((ChibiApp) mainFrame).setAppState (action == action_save_load.ACTION_SAVE ? appState.SAVING : appState.LOADING);
 

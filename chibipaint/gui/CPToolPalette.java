@@ -78,7 +78,6 @@ public CPToolPalette (CPController controller)
 
   addButton (0, "CPRectSelection", CPController.M_RECT_SELECTION);
   addButton (30, "CPFreeSelection", CPController.M_FREE_SELECTION);
-  addButton (31, "CPFreeTransform", CPController.M_FREE_TRANSFORM);
   addButton (2, "CPFloodFill", CPController.M_FLOODFILL);
   addButton (29, "CPRotateCanvas", CPController.M_ROTATE_CANVAS, "CPResetCanvasRotation");
   addButton (5, "CPPencil", CPController.M_DRAW, null, CPController.T_PENCIL);

@@ -356,6 +356,13 @@ JMenuBar createMainMenu (ActionListener listener)
   menu.setMnemonic (KeyEvent.VK_E);
   menuBarLocal.add (menu);
 
+  menuItem = new JMenuItem ("Transform Selected...", KeyEvent.VK_T);
+  menuItem.getAccessibleContext ().setAccessibleDescription ("Transform selected part of the current layer");
+  menuItem.setActionCommand ("CPFreeTransform");
+  menuItem.addActionListener (listener);
+  menuItem.setAccelerator (KeyStroke.getKeyStroke (KeyEvent.VK_T, InputEvent.CTRL_MASK));
+  menu.add (menuItem);
+
   menuItem = new JMenuItem ("Clear", KeyEvent.VK_C);
   menuItem.getAccessibleContext ().setAccessibleDescription ("Clears the selected area");
   menuItem.setActionCommand ("CPClear");

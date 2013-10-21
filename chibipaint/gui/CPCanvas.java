@@ -24,10 +24,7 @@ package chibipaint.gui;
 
 import chibipaint.CPController;
 import chibipaint.CPControllerApplication;
-import chibipaint.engine.CPArtwork;
-import chibipaint.engine.CPBrushInfo;
-import chibipaint.engine.CPClipboardHelper;
-import chibipaint.engine.CPSelection;
+import chibipaint.engine.*;
 import chibipaint.util.*;
 
 import javax.swing.*;
@@ -83,16 +80,14 @@ private int modifiers;
 private int button;
 private Timer selectionUpdateTimer;
 
-private boolean brushPreview = false;
 private Rectangle oldPreviewRect;
 private JFrame waitingFrame;
 
 private Cursor defaultCursor;
-private Cursor hideCursor;
 private Cursor moveCursor;
 private Cursor crossCursor;
-
-private Image loadingSign;
+private CPMode prevMode = null;
+boolean drawPrevMode = false;
 
 public boolean isCursorIn ()
 {
@@ -121,7 +116,7 @@ private final CPMode rotateCanvasMode = new CPRotateCanvasMode ();
 private final CPMode floodFillMode = new CPFloodFillMode ();
 private final CPMode rectMode = new CPRectSelectionMode ();
 private final CPMode freeSelectionMode = new CPFreeSelectionMode ();
-private final CPMode freeTransformMode = new CPFreeTransformMode ();
+private final CPFreeTransformMode freeTransformMode = new CPFreeTransformMode ();
 
 // this must correspond to the stroke modes defined in CPToolInfo
 private final CPMode[] drawingModes = {new CPFreehandMode (), new CPLineMode (), new CPBezierMode (),};
@@ -143,6 +138,8 @@ private float lastPressure;
 public void setArtwork (CPArtwork artwork)
 {
   this.artwork = artwork;
+  if (artwork != null)
+    freeTransformMode.setTransformHandler (artwork.getTransformHandler ());
 }
 
 private boolean isRunningAsApplication ()
@@ -167,11 +164,15 @@ private static SelectionTypeOfAppliance modifiersToSelectionApplianceType (int m
     return SelectionTypeOfAppliance.SUBTRACT;
 }
 
+public CPCanvas getCanvas ()
+{
+  return this;
+}
 
 public void initCanvas (CPController ctrl)
 {
   this.controller = ctrl;
-  artwork = ctrl.getArtwork ();
+  setArtwork (ctrl.getArtwork ());
 
   buffer = artwork.getDisplayBM ().getData ();
 
@@ -188,7 +189,6 @@ public void initCanvas (CPController ctrl)
 
   int[] pixels = new int[16 * 16];
   Image image = Toolkit.getDefaultToolkit ().createImage (new MemoryImageSource (16, 16, pixels, 0, 16));
-  hideCursor = Toolkit.getDefaultToolkit ().createCustomCursor (image, new Point (0, 0), "invisiblecursor");
   defaultCursor = new Cursor (Cursor.DEFAULT_CURSOR);
   moveCursor = new Cursor (Cursor.MOVE_CURSOR);
   crossCursor = new Cursor (Cursor.CROSSHAIR_CURSOR);
@@ -278,14 +278,12 @@ public void initCanvas (CPController ctrl)
         public void mouseExited (MouseEvent me)
         {
           cursorIn = false;
-          brushPreview = false;
           repaint ();
         }
 
         @Override
         public void mouseEntered (MouseEvent me)
         {
-          brushPreview = true;
           cursorIn = true;
         }
       });
@@ -297,7 +295,7 @@ public void initCanvas (CPController ctrl)
       HideLoadingTabletListenerMessage ();
     }
 
-
+  killTimers ();
   selectionUpdateTimer = new Timer (50, new ActionListener ()
   {
 
@@ -539,6 +537,7 @@ public void paint (Graphics g)
 		}
 		 */
 
+  // Drawing Selection
   artwork.getCurSelection ().drawItself (g2d, this);
 
   // Draw grid
@@ -567,14 +566,16 @@ public void paint (Graphics g)
 
   // Additional drawing by the current mode
   getActiveMode ().paint (g2d);
+  if (prevMode != null && drawPrevMode)
+    prevMode.paint (g2d);
 
   // This bit of code is used to test repaint areas
     /*
-		 * if((test++ & 16) == 0) { g.setColor(Color.magenta); Dimension dd = getSize();
+     * if((test++ & 16) == 0) { g.setColor(Color.magenta); Dimension dd = getSize();
 		 * g.fillRect(0,0,dd.width,dd.height); g.setColor(Color.black); }
 		 */
 
-  // Adding * for unsaved changes
+  // Adding * for unsaved changes, TODO: Move it to UndoManager finalizer
   if (controller.isRunningAsApplication ())
     ((CPControllerApplication) controller).updateChanges (artwork.getUndoManager ().getUndoList ().size () > 0 ? artwork.getUndoManager ().getUndoList ().getFirst () : null,
                                                           artwork.getUndoManager ().getRedoList ().size () > 0 ? artwork.getUndoManager ().getRedoList ().getFirst () : null);
@@ -974,8 +975,6 @@ public void newTool (int tool, CPBrushInfo toolInfo)
 
   if (!spacePressed && cursorIn)
     {
-      brushPreview = true;
-
       Rectangle r = getBrushPreviewOval (false);
       r.grow (2, 2);
       if (oldPreviewRect != null)
@@ -1009,7 +1008,13 @@ public void modeChange (int mode)
       // Here is the special case we should remove selected part of active layer, cut off inactive parts of selection
       // Then show the controls for doing transformation and operate the exact pixels which were removed.
 
-      curSelectedMode = freeTransformMode;
+      // TODO: Separate active and current mode for different classes
+      if (artwork.getCurSelection ().isEmpty ())
+        return; // TODO: Message Box about selection being empty
+
+      setActiveMode (freeTransformMode);
+      artwork.initializeTransform ();
+      artwork.invalidateFusion ();
       break;
 
     case CPController.M_RECT_SELECTION:
@@ -1060,29 +1065,28 @@ public void keyPressed (KeyEvent e)
         // case KeyEvent.VK_ADD:
         case KeyEvent.VK_EQUALS:
           zoomIn ();
-          break;
+          return;
         // case KeyEvent.VK_SUBTRACT:
         case KeyEvent.VK_MINUS:
           zoomOut ();
-          break;
+          return;
         case KeyEvent.VK_0:
           // case KeyEvent.VK_NUMPAD0:
           zoom100 ();
-          break;
+          return;
         case KeyEvent.VK_V:
-          // TODO: MultiUndo Here
+          // TODO: Make internal mechanism for copy and pasting if not running as application
           if (!isRunningAsApplication ())
-            break;
+            return;
           Image imageInClipboard = CPClipboardHelper.GetClipboardImage ();
           if (imageInClipboard == null)
             break;
-          // TODO: Move this to artwork
           artwork.addLayer ();
           artwork.getUndoManager ().preserveActiveLayerState ();
           CPImageUtils.PasteImageToOrigin (artwork.getActiveLayer (), imageInClipboard);
           CPSelection selection = new CPSelection (artwork.getWidth (), artwork.getHeight ());
           selection.makeSelectionFromAlpha (artwork.getActiveLayer ().getData ());
-          artwork.getUndoManager ().currentLayerChanged (selection.getBoundingRect ());
+          artwork.getUndoManager ().activeLayerDataChange (selection.getBoundingRect ());
           artwork.DoSelection (SelectionTypeOfAppliance.CREATE, selection);
           artwork.finalizeUndo ();
 
@@ -1090,11 +1094,11 @@ public void keyPressed (KeyEvent e)
           break;
         case KeyEvent.VK_C:
           if (!isRunningAsApplication ())
-            break;
+            return;
 
           Image image = CPImageUtils.RenderLayerSelectionToImage (artwork.getActiveLayer (), artwork.getCurSelection ());
           CPClipboardHelper.SetClipboardImage (image);
-          break;
+          return;
         }
     }
   else
@@ -1104,47 +1108,48 @@ public void keyPressed (KeyEvent e)
         case KeyEvent.VK_ADD:
         case KeyEvent.VK_EQUALS:
           zoomIn ();
-          break;
+          return;
         case KeyEvent.VK_SUBTRACT:
         case KeyEvent.VK_MINUS:
           zoomOut ();
-          break;
+          return;
         case KeyEvent.VK_1:
           controller.setAlpha ((int) (.1f * 255));
-          break;
+          return;
         case KeyEvent.VK_2:
           controller.setAlpha ((int) (.2f * 255));
-          break;
+          return;
         case KeyEvent.VK_3:
           controller.setAlpha ((int) (.3f * 255));
-          break;
+          return;
         case KeyEvent.VK_4:
           controller.setAlpha ((int) (.4f * 255));
-          break;
+          return;
         case KeyEvent.VK_5:
           controller.setAlpha ((int) (.5f * 255));
-          break;
+          return;
         case KeyEvent.VK_6:
           controller.setAlpha ((int) (.6f * 255));
-          break;
+          return;
         case KeyEvent.VK_7:
           controller.setAlpha ((int) (.7f * 255));
-          break;
+          return;
         case KeyEvent.VK_8:
           controller.setAlpha ((int) (.8f * 255));
-          break;
+          return;
         case KeyEvent.VK_9:
           controller.setAlpha ((int) (.9f * 255));
-          break;
+          return;
         case KeyEvent.VK_0:
           controller.setAlpha (255);
-          break;
+          return;
         case KeyEvent.VK_OPEN_BRACKET:
           if (controller.getBrushInfo ().curSize < 200.0f)
             controller.getBrushInfo ().curSize += 1.0f;
-          break;
+          return;
         }
     }
+  activeMode.keyPressed (e);
 }
 
 @Override
@@ -1238,8 +1243,11 @@ public void saveCanvasSettings ()
 
 public void killTimers ()
 {
-  selectionUpdateTimer.stop ();
-  selectionUpdateTimer = null;
+  if (selectionUpdateTimer != null)
+    {
+      selectionUpdateTimer.stop ();
+      selectionUpdateTimer = null;
+    }
 }
 
 public void loadCanvasSettings ()
@@ -1307,6 +1315,7 @@ public CPMode getActiveMode ()
 
 void setActiveMode (CPMode activeMode)
 {
+  prevMode = this.activeMode;
   this.activeMode = activeMode;
 }
 
@@ -1362,12 +1371,15 @@ public abstract class CPMode
   }
 
   // GUI drawing
-  @SuppressWarnings ("unused")
   public void paint (Graphics2D g2d)
   {
     // To not define actions for some functions in every case
   }
 
+  public void keyPressed (KeyEvent e)
+  {
+
+  }
 }
 
 //
@@ -1392,7 +1404,6 @@ class CPDefaultMode extends CPMode
 
         if (!artwork.getActiveLayer ().isVisible () && curSelectedMode != rotateCanvasMode)
           {
-            brushPreview = false;
             repaintBrushPreview ();
             return; // don't draw on a hidden layer
           }
@@ -1413,7 +1424,7 @@ class CPDefaultMode extends CPMode
             && ((getModifiers () & InputEvent.ALT_DOWN_MASK) == 0))
       {
         repaintBrushPreview ();
-
+        drawPrevMode = false;
         setActiveMode (moveCanvasMode);
         getActiveMode ().cursorPressAction ();
       }
@@ -1421,7 +1432,7 @@ class CPDefaultMode extends CPMode
             && ((getModifiers () & InputEvent.ALT_DOWN_MASK) == InputEvent.ALT_DOWN_MASK))
       {
         repaintBrushPreview ();
-
+        drawPrevMode = false;
         setActiveMode (rotateCanvasMode);
         getActiveMode ().cursorPressAction ();
       }
@@ -1431,9 +1442,8 @@ class CPDefaultMode extends CPMode
   @Override
   public void paint (Graphics2D g2d)
   {
-    if (brushPreview && curSelectedMode == curDrawMode)
+    if (curSelectedMode == curDrawMode)
       {
-        brushPreview = false;
 
         Rectangle r;
         r = getBrushPreviewOval (false);
@@ -1449,8 +1459,6 @@ class CPDefaultMode extends CPMode
     Point p = new Point (getCursorX (), getCursorY ());
     if (!spacePressed && cursorIn)
       {
-        brushPreview = true;
-
         Rectangle r = getBrushPreviewOval (false);
         r.grow (2, 2);
         if (oldPreviewRect != null)
@@ -1517,8 +1525,6 @@ class CPFreehandMode extends CPMode
         artwork.continueStroke (smoothMouse.x, smoothMouse.y, getLastPressure ());
       }
 
-    brushPreview = true;
-
     Rectangle r = getBrushPreviewOval (true);
     r.grow (2, 2);
     if (oldPreviewRect != null)
@@ -1553,10 +1559,8 @@ class CPFreehandMode extends CPMode
   @Override
   public void paint (Graphics2D g2d)
   {
-    if (brushPreview && curSelectedMode == curDrawMode)
+    if (curSelectedMode == curDrawMode)
       {
-        brushPreview = false;
-
         Rectangle r = getBrushPreviewOval (true);
         g2d.drawOval (r.x, r.y, r.width, r.height);
 
@@ -1877,7 +1881,8 @@ class CPMoveCanvasMode extends CPMode
         dragMiddle = false;
         setCursor (defaultCursor);
 
-        setActiveMode (defaultMode); // yield control to the default mode
+        setActiveMode (prevMode); // yield control to the previous mode
+        prevMode = null;
       }
   }
 }
@@ -1979,6 +1984,7 @@ class CPRectSelectionMode extends CPMode
   {
     if (!curRect.isEmpty ())
       {
+        g2d.setXORMode (Color.WHITE);
         g2d.draw (coordToDisplay (curRect));
       }
   }
@@ -1987,31 +1993,93 @@ class CPRectSelectionMode extends CPMode
 
 class CPFreeTransformMode extends CPMode
 {
+  private CPTransformHandler transformHandler;
+
+  public CPFreeTransformMode ()
+  {
+    super ();
+  }
 
   @Override
   public void cursorMoveAction ()
   {
-    // Here we need to do detection for the action
+    Point2D.Float p = coordToDocument (new Point (getCursorX (), getCursorY ()));
+    transformHandler.cursorMoved (p, getCanvas ());
   }
 
   @Override
   public void cursorPressAction ()
   {
+    if ((getButton () == MouseEvent.BUTTON2 || spacePressed)
+            && ((getModifiers () & InputEvent.ALT_DOWN_MASK) == 0))
+      {
+        repaintBrushPreview ();
+
+        drawPrevMode = true;
+        setActiveMode (moveCanvasMode);
+        getActiveMode ().cursorPressAction ();
+        return;
+      }
+    else if ((getButton () == MouseEvent.BUTTON2 || spacePressed)
+            && ((getModifiers () & InputEvent.ALT_DOWN_MASK) == InputEvent.ALT_DOWN_MASK))
+      {
+        repaintBrushPreview ();
+
+        drawPrevMode = true;
+        setActiveMode (rotateCanvasMode);
+        getActiveMode ().cursorPressAction ();
+        return;
+      }
+
+    Point2D.Float p = coordToDocument (new Point (getCursorX (), getCursorY ()));
+    transformHandler.cursorPressed (p);
   }
 
   @Override
   public void cursorDragAction ()
   {
+    Point2D.Float p = coordToDocument (new Point (getCursorX (), getCursorY ()));
+    transformHandler.cursorDragged (p);
+    repaint ();
   }
 
   @Override
   public void cursorReleaseAction ()
   {
+    transformHandler.cursorReleased ();
   }
 
   @Override
   public void paint (Graphics2D g2d)
   {
+    transformHandler.drawTransformPreviewAndHandles (g2d, transform, interpolation);
+  }
+
+  public void setTransformHandler (CPTransformHandler transformHandlerArg)
+  {
+    transformHandler = transformHandlerArg;
+  }
+
+  public void keyPressed (KeyEvent e)
+  {
+    switch (e.getKeyCode ())
+      {
+      case KeyEvent.VK_ENTER:
+        transformHandler.finalizeTransform ();
+        transformHandler.clearTransforms ();
+        setActiveMode (defaultMode);
+        artwork.FinishTransformUndo ();
+        repaint ();
+        break;
+      case KeyEvent.VK_ESCAPE:
+        transformHandler.clearTransforms ();
+        artwork.RestoreActiveLayerAndSelection ();
+        setActiveMode (defaultMode);
+        prevMode = null;
+        artwork.invalidateFusion ();
+        repaint ();
+        break;
+      }
   }
 
 }
@@ -2057,6 +2125,7 @@ class CPFreeSelectionMode extends CPMode
   @Override
   public void paint (Graphics2D g2d)
   {
+    g2d.setXORMode (Color.WHITE);
     g2d.draw (coordToDisplay (polygon));
   }
 
@@ -2123,15 +2192,16 @@ class CPRotateCanvasMode extends CPMode
         resetRotation ();
       }
 
-    setActiveMode (defaultMode); // yield control to the default mode
+    setActiveMode (prevMode); // yield control to the previous mode
+    prevMode = null;
   }
 }
 
 	/*
-	 * // // mode //
+   * // // mode //
 	 *
-	 * class CPMode extends CPMode { public void mousePressed(MouseEvent e) {} public void mouseDragged(MouseEvent e) {}
-	 * public void mouseReleased(MouseEvent e) {} }
+	 * class CPMode extends CPMode { public void cursorPressed(MouseEvent e) {} public void mouseDragged(MouseEvent e) {}
+	 * public void cursorReleased(MouseEvent e) {} }
 	 */
 }
 

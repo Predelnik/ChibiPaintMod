@@ -30,6 +30,7 @@ import java.awt.*;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.ArrayList;
@@ -166,7 +167,7 @@ private final int[][] Corners = {{1, 1}, {0, 1}, {0, 0}, {1, 0}};
 private final int[] OppositeDirection = {2, 3, 0, 1};
 private final int[] PowersOf2 = {1, 2, 4, 8};
 
-public void deactivate ()
+public void makeEmpty ()
 {
   Arrays.fill (data, (byte) 0);
   minX = 1;
@@ -317,9 +318,17 @@ int GetNextDirectionNum (PixelCoords currentPoint, PixelCoords prevPoint)
 
 public Rectangle getBoundingBox (CPCanvas canvas)
 {
-  Point2D.Float firstPoint = canvas.coordToDisplay (new Point2D.Float (minX, minY));
-  Point2D.Float secondPoint = canvas.coordToDisplay (new Point2D.Float (maxX, maxY));
-  return new Rectangle ((int) firstPoint.x, (int) firstPoint.y, (int) Math.ceil (secondPoint.x) - (int) (firstPoint.x) + 2, (int) Math.ceil (secondPoint.y) - (int) firstPoint.y + 2);
+  Point2D.Float[] points = {canvas.coordToDisplay (new Point2D.Float (minX, minY)), canvas.coordToDisplay (new Point2D.Float (minX, maxY + 2.f)),
+          canvas.coordToDisplay (new Point2D.Float (maxX + 2.f, maxY + 2.f)), canvas.coordToDisplay (new Point2D.Float (maxX + 2.f, minY))};
+  Path2D.Float path = new Path2D.Float ();
+  path.moveTo (points[0].x, points[0].y);
+  path.lineTo (points[1].x, points[1].y);
+  path.lineTo (points[2].x, points[2].y);
+  path.lineTo (points[3].x, points[3].y);
+  path.closePath ();
+  Rectangle2D rect = path.getBounds2D ();
+  return new Rectangle ((int) rect.getX (), (int) rect.getY (), (int) Math.ceil (rect.getMaxX ()) - (int) rect.getX (),
+                        (int) Math.ceil (rect.getMaxY ()) - (int) rect.getY ());
 }
 
 public CPRect getBoundingRect ()
@@ -413,6 +422,11 @@ void convertLumpToPixelSingleLines (ArrayList<PixelSingleLine> pixelLinesTarget,
   while (true);
 }
 
+public boolean isEmpty ()
+{
+  return (minX >= maxX || minY >= maxY);
+}
+
 public void drawItself (Graphics2D g2d, CPCanvas canvas)
 {
         /*
@@ -433,7 +447,7 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
   for (int i = 0; i < CurPixelLines.size (); i++)
     {
       /*
-			float newDashLength = defaultDashLength;
+      float newDashLength = defaultDashLength;
 
 			int NumberOfDashes = (int) Math.ceil(((CurPixelLines.get(i).size ()) / dashLength));
 			if (NumberOfDashes != 0)

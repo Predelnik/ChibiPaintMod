@@ -25,6 +25,10 @@ package chibipaint.util;
 // left,mTop: upper left corner, mRight, mBottom: lower right corner,
 // exclusive, right>left && bottom>top if not empty
 
+import java.awt.*;
+import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
+
 public class CPRect implements Cloneable
 {
 
@@ -102,6 +106,16 @@ public void clip (CPRect rect)
 public boolean isInside (CPRect rect)
 {
   return left >= rect.left && top >= rect.top && right <= rect.right && bottom <= rect.bottom;
+}
+
+public boolean isInside (Point point)
+{
+  return left <= point.x && top <= point.y && right >= point.x && bottom >= point.y;
+}
+
+public boolean isInside (Point2D point)
+{
+  return left <= point.getX () && top <= point.getY () && right >= point.getX () && bottom >= point.getY ();
 }
 
 // First makes dstRect the same width and height (not modifying its top/left)
@@ -183,7 +197,7 @@ public boolean isEmpty ()
   return right <= left || bottom <= top;
 }
 
-void set (CPRect r)
+public void set (CPRect r)
 {
   left = r.left;
   top = r.top;
@@ -229,4 +243,14 @@ public boolean equals (Object o)
 }
 
 
+public Path2D toPath2D ()
+{
+  Path2D path = new Path2D.Float ();
+  path.moveTo (left, top);
+  path.lineTo (right, top);
+  path.lineTo (right, bottom);
+  path.lineTo (left, bottom);
+  path.closePath ();
+  return path;
+}
 }

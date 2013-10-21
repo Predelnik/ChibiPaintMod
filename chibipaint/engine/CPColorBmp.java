@@ -304,6 +304,26 @@ public void setData (int[] dataArg)
   data = dataArg;
 }
 
+public void multiplyBy (CPGreyBmp multiplier)
+{
+  for (int i = 0; i < height * width; i++)
+    {
+      int curAlpha = (data[i] & 0xFF000000) >>> 24;
+      data[i] &= 0x00FFFFFF;
+      data[i] |= (int) (curAlpha * ((multiplier.data[i] & 0xFF) / 255.0f)) << 24;
+    }
+}
+
+public void cutMultipliedBy (CPGreyBmp multiplier)
+{
+  for (int i = 0; i < width * height; i++)
+    {
+      int curAlpha = (data[i] & 0xFF000000) >>> 24;
+      data[i] &= 0x00FFFFFF;
+      data[i] |= (int) (curAlpha * ((255 - multiplier.data[i] & 0xFF) / 255.0f)) << 24;
+    }
+}
+
 //
 // Flood fill algorithm
 //
@@ -360,7 +380,7 @@ public void floodFill (int x, int y, int color, CPLayer useDataFrom, int distanc
 
   // If we are filling 100% transparent areas
   // then we need to ignore the residual color information
-  // (it would also be possible to clear it when erasing, but then
+  // (it would also be possible to setToNothing it when erasing, but then
   // the performance impact would be on the eraser rather than
   // on this low importance flood fill)
 
@@ -581,4 +601,23 @@ void copyArrayToColumn (int x, int y, int len, int[] buffer)
       getData ()[x + (i + y) * width] = buffer[i];
     }
 }
+
+public CPRect getBoundingBox ()
+{
+  CPRect rect;
+  int minX = width, maxX = 0, minY = height, maxY = 0;
+  for (int i = 0; i < width; i++)
+    for (int j = 0; j < height; j++)
+      {
+        if ((data[j * width + i] & 0xFF000000) != 0)
+          {
+            minX = Math.min (minX, i);
+            maxX = Math.max (maxX, i);
+            minY = Math.min (minY, j);
+            maxY = Math.max (maxY, j);
+          }
+      }
+  return new CPRect (minX, minY, maxX, maxY);
+}
+
 }

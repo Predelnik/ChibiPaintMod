@@ -43,10 +43,11 @@ private Vector<CPLayer> layers;
 private CPLayer curLayer;
 private int activeLayer;
 
-private final CPLayer fusion;
+private final CPLayer fusion; // fusion is a final view of the image, like which should be saved to png (no overlays like selection or grid here)
 private final CPLayer opacityBuffer;
 private final CPRect fusionArea;
 private final CPRect opacityArea;
+private final CPTransformHandler transformHandler = new CPTransformHandler ();
 
 CPSelection curSelection;
 
@@ -64,6 +65,32 @@ public CPClip getClipboard ()
   return clipboard;
 }
 
+public void initializeTransform ()
+{
+  undoManager.preserveActiveLayerState ();
+  undoManager.preserveCurrentSelection ();
+  transformHandler.initialize (curSelection, getActiveLayer ());
+}
+
+public CPTransformHandler getTransformHandler ()
+{
+  return transformHandler;
+}
+
+public void FinishTransformUndo ()
+{
+  getUndoManager ().selectionChanged ();
+  getUndoManager ().activeLayerDataChange (getSize ());
+  getUndoManager ().finalizeUndo ();
+  invalidateFusion ();
+}
+
+public void RestoreActiveLayerAndSelection ()
+{
+  undoManager.restoreActiveLayerData ();
+  undoManager.restoreSelection ();
+}
+
 public enum SelectionTypeOfAppliance
 {
   CREATE,
@@ -76,7 +103,7 @@ public enum SelectionTypeOfAppliance
 
 public void DoSelection (SelectionTypeOfAppliance type, CPSelection selection)
 {
-  undoManager.preserveCurSelection ();
+  undoManager.preserveCurrentSelection ();
   switch (type)
     {
     case CREATE:
@@ -439,7 +466,7 @@ abstract class CPBrushToolBase extends CPBrushTool
     if (!undoArea.isEmpty ())
       {
         mergeOpacityBuffer (curColor, false);
-        undoManager.currentLayerChanged (undoArea);
+        undoManager.activeLayerDataChange (undoArea);
         undoArea.makeEmpty ();
       }
     brushBuffer = null;
@@ -1651,7 +1678,7 @@ public void floodFill (float x, float y, int colorDistance)
 
   getCurLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getCurLayer (), colorDistance);
 
-  undoManager.currentLayerChanged (new CPRect (getWidth (), getHeight ()));
+  undoManager.activeLayerDataChange (new CPRect (getWidth (), getHeight ()));
   invalidateFusion ();
 }
 
@@ -1665,7 +1692,7 @@ public void fill (int color, boolean applyToAllLayers)
       undoManager.preserveActiveLayerState ();
 
       getCurLayer ().clear (r, color);
-      undoManager.currentLayerChanged (getSize ());
+      undoManager.activeLayerDataChange (getSize ());
     }
   else
     {
@@ -1693,7 +1720,7 @@ public void hFlip (boolean applyToAllLayers)
       undoManager.preserveActiveLayerState ();
 
       getCurLayer ().copyRegionHFlip (getSize (), undoManager.getActiveLayerPreservedData ());
-      undoManager.currentLayerChanged (getSize ());
+      undoManager.activeLayerDataChange (getSize ());
     }
   else
     {
@@ -1717,7 +1744,7 @@ public void vFlip (boolean applyToAllLayers)
       undoManager.preserveActiveLayerState ();
 
       getCurLayer ().copyRegionVFlip (getSize (), undoManager.getActiveLayerPreservedData ());
-      undoManager.currentLayerChanged (getSize ());
+      undoManager.activeLayerDataChange (getSize ());
     }
   else
     {
@@ -1740,7 +1767,7 @@ public void monochromaticNoise (boolean applyToAllLayers)
       undoManager.preserveActiveLayerState ();
 
       getCurLayer ().fillWithNoise (getSize ());
-      undoManager.currentLayerChanged (getSize ());
+      undoManager.activeLayerDataChange (getSize ());
     }
   else
     {
@@ -1764,7 +1791,7 @@ public void colorNoise (boolean applyToAllLayers)
       undoManager.preserveActiveLayerState ();
 
       getCurLayer ().fillWithColorNoise (getSize ());
-      undoManager.currentLayerChanged (getSize ());
+      undoManager.activeLayerDataChange (getSize ());
     }
   else
     {
@@ -1791,7 +1818,7 @@ public void boxBlur (int radiusX, int radiusY, int iterations, boolean applyToAl
         {
           getCurLayer ().boxBlur (getSize (), radiusX, radiusY);
         }
-      undoManager.currentLayerChanged (getSize ());
+      undoManager.activeLayerDataChange (getSize ());
     }
   else
     {
@@ -1818,7 +1845,7 @@ public void invert (boolean applyToAllLayers)
 
       getCurLayer ().invert (getSize ());
 
-      undoManager.currentLayerChanged (getSize ());
+      undoManager.activeLayerDataChange (getSize ());
     }
   else
     {
@@ -1842,7 +1869,7 @@ public void makeMonochrome (boolean applyToAllLayers, int type)
 
       getCurLayer ().makeMonochrome (getSize (), type, curColor);
 
-      undoManager.currentLayerChanged (getSize ());
+      undoManager.activeLayerDataChange (getSize ());
     }
   else
     {
