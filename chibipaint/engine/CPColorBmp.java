@@ -24,6 +24,8 @@ package chibipaint.engine;
 
 import chibipaint.util.CPRect;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.LinkedList;
 
 //
@@ -57,13 +59,19 @@ public CPColorBmp (int width, int height, int[] data)
 // Creates a CPBitmap by copying a part of another CPBitmap
 public CPColorBmp (CPColorBmp bmp, CPRect r)
 {
-  super (r.getWidth (), r.getWidth ());
+  super (r.getWidth (), r.getHeight ());
 
-  width = r.getWidth ();
-  height = r.getHeight ();
   data = new int[width * height];
 
   setFromBitmapRect (bmp, r);
+}
+
+// To make process of building our custom types from internal easier
+public CPColorBmp (BufferedImage image)
+{
+  super (image.getWidth (), image.getHeight ());
+
+  data = ((DataBufferInt) image.getData ().getDataBuffer ()).getData (); // Magical trick
 }
 
 //
@@ -304,25 +312,65 @@ public void setData (int[] dataArg)
   data = dataArg;
 }
 
-public void multiplyBy (CPGreyBmp multiplier)
+public void cutBySelection (CPSelection selection)
 {
   for (int i = 0; i < height * width; i++)
     {
       int curAlpha = (data[i] & 0xFF000000) >>> 24;
+      int selData = selection.data[i] & 0xFF;
       data[i] &= 0x00FFFFFF;
-      data[i] |= (int) (curAlpha * ((multiplier.data[i] & 0xFF) / 255.0f)) << 24;
+      data[i] |= (int) (curAlpha > selData ? selData : curAlpha) << 24;
     }
 }
 
-public void cutMultipliedBy (CPGreyBmp multiplier)
+public void removePartsCutBySelection (CPSelection selection)
 {
   for (int i = 0; i < width * height; i++)
     {
       int curAlpha = (data[i] & 0xFF000000) >>> 24;
+      int selData = selection.data[i] & 0xFF;
       data[i] &= 0x00FFFFFF;
-      data[i] |= (int) (curAlpha * ((255 - multiplier.data[i] & 0xFF) / 255.0f)) << 24;
+      data[i] |= (int) (curAlpha - (curAlpha > selData ? selData : curAlpha)) << 24;
     }
 }
+
+void drawItselfOnTarget (CPColorBmp target, int shiftX, int shiftY)
+{
+  for (int j = 0; j < height; j++)
+    {
+      if (j + shiftY < 0 || j + shiftY >= target.getHeight ())
+        continue;
+
+      int off = 0 + j * width;
+      int targetOff = shiftX + (j + shiftY) * target.getWidth ();
+      for (int i = 0; i < width; i++, off++, targetOff++)
+        {
+          if (i + shiftX < 0 || i + shiftX >= target.getWidth ()) // TODO: Probably optimize
+            continue;
+
+          int color1 = getData ()[off];
+          int alpha1 = (color1 >>> 24);
+          int color2 = target.getData ()[targetOff];
+          int alpha2 = (color2 >>> 24);
+
+          int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
+          if (newAlpha > 0)
+            {
+              int realAlpha = alpha1 * 255 / newAlpha;
+              int invAlpha = 255 - realAlpha;
+
+              target.getData ()[targetOff] = newAlpha << 24
+                      | (((color1 >>> 16 & 0xff) * realAlpha + (color2 >>> 16 & 0xff)
+                      * invAlpha) / 255) << 16
+                      | (((color1 >>> 8 & 0xff) * realAlpha + (color2 >>> 8 & 0xff)
+                      * invAlpha) / 255) << 8
+                      | (((color1 & 0xff) * realAlpha + (color2 & 0xff)
+                      * invAlpha) / 255);
+            }
+        }
+    }
+}
+
 
 //
 // Flood fill algorithm

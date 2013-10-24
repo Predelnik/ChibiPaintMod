@@ -906,21 +906,6 @@ Polygon coordToDisplay (CPRect r)
   return poly;
 }
 
-Polygon coordToDisplay (Path2D r)
-{
-  Polygon poly = new Polygon ();
-  PathIterator it = r.getPathIterator (transform);
-  float[] coords = new float[2];
-  while (!it.isDone ())
-    {
-      it.currentSegment (coords);
-      poly.addPoint ((int) coords[0], (int) coords[1]);
-      it.next ();
-    }
-
-  return poly;
-}
-
 Rectangle getRefreshArea (CPRect r)
 {
   Point p1 = coordToDisplayInt (new Point (r.left - 1, r.top - 1));
@@ -1442,11 +1427,11 @@ class CPDefaultMode extends CPMode
   @Override
   public void paint (Graphics2D g2d)
   {
-    if (curSelectedMode == curDrawMode)
+    if (curSelectedMode == curDrawMode && cursorIn)
       {
-
         Rectangle r;
         r = getBrushPreviewOval (false);
+        g2d.setXORMode (Color.WHITE);
         g2d.drawOval (r.x, r.y, r.width, r.height);
         r.grow (2, 2);
         oldPreviewRect = oldPreviewRect != null ? r.union (oldPreviewRect) : r;
@@ -2093,18 +2078,15 @@ class CPFreeSelectionMode extends CPMode
   @Override
   public void cursorPressAction ()
   {
-    Point p = coordToDocumentInt (new Point (getCursorX (), getCursorY ()));
-
     polygon = new Path2D.Float ();
-    polygon.moveTo (p.getX (), p.getY ());
+    polygon.moveTo (getCursorX (), getCursorY ());
     repaint ();
   }
 
   @Override
   public void cursorDragAction ()
   {
-    Point p = coordToDocumentInt (new Point (getCursorX (), getCursorY ()));
-    polygon.lineTo (p.getX (), p.getY ());
+    polygon.lineTo (getCursorX (), getCursorY ());
 
     // TODO: add shift and control modifiers for snapped by angle lines
     repaint ();
@@ -2115,7 +2097,7 @@ class CPFreeSelectionMode extends CPMode
   {
 
     CPSelection polygonSelection = new CPSelection (artwork.getWidth (), artwork.getHeight ());
-    polygonSelection.makeSelectionFromPolygon (polygon);
+    polygonSelection.makeSelectionFromPolygon (polygon, transform);
     artwork.DoSelection (modifiersToSelectionApplianceType (getModifiers ()), polygonSelection);
     artwork.finalizeUndo ();
     setActiveMode (defaultMode); // yield control to the default mode
@@ -2126,7 +2108,7 @@ class CPFreeSelectionMode extends CPMode
   public void paint (Graphics2D g2d)
   {
     g2d.setXORMode (Color.WHITE);
-    g2d.draw (coordToDisplay (polygon));
+    g2d.draw (polygon);
   }
 
 }

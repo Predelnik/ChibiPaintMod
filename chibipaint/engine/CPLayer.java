@@ -321,7 +321,7 @@ void fusionWithMultiply (CPLayer fusion, CPRect rc)
     }
 }
 
-void fusionWithNormal (CPLayer fusion, CPRect rc)
+void fusionWithNormalNoAlpha (CPLayer fusion, CPRect rc)
 {
   CPRect rect = new CPRect (0, 0, width, height);
   rect.clip (rc);
@@ -332,7 +332,7 @@ void fusionWithNormal (CPLayer fusion, CPRect rc)
       for (int i = rect.left; i < rect.right; i++, off++)
         {
           int color1 = getData ()[off];
-          int alphaLocal = (color1 >>> 24) * this.alpha / 100;
+          int alphaLocal = color1 >>> 24;
           if (alphaLocal == 255)
             {
               fusion.getData ()[off] = color1;
@@ -354,7 +354,7 @@ void fusionWithNormal (CPLayer fusion, CPRect rc)
     }
 }
 
-void fusionWithNormalNoAlpha (CPLayer fusion, CPRect rc)
+void fusionWithNormal (CPLayer fusion, CPRect rc)
 {
   CPRect rect = new CPRect (0, 0, width, height);
   rect.clip (rc);
@@ -365,7 +365,7 @@ void fusionWithNormalNoAlpha (CPLayer fusion, CPRect rc)
       for (int i = rect.left; i < rect.right; i++, off++)
         {
           int color1 = getData ()[off];
-          int alphaLocal = color1 >>> 24;
+          int alphaLocal = (color1 >>> 24) * this.alpha / 100;
           if (alphaLocal == 255)
             {
               fusion.getData ()[off] = color1;

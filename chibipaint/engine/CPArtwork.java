@@ -383,7 +383,7 @@ void mergeOpacityBuffer (int color, boolean clear)
           int dstOffset = opacityArea.left + j * getWidth ();
           for (int i = opacityArea.left; i < opacityArea.right; i++, dstOffset++)
             {
-              opacityBuffer.getData ()[dstOffset] = (int) (opacityBuffer.getData ()[dstOffset] * curSelection.getData (i, j));
+              opacityBuffer.getData ()[dstOffset] = curSelection.cutOpacity (opacityBuffer.getData ()[dstOffset], i, j);
             }
         }
       paintingModes[curBrush.paintMode].mergeOpacityBuf (opacityArea, color);

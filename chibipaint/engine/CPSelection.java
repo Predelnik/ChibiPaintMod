@@ -27,10 +27,7 @@ import chibipaint.gui.CPCanvas;
 import chibipaint.util.CPRect;
 
 import java.awt.*;
-import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.ArrayList;
@@ -120,10 +117,37 @@ public void makeRectangularSelection (CPRect rect)
   precalculateSelection ();
 }
 
-public void makeSelectionFromPolygon (Path2D polygon)
+public void make (CPColorBmp src, int offsetX, int offsetY)
+{
+  makeEmpty ();
+  for (int j = 0; j < src.getHeight (); j++)
+    {
+      if (j + offsetY >= height || j + offsetY < 0)
+        continue;
+      int offset = (j + offsetY) * width + offsetX;
+      int srcOffset = j * src.getWidth ();
+      for (int i = 0; i < src.getWidth (); i++, offset++, srcOffset++)
+        {
+          if (i + offsetX >= width || i + offsetX < 0)
+            continue;
+          data[offset] = (byte) ((src.getData ()[srcOffset] >> 24) & 0xFF);
+        }
+    }
+  precalculateSelection ();
+}
+
+public void makeSelectionFromPolygon (Path2D polygon, AffineTransform canvasTransform)
 {
   BufferedImage bImage = new BufferedImage (width, height, BufferedImage.TYPE_BYTE_GRAY);
   Graphics2D g = bImage.createGraphics ();
+  try
+    {
+      g.transform (canvasTransform.createInverse ());
+    }
+  catch (NoninvertibleTransformException e)
+    {
+      e.printStackTrace ();  // Shouldn't be here
+    }
   g.setColor (Color.WHITE);
   polygon.setWindingRule (Path2D.WIND_EVEN_ODD);
   g.fill (polygon);
@@ -221,6 +245,22 @@ public void makeSelectionFromAlpha (int[] dataArg)
         data[j * width + i] = (byte) ((dataArg[j * width + i] & (0xff000000)) >> 24);
       }
   precalculateSelection ();
+}
+
+public int getData (int i, int j)
+{
+  return data[j * width + i];
+}
+
+public int cutOpacity (int value, int i, int j)
+{
+  if (isEmpty ())
+    return value;
+  int newValue = value;
+  int selection = (data[j * width + i] & 0xFF) * 255;
+  if (selection < newValue)
+    newValue = selection;
+  return newValue;
 }
 
 
@@ -629,12 +669,5 @@ private Lump MakeLump (int x, int y)
         }
     }
   return ResultingLump;
-}
-
-private final float oneDividedBy255 = 0.00392156862745f;
-
-public float getData (int i, int j)
-{
-  return (minX < maxX && minY < maxY) ? ((data[j * width + i] & 0xFF) * oneDividedBy255) : 1.0f;
 }
 }

@@ -60,6 +60,14 @@ public CPRect (CPRect r)
   set (r);
 }
 
+public CPRect (Rectangle rectangle)
+{
+  this.left = (int) (Math.floor (rectangle.getX ()));
+  this.top = (int) (Math.floor (rectangle.getY ()));
+  this.right = (int) (Math.ceil (rectangle.getMaxX ()));
+  this.bottom = (int) (Math.ceil (rectangle.getMaxY ()));
+}
+
 public void makeEmpty ()
 {
   left = 0;

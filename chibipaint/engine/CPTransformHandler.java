@@ -27,7 +27,6 @@ import chibipaint.util.CPRect;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.awt.image.MemoryImageSource;
 
 public class CPTransformHandler
@@ -277,6 +276,7 @@ class CPTransformAction
 CPColorBmp transformedPart;
 CPRect transformingRect = new CPRect ();
 CPLayer activeLayer = null;
+CPSelection currentSelection = null;
 CPTransformAction activeAction = new CPTransformAction ();
 final Point2D pointOfOrigin = new Point2D.Float ();
 final AffineTransform transform = new AffineTransform ();
@@ -290,13 +290,14 @@ static float controlDistance = 10.0f;
 
 
 // Initializes transformation mode
-public void initialize (CPSelection selection, CPLayer activeLayerArg)
+public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg)
 {
+  currentSelection = currentSelectionArg;
   CPColorBmp tempBmp = new CPColorBmp (0, 0);
   tempBmp.copyDataFrom (activeLayerArg);
   artworkWidth = activeLayerArg.getWidth ();
   artworkHeight = activeLayerArg.getHeight ();
-  tempBmp.multiplyBy (selection);
+  tempBmp.cutBySelection (currentSelection);
   transformingRect = tempBmp.getBoundingBox ();
   transformedPart = new CPColorBmp (transformingRect.getWidth (), transformingRect.getHeight ());
   transformedPart.setFromBitmapRect (tempBmp, transformingRect);
@@ -305,11 +306,11 @@ public void initialize (CPSelection selection, CPLayer activeLayerArg)
   shiftY = transformingRect.getTop ();
   editTransform.setToIdentity ();
   updateCurrentTransform ();
-  activeLayerArg.cutMultipliedBy (selection);
+  activeLayerArg.removePartsCutBySelection (currentSelection);
   activeLayer = activeLayerArg; // TODO: Disable any actions with layer while transformation is in process.
   MemoryImageSource imgSource = new MemoryImageSource (transformedPart.getWidth (), transformedPart.getHeight (), transformedPart.getData (), 0, transformedPart.getWidth ());
   transformedPartImage = Toolkit.getDefaultToolkit ().createImage (imgSource);
-  selection.makeEmpty ();
+  currentSelection.makeEmpty ();
 }
 
 public void cursorPressed (Point2D p)
@@ -519,22 +520,34 @@ public void drawTransformPreviewAndHandles (Graphics2D g2d, AffineTransform canv
       }
 }
 
+final float fuzzyValue = 5.0f;
+
 public void finalizeTransform ()
 {
-  MemoryImageSource imgSource = new MemoryImageSource (activeLayer.getWidth (), activeLayer.getHeight (), activeLayer.getData (), 0, activeLayer.getWidth ());
-  Image activeLayerImage = Toolkit.getDefaultToolkit ().createImage (imgSource);
-  BufferedImage bI = new BufferedImage (activeLayer.getWidth (), activeLayer.getHeight (), BufferedImage.TYPE_INT_ARGB);
+  // First we finding minimal rectangle we could put our transformed picture to.
+  Path2D path = transformRectToPath (transformingRect.getLeft (), transformingRect.getTop (), transformingRect.getRight (), transformingRect.getBottom (), transform);
+  Rectangle bounds = path.getBounds ();
+  // Fuzzing them a little for better interpolation
+  bounds.setRect (bounds.getX () - fuzzyValue, bounds.getY () - fuzzyValue, bounds.getWidth () + 2 * fuzzyValue, bounds.getHeight () + 2 * fuzzyValue);
+  BufferedImage bI = new BufferedImage ((int) bounds.getWidth (), (int) bounds.getHeight (), BufferedImage.TYPE_INT_ARGB);
   Graphics gBuffered = bI.createGraphics ();
-  gBuffered.drawImage (activeLayerImage, 0, 0, null);
   Graphics2D g = bI.createGraphics ();
-  g.transform (transform);
+
   RenderingHints hints = g.getRenderingHints ();
   hints.put (RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
   g.addRenderingHints (hints);
-  g.drawImage (transformedPartImage, shiftX, shiftY, transformedPartImage.getWidth (null) + shiftX, transformedPartImage.getHeight (null) + shiftY, 0, 0, transformedPartImage.getWidth (null), transformedPartImage.getHeight (null), null);
 
-  activeLayer.setData (((DataBufferInt) bI.getData ().getDataBuffer ()).getData ()); // A little crude, the best way to be to store image in our format, but then we'll have to do transformations ourselves
-  // Also there could be way that we convert our transformed image to native image and then paste it just like here
+  AffineTransform finalTransform = new AffineTransform ();
+  finalTransform.translate (-bounds.getX (), -bounds.getY ());
+  finalTransform.concatenate (transform);
+  g.transform (finalTransform);
+  // Image should transform to be put exactly into our prearranged BufferedImage
+  // Uber cool render hints because we're rendering it only one time obviously
+  g.drawImage (transformedPartImage, shiftX, shiftY, transformedPartImage.getWidth (null) + shiftX, transformedPartImage.getHeight (null) + shiftY, 0, 0, transformedPartImage.getWidth (null), transformedPartImage.getHeight (null), null);
+  CPColorBmp transformedPartBmp = new CPColorBmp (bI);
+  // Now all we need is to fusion this part with activeLayer, also change current selection
+  currentSelection.make (transformedPartBmp, (int) (bounds.getX ()), (int) (bounds.getY ()));
+  transformedPartBmp.drawItselfOnTarget (activeLayer, (int) (bounds.getX ()), (int) (bounds.getY ()));
 }
 
 }
