@@ -1067,7 +1067,6 @@ public void keyPressed (KeyEvent e)
           if (imageInClipboard == null)
             break;
           artwork.addLayer ();
-          artwork.getUndoManager ().preserveActiveLayerState ();
           CPImageUtils.PasteImageToOrigin (artwork.getActiveLayer (), imageInClipboard);
           CPSelection selection = new CPSelection (artwork.getWidth (), artwork.getHeight ());
           selection.makeSelectionFromAlpha (artwork.getActiveLayer ().getData ());

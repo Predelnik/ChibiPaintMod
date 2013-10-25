@@ -228,12 +228,14 @@ public void copyFrom (CPSelection selection)
   precalculateSelection ();
 }
 
-public void multiplyDataBySelection (int dataArg[])
+public void applySelectionToData (int dataArg[])
 {
   for (int j = 0; j < height; j++)
     for (int i = 0; i < width; i++)
       {
-        dataArg[j * width + i] = (dataArg[j * width + i] & (0x00ffffff)) | ((int) (((dataArg[j * width + i] & (0xff000000)) >> 24) * (getData (i, j))) << 24);
+        int selectionValue = getData (i, j);
+        int sourceAlpha = ((dataArg[j * width + i] & (0xff000000)) >>> 24);
+        dataArg[j * width + i] = (dataArg[j * width + i] & (0x00ffffff)) | ((int) (sourceAlpha >= selectionValue ? selectionValue : sourceAlpha) << 24);
       }
 }
 
