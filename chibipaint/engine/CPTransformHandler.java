@@ -504,16 +504,22 @@ static Path2D.Float transformRectToPath (float left, float top, float right, flo
 public void updatePreview (boolean interpolation)
 {
   previewLayer.clear ();
-  drawItselfOnLayer (previewLayer, interpolation ? RenderingHints.VALUE_INTERPOLATION_BILINEAR : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+  drawItselfOnLayer (previewLayer, interpolation ? RenderingHints.VALUE_INTERPOLATION_BILINEAR : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR, false);
 }
 
-private void drawItselfOnLayer (CPLayer layer, Object interpolation)
+public Rectangle getRectNeededForUpdating ()
 {
   // First we finding minimal rectangle we could put our transformed picture to.
   Path2D path = transformRectToPath (transformingRect.getLeft (), transformingRect.getTop (), transformingRect.getRight (), transformingRect.getBottom (), transform);
   Rectangle bounds = path.getBounds ();
   // Fuzzing them a little for better interpolation
   bounds.setRect (bounds.getX () - fuzzyValue, bounds.getY () - fuzzyValue, bounds.getWidth () + 2 * fuzzyValue, bounds.getHeight () + 2 * fuzzyValue);
+  return bounds;
+}
+
+private void drawItselfOnLayer (CPLayer layer, Object interpolation, boolean updateSelection)
+{
+  Rectangle bounds = getRectNeededForUpdating ();
   BufferedImage bI = new BufferedImage ((int) bounds.getWidth (), (int) bounds.getHeight (), BufferedImage.TYPE_INT_ARGB);
   Graphics gBuffered = bI.createGraphics ();
   Graphics2D g = bI.createGraphics ();
@@ -534,23 +540,18 @@ private void drawItselfOnLayer (CPLayer layer, Object interpolation)
   g.drawImage (transformedPartImage, shiftX, shiftY, transformedPartImage.getWidth (null) + shiftX, transformedPartImage.getHeight (null) + shiftY, 0, 0, transformedPartImage.getWidth (null), transformedPartImage.getHeight (null), null);
   CPColorBmp transformedPartBmp = new CPColorBmp (bI);
   // Now all we need is to fusion this part with activeLayer, also change current selection
-  currentSelection.make (transformedPartBmp, (int) (bounds.getX ()), (int) (bounds.getY ()));
+  if (updateSelection)
+    currentSelection.make (transformedPartBmp, (int) (bounds.getX ()), (int) (bounds.getY ()));
   transformedPartBmp.drawItselfOnTarget (layer, (int) (bounds.getX ()), (int) (bounds.getY ()));
 }
 
 public void drawTransformHandles (Graphics2D g2d, AffineTransform canvasTransform)
 {
-  Graphics2D g2doc = (Graphics2D) g2d.create ();
-  g2doc.transform (canvasTransform);
-  Graphics2D gTransformed = (Graphics2D) g2doc.create ();
-  gTransformed.setXORMode (Color.white);
-
   finalTransform = new AffineTransform ();
   finalTransform.concatenate (canvasTransform);
   finalTransform.concatenate (transform);
 
   g2d.setClip (null);
-
   g2d.setXORMode (Color.white);
   Path2D path = transformRectToPath (transformingRect.getLeft (), transformingRect.getTop (), transformingRect.getRight (), transformingRect.getBottom (), finalTransform);
   g2d.draw (path);
@@ -577,7 +578,7 @@ final float fuzzyValue = 5.0f;
 public void finalizeTransform ()
 {
   transformActive = false;
-  drawItselfOnLayer (activeLayer, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+  drawItselfOnLayer (activeLayer, RenderingHints.VALUE_INTERPOLATION_BICUBIC, true);
 }
 
 }

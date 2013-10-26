@@ -2024,9 +2024,13 @@ class CPFreeTransformMode extends CPMode
   public void cursorDragAction ()
   {
     Point2D.Float p = coordToDocument (new Point (getCursorX (), getCursorY ()));
+    CPRect updatingRect = new CPRect (transformHandler.getRectNeededForUpdating ());
     transformHandler.cursorDragged (p);
+    CPRect rectAfter = new CPRect (transformHandler.getRectNeededForUpdating ());
+    updatingRect.union (rectAfter);
     transformHandler.updatePreview (interpolation);
-    artwork.invalidateFusion ();
+    artwork.invalidateFusion (updatingRect);
+    repaint ();
   }
 
   @Override
