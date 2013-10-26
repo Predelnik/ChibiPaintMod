@@ -1070,7 +1070,7 @@ public void keyPressed (KeyEvent e)
           artwork.addLayer ();
           CPImageUtils.PasteImageToOrigin (artwork.getActiveLayer (), imageInClipboard);
           CPSelection selection = new CPSelection (artwork.getWidth (), artwork.getHeight ());
-          selection.makeSelectionFromAlpha (artwork.getActiveLayer ().getData ());
+          selection.makeSelectionFromAlpha (artwork.getActiveLayer ().getData (), new CPRect (0, 0, imageInClipboard.getWidth (null), imageInClipboard.getHeight (null)));
           artwork.getUndoManager ().activeLayerDataChange (selection.getBoundingRect ());
           artwork.DoSelection (SelectionTypeOfAppliance.CREATE, selection);
           artwork.finalizeUndo ();

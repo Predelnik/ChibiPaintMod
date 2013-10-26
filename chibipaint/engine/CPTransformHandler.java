@@ -547,6 +547,8 @@ private void drawItselfOnLayer (CPLayer layer, Object interpolation, boolean upd
 
 public void drawTransformHandles (Graphics2D g2d, AffineTransform canvasTransform)
 {
+  if (!isTransformActive ())
+    return;
   finalTransform = new AffineTransform ();
   finalTransform.concatenate (canvasTransform);
   finalTransform.concatenate (transform);

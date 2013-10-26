@@ -37,7 +37,7 @@ import java.util.Stack;
 
 public class CPSelection extends CPGreyBmp
 {
-private final int PIXEL_IN_SELECTION_THRESHOLD = 64;     // Pixels with value > this treated as once that belong to selection
+private final int PIXEL_IN_SELECTION_THRESHOLD = 32;     // Pixels with value > this treated as once that belong to selection visually
 final float DASH_ZOOM_INDEPENDENT_LENGTH = 8.2f; // Dash final length, independent from current zoom
 private byte[] markerArray;
 private float initialDashPiece = 0.0f;
@@ -73,48 +73,59 @@ public CPSelection (CPSelection original)
 
 public void AddToSelection (CPSelection otherSelection)
 {
+  CPRect rect = getBoundingRect ();
+  rect.union (otherSelection.getBoundingRect ());
   for (int i = 0; i < height * width; i++)
     {
       if ((data[i] & 0xff) < (otherSelection.data[i] & 0xff))
         data[i] = otherSelection.data[i];
     }
-  precalculateSelection ();
+  precalculateSelection (rect);
 }
 
 
 public void SubtractFromSelection (CPSelection otherSelection)
 {
+  CPRect rect = getBoundingRect ();
   for (int i = 0; i < height * width; i++)
     {
       int difference = data[i] & 0xff - otherSelection.data[i] & 0xff;
       data[i] = difference < 0 ? 0 : (byte) difference;
     }
-  precalculateSelection ();
+  precalculateSelection (rect);
 }
 
 
 public void IntersectWithSelection (CPSelection otherSelection)
 {
+  CPRect rect = getBoundingRect ();
+  rect.union (otherSelection.getBoundingRect ());
+  rect.clip (otherSelection.getBoundingRect ());
   for (int i = 0; i < height * width; i++)
     {
       data[i] = (byte) Math.min (data[i] & 0xff, otherSelection.data[i] & 0xff);
     }
-  precalculateSelection ();
+  precalculateSelection (rect);
 }
 
 public void makeRectangularSelection (CPRect rect)
 {
+  rect.clip (getSize ());
   for (int j = 0; j < height; j++)
-    for (int i = 0; i < width; i++)
-      {
-        if ((i >= rect.left) && (i < rect.right) &&
-                (j >= rect.top) && (j < rect.bottom)
-                )
-          data[j * width + i] = (byte) 0xff;
-        else
-          data[j * width + i] = 0;
-      }
-  precalculateSelection ();
+    {
+      int off = j * width;
+      if (j < rect.top || j >= rect.bottom)
+        Arrays.fill (data, off, off + width - 1, (byte) 0);
+      else
+        {
+          if (rect.left > 0)
+            Arrays.fill (data, off, off + rect.left - 1, (byte) 0);
+          Arrays.fill (data, off + rect.left, off + rect.right - 1, (byte) 0xFF);
+          if (rect.right < width - 1)
+            Arrays.fill (data, off + rect.right, off + width - 1, (byte) 0);
+        }
+    }
+  precalculateSelection (rect);
 }
 
 public void make (CPColorBmp src, int offsetX, int offsetY)
@@ -139,20 +150,22 @@ public void make (CPColorBmp src, int offsetX, int offsetY)
 public void makeSelectionFromPolygon (Path2D polygon, AffineTransform canvasTransform)
 {
   BufferedImage bImage = new BufferedImage (width, height, BufferedImage.TYPE_BYTE_GRAY);
-  Graphics2D g = bImage.createGraphics ();
+  Path2D transformedPolygon = (Path2D) polygon.clone ();
   try
     {
-      g.transform (canvasTransform.createInverse ());
+      transformedPolygon.transform (canvasTransform.createInverse ());
     }
   catch (NoninvertibleTransformException e)
     {
-      e.printStackTrace ();  // Shouldn't be here
+      e.printStackTrace ();  //To change body of catch statement use File | Settings | File Templates.
     }
+  Graphics2D g = bImage.createGraphics ();
   g.setColor (Color.WHITE);
-  polygon.setWindingRule (Path2D.WIND_EVEN_ODD);
-  g.fill (polygon);
+  transformedPolygon.setWindingRule (Path2D.WIND_EVEN_ODD);
+  g.fill (transformedPolygon);
   data = ((DataBufferByte) bImage.getData ().getDataBuffer ()).getData ();
-  precalculateSelection ();
+
+  precalculateSelection (new CPRect (transformedPolygon.getBounds ()));
 }
 
 private boolean getIsActive (int i, int j)
@@ -163,6 +176,11 @@ private boolean getIsActive (int i, int j)
 private boolean getIsActiveInBounds (int i, int j)
 {
   return ((data[j * width + i] & 0xff) > PIXEL_IN_SELECTION_THRESHOLD);
+}
+
+private boolean getIsActiveInBounds (int off)
+{
+  return ((data[off] & 0xff) > PIXEL_IN_SELECTION_THRESHOLD);
 }
 
 private boolean isActive (PixelCoords px)
@@ -225,33 +243,36 @@ public void copyFrom (CPSelection selection)
     }
   System.arraycopy (selection.data, 0, data, 0, data.length);
 
-  precalculateSelection ();
+  precalculateSelection (selection.getBoundingRect ());
 }
 
 public void applySelectionToData (int dataArg[])
 {
-  for (int j = 0; j < height; j++)
-    for (int i = 0; i < width; i++)
-      {
-        int selectionValue = getData (i, j);
-        int sourceAlpha = ((dataArg[j * width + i] & (0xff000000)) >>> 24);
-        dataArg[j * width + i] = (dataArg[j * width + i] & (0x00ffffff)) | ((int) (sourceAlpha >= selectionValue ? selectionValue : sourceAlpha) << 24);
-      }
+  for (int off = 0; off < width * height; off++)
+    {
+      int selectionValue = getData (off);
+      int sourceAlpha = ((dataArg[off] & (0xff000000)) >>> 24);
+      dataArg[off] = (dataArg[off] & (0x00ffffff)) | ((int) (sourceAlpha >= (int) (selectionValue & 0xFF) ? (int) (selectionValue & 0xFF) : sourceAlpha) << 24);
+    }
 }
 
-public void makeSelectionFromAlpha (int[] dataArg)
+public void makeSelectionFromAlpha (int[] dataArg, CPRect rect)
 {
-  for (int j = 0; j < height; j++)
-    for (int i = 0; i < width; i++)
-      {
-        data[j * width + i] = (byte) ((dataArg[j * width + i] & (0xff000000)) >> 24);
-      }
-  precalculateSelection ();
+  for (int off = 0; off < width * height; off++)
+    {
+      data[off] = (byte) ((dataArg[off] & (0xff000000)) >>> 24);
+    }
+  precalculateSelection (rect);
 }
 
 public int getData (int i, int j)
 {
   return data[j * width + i];
+}
+
+public int getData (int offset)
+{
+  return data[offset];
 }
 
 public int cutOpacity (int value, int i, int j)
@@ -574,23 +595,31 @@ private void CalculateBoundingBox ()
 
 public void precalculateSelection ()
 {
+  precalculateSelection (getSize ());
+}
 
+public void precalculateSelection (CPRect rect)
+{
   minX = width;
   maxX = 0;
   minY = height;
   maxY = 0;
+  rect.clip (getSize ());
   CalculateBoundingBox (); // Warning: We count everything non-zero into bounding box, so the function is separate.
   // First step: we're dividing everything on separate 4-connected regions
   ArrayList<Lump> lumps = new ArrayList<Lump> ();
   Arrays.fill (markerArray, (byte) 0);
-  for (int i = 0; i < width; i++)
-    for (int j = 0; j < height; j++)
-      {
-        if (getIsActive (i, j) && markerArray[j * width + i] == 0) // If something active and not marked found then we're making Depth-first search
-          {
-            lumps.add (MakeLumpByScanLines (i, j));
-          }
-      }
+  for (int j = rect.top; j < rect.bottom; j++)
+    {
+      int off = j * width + rect.left;
+      for (int i = rect.left; i < rect.right; i++, off++)
+        {
+          if (isInside (i, j) && getIsActiveInBounds (off) && markerArray[off] == 0) // If something active and not marked found then we're making Depth-first search
+            {
+              lumps.add (MakeLumpByScanLines (i, j));
+            }
+        }
+    }
 
   Arrays.fill (markerArray, (byte) 0);
   // Now we've got our pixels lumped according to 4-connections, now let's build their boundary
@@ -611,39 +640,46 @@ private Lump MakeLumpByScanLines (int x, int y)
   while (!S.empty ())
     {
       PixelCoords px = S.pop ();
+      int offset = px.y * width;
       // Skipping all the stuff we should add into our lump from the left
-      while (px.x >= 0 && getIsActiveInBounds (px.x, px.y))
+      while (px.x >= 0 && getIsActiveInBounds (offset + px.x))
         px.x--;
       px.x++; // Now we find the left side of this part
       // careful: px.x is used as an iterator and px.y is constant
       boolean spanTop = false;
       boolean spanBottom = false;
 
-      while (px.x < width && getIsActiveInBounds (px.x, px.y) && markerArray[px.y * width + px.x] == 0)
+      offset += px.x;
+      int offsetMinus1 = (px.y - 1) * width + px.x;
+      int offsetPlus1 = (px.y + 1) * width + px.x;
+      while (px.x < width && getIsActiveInBounds (offset) && markerArray[offset] == 0)
         {
           ResultingLump.add (new PixelCoords (px));
-          markerArray[px.y * width + px.x] = 1;
-          if (!spanTop && px.y > 0 && getIsActiveInBounds (px.x, px.y - 1) && markerArray[px.y * width - width + px.x] == 0)
+          markerArray[offset] = 1;
+          if (!spanTop && px.y > 0 && getIsActiveInBounds (offsetMinus1) && markerArray[offsetMinus1] == 0)
             {
               newPx = new PixelCoords (px.x, px.y - 1);
               S.push (newPx);
               spanTop = true;
             }
-          else if (spanTop && px.y > 0 && (!getIsActiveInBounds (px.x, px.y - 1) || markerArray[px.y * width - width + px.x] == 1))
+          else if (spanTop && px.y > 0 && (!getIsActiveInBounds (offsetMinus1) || markerArray[offsetMinus1] == 1))
             {
               spanTop = false;
             }
-          if (!spanBottom && px.y < height - 1 && getIsActiveInBounds (px.x, px.y + 1) && markerArray[px.y * width + width + px.x] == 0)
+          if (!spanBottom && px.y < height - 1 && getIsActiveInBounds (offsetPlus1) && markerArray[offsetPlus1] == 0)
             {
               newPx = new PixelCoords (px.x, px.y + 1);
               S.push (newPx);
               spanBottom = true;
             }
-          else if (spanBottom && px.y < height - 1 && (!getIsActiveInBounds (px.x, px.y + 1) || markerArray[px.y * width + width + px.x] == 1))
+          else if (spanBottom && px.y < height - 1 && (!getIsActiveInBounds (offsetPlus1) || markerArray[offsetPlus1] == 1))
             {
               spanBottom = false;
             }
           px.x++;
+          offset++;
+          offsetMinus1++;
+          offsetPlus1++;
         }
     }
   return ResultingLump;
