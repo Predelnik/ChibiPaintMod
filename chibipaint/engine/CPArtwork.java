@@ -40,14 +40,14 @@ private final int width;
 private final int height;
 
 private Vector<CPLayer> layers;
-private CPLayer curLayer;
-private int activeLayer;
+private CPLayer activeLayer;
+private int activeLayerNumber;
 
 private final CPLayer fusion; // fusion is a final view of the image, like which should be saved to png (no overlays like selection or grid here)
 private final CPLayer opacityBuffer;
 private final CPRect fusionArea;
 private final CPRect opacityArea;
-private final CPTransformHandler transformHandler = new CPTransformHandler ();
+private final CPTransformHandler transformHandler;
 
 CPSelection curSelection;
 
@@ -144,11 +144,6 @@ public int getHeight ()
   return height;
 }
 
-public CPLayer getCurLayer ()
-{
-  return curLayer;
-}
-
 public void finalizeUndo ()
 {
   undoManager.finalizeUndo ();
@@ -215,6 +210,7 @@ public CPArtwork (int width, int height)
   this.width = width;
   this.height = height;
 
+  transformHandler = new CPTransformHandler (width, height);
   setLayers (new Vector<CPLayer> ());
 
   CPLayer defaultLayer = new CPLayer (width, height);
@@ -222,7 +218,7 @@ public CPArtwork (int width, int height)
   defaultLayer.clear (0xffffffff);
   getLayersVector ().add (defaultLayer);
 
-  curLayer = getLayersVector ().get (0);
+  activeLayer = getLayersVector ().get (0);
   fusionArea = new CPRect (0, 0, width, height);
   opacityArea = new CPRect ();
   setActiveLayerNum (0);
@@ -260,6 +256,7 @@ public void fusionLayers ()
 
   fusion.clear (fusionArea, 0x00ffffff);
   boolean fullAlpha = true, first = true;
+  int i = 0;
   for (CPLayer l : getLayersVector ())
     {
       if (!first)
@@ -267,21 +264,30 @@ public void fusionLayers ()
           fullAlpha = fullAlpha && fusion.hasAlpha (fusionArea);
         }
 
-      if (l.isVisible ())
+      doFusionWith (l, fullAlpha);
+
+      if (getActiveLayer () == l && transformHandler.isTransformActive ())
         {
-          first = false;
-          if (fullAlpha)
-            {
-              l.fusionWithFullAlpha (fusion, fusionArea);
-            }
-          else
-            {
-              l.fusionWith (fusion, fusionArea);
-            }
+          doFusionWith (transformHandler.getPreviewLayer (), fullAlpha);
         }
     }
 
   fusionArea.makeEmpty ();
+}
+
+private void doFusionWith (CPLayer layer, boolean fullAlpha)
+{
+  if (!layer.isVisible ())
+    return;
+
+  if (fullAlpha)
+    {
+      layer.fusionWithFullAlpha (fusion, fusionArea);
+    }
+  else
+    {
+      layer.fusionWith (fusion, fusionArea);
+    }
 }
 
 // ///////////////////////////////////////////////////////////////////////////////////
@@ -562,7 +568,7 @@ class CPBrushToolSimpleBrush extends CPBrushToolBase
                         & 0xff00 | (((color & 0xff) * realAlpha + (destColor & 0xff) * invAlpha) / 255) & 0xff;
 
                 newColor |= newLayerAlpha << 24 & 0xff000000;
-                getCurLayer ().getData ()[dstOffset] = newColor;
+                getActiveLayer ().getData ()[dstOffset] = newColor;
               }
           }
       }
@@ -639,7 +645,7 @@ class CPBrushToolEraser extends CPBrushToolSimpleBrush
                 int destAlpha = destColor >>> 24;
 
                 int realAlpha = destAlpha * (255 - opacityAlpha) / 255;
-                getCurLayer ().getData ()[dstOffset] = destColor & 0xffffff | realAlpha << 24;
+                getActiveLayer ().getData ()[dstOffset] = destColor & 0xffffff | realAlpha << 24;
               }
           }
       }
@@ -685,7 +691,7 @@ class CPBrushToolDodge extends CPBrushToolSimpleBrush
                       }
 
                     int newColor = destColor & 0xff000000 | r << 16 | g << 8 | b;
-                    getCurLayer ().getData ()[dstOffset] = newColor;
+                    getActiveLayer ().getData ()[dstOffset] = newColor;
                   }
               }
           }
@@ -737,7 +743,7 @@ class CPBrushToolBurn extends CPBrushToolSimpleBrush
                       }
 
                     int newColor = destColor & 0xff000000 | r << 16 | g << 8 | b;
-                    getCurLayer ().getData ()[dstOffset] = newColor;
+                    getActiveLayer ().getData ()[dstOffset] = newColor;
                   }
               }
           }
@@ -799,7 +805,7 @@ class CPBrushToolBlur extends CPBrushToolSimpleBrush
                 r /= sum;
                 g /= sum;
                 b /= sum;
-                getCurLayer ().getData ()[dstOffset] = a << 24 | r << 16 | g << 8 | b;
+                getActiveLayer ().getData ()[dstOffset] = a << 24 | r << 16 | g << 8 | b;
               }
           }
       }
@@ -837,7 +843,7 @@ class CPBrushToolDirectBrush extends CPBrushToolSimpleBrush
                 int realAlpha = alpha1 * 255 / newAlpha;
                 int invAlpha = 255 - realAlpha;
 
-                getCurLayer ().getData ()[dstOffset] = newAlpha << 24
+                getActiveLayer ().getData ()[dstOffset] = newAlpha << 24
                         | (((color1 >>> 16 & 0xff) * realAlpha + (color2 >>> 16 & 0xff) * invAlpha) / 255) << 16
                         | (((color1 >>> 8 & 0xff) * realAlpha + (color2 >>> 8 & 0xff) * invAlpha) / 255) << 8
                         | (((color1 & 0xff) * realAlpha + (color2 & 0xff) * invAlpha) / 255);
@@ -1008,7 +1014,7 @@ class CPBrushToolOil extends CPBrushToolDirectBrush
           {
             brushBuffer[i] = 0;
           }
-        // curLayer.copyRect(dstRect, brushBuffer);
+        // activeLayer.copyRect(dstRect, brushBuffer);
         oilAccumBuffer (srcRect, dstRect, brushBuffer, dab.width, 255);
       }
     else
@@ -1118,7 +1124,7 @@ class CPBrushToolOil extends CPBrushToolDirectBrush
                 continue;
               }
 
-            int color2 = getCurLayer ().getData ()[dstOffset];
+            int color2 = getActiveLayer ().getData ()[dstOffset];
             int alpha2 = (color2 >>> 24);
 
             int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
@@ -1311,7 +1317,7 @@ class CPBrushToolSmudge extends CPBrushToolDirectBrush
                         | (((bufferColor & 0xff) * realAlpha + (destColor & 0xff) * invAlpha) / 255)
                         & 0xff;
 
-                getCurLayer ().getData ()[dstOffset] = newColor;
+                getActiveLayer ().getData ()[dstOffset] = newColor;
               }
           }
       }
@@ -1322,7 +1328,7 @@ class CPBrushToolSmudge extends CPBrushToolDirectBrush
 // Layer methods
 // ///////////////////////////////////////////////////////////////////////////////////
 
-public void setActiveLayer (int i)
+public void setActiveLayerNumber (int i)
 {
   if (i < 0 || i >= getLayersVector ().size ())
     {
@@ -1330,7 +1336,7 @@ public void setActiveLayer (int i)
     }
 
   setActiveLayerNum (i);
-  curLayer = getLayersVector ().get (i);
+  activeLayer = getLayersVector ().get (i);
   callListenersLayerChange ();
 }
 
@@ -1341,7 +1347,7 @@ public int getActiveLayerNb ()
 
 public CPLayer getActiveLayer ()
 {
-  return getCurLayer ();
+  return activeLayer;
 }
 
 public CPLayer getLayer (int i)
@@ -1413,7 +1419,7 @@ public int colorPicker (float x, float y)
   if (isSampleAllLayers ())
     return fusion.getPixel ((int) x, (int) y) & 0xffffff;
   else
-    return getCurLayer ().getPixel ((int) x, (int) y) & 0xffffff;
+    return getActiveLayer ().getPixel ((int) x, (int) y) & 0xffffff;
 }
 
 public boolean isPointWithin (float x, float y)
@@ -1519,7 +1525,7 @@ public void addLayer ()
   CPLayer newLayer = new CPLayer (getWidth (), getHeight ());
   newLayer.setName (getDefaultLayerName ());
   getLayersVector ().add (getActiveLayerNum () + 1, newLayer);
-  setActiveLayer (getActiveLayerNum () + 1);
+  setActiveLayerNumber (getActiveLayerNum () + 1);
   undoManager.layerWasAppended ();
 
   invalidateFusion ();
@@ -1533,7 +1539,7 @@ public void removeLayer ()
       int previouslyActiveLayerNum = getActiveLayerNum ();
       undoManager.preserveActiveLayerState ();
       getLayersVector ().remove (getActiveLayerNum ());
-      setActiveLayer (getActiveLayerNum () < getLayersVector ().size () ? getActiveLayerNum () : getActiveLayerNum () - 1);
+      setActiveLayerNumber (getActiveLayerNum () < getLayersVector ().size () ? getActiveLayerNum () : getActiveLayerNum () - 1);
       undoManager.layerWasRemoved (previouslyActiveLayerNum);
       invalidateFusion ();
       callListenersLayerChange ();
@@ -1570,7 +1576,7 @@ public void duplicateLayer ()
     }
   getLayersVector ().add (getActiveLayerNum () + 1, newLayer);
 
-  setActiveLayer (getActiveLayerNum () + 1);
+  setActiveLayerNumber (getActiveLayerNum () + 1);
   undoManager.layerDuplicationTookPlace ();
   invalidateFusion ();
   callListenersLayerChange ();
@@ -1584,7 +1590,7 @@ public void mergeDown ()
       getLayersVector ().elementAt (getActiveLayerNum ()).fusionWithFullAlpha (getLayersVector ().elementAt (getActiveLayerNum () - 1),
                                                                                new CPRect (getWidth (), getHeight ()));
       getLayersVector ().remove (getActiveLayerNum ());
-      setActiveLayer (getActiveLayerNum () - 1);
+      setActiveLayerNumber (getActiveLayerNum () - 1);
 
       invalidateFusion ();
       callListenersLayerChange ();
@@ -1605,7 +1611,7 @@ public void mergeAllLayers ()
       layer.setName (getDefaultLayerName ());
       layer.copyDataFrom (fusion);
       getLayersVector ().add (layer);
-      setActiveLayer (0);
+      setActiveLayerNumber (0);
 
       invalidateFusion ();
       callListenersLayerChange ();
@@ -1628,12 +1634,12 @@ void moveLayerReal (int from, int to)
   if (to <= from)
     {
       getLayersVector ().add (to, layer);
-      setActiveLayer (to);
+      setActiveLayerNumber (to);
     }
   else
     {
       getLayersVector ().add (to - 1, layer);
-      setActiveLayer (to - 1);
+      setActiveLayerNumber (to - 1);
     }
 
   invalidateFusion ();
@@ -1676,7 +1682,7 @@ public void floodFill (float x, float y, int colorDistance)
 {
   undoManager.preserveActiveLayerState ();
 
-  getCurLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getCurLayer (), colorDistance);
+  getActiveLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), colorDistance);
 
   undoManager.activeLayerDataChange (new CPRect (getWidth (), getHeight ()));
   invalidateFusion ();
@@ -1691,7 +1697,7 @@ public void fill (int color, boolean applyToAllLayers)
     {
       undoManager.preserveActiveLayerState ();
 
-      getCurLayer ().clear (r, color);
+      getActiveLayer ().clear (r, color);
       undoManager.activeLayerDataChange (getSize ());
     }
   else
@@ -1719,7 +1725,7 @@ public void hFlip (boolean applyToAllLayers)
     {
       undoManager.preserveActiveLayerState ();
 
-      getCurLayer ().copyRegionHFlip (getSize (), undoManager.getActiveLayerPreservedData ());
+      getActiveLayer ().copyRegionHFlip (getSize (), undoManager.getActiveLayerPreservedData ());
       undoManager.activeLayerDataChange (getSize ());
     }
   else
@@ -1743,7 +1749,7 @@ public void vFlip (boolean applyToAllLayers)
     {
       undoManager.preserveActiveLayerState ();
 
-      getCurLayer ().copyRegionVFlip (getSize (), undoManager.getActiveLayerPreservedData ());
+      getActiveLayer ().copyRegionVFlip (getSize (), undoManager.getActiveLayerPreservedData ());
       undoManager.activeLayerDataChange (getSize ());
     }
   else
@@ -1766,7 +1772,7 @@ public void monochromaticNoise (boolean applyToAllLayers)
     {
       undoManager.preserveActiveLayerState ();
 
-      getCurLayer ().fillWithNoise (getSize ());
+      getActiveLayer ().fillWithNoise (getSize ());
       undoManager.activeLayerDataChange (getSize ());
     }
   else
@@ -1790,7 +1796,7 @@ public void colorNoise (boolean applyToAllLayers)
     {
       undoManager.preserveActiveLayerState ();
 
-      getCurLayer ().fillWithColorNoise (getSize ());
+      getActiveLayer ().fillWithColorNoise (getSize ());
       undoManager.activeLayerDataChange (getSize ());
     }
   else
@@ -1816,7 +1822,7 @@ public void boxBlur (int radiusX, int radiusY, int iterations, boolean applyToAl
 
       for (int c = 0; c < iterations; c++)
         {
-          getCurLayer ().boxBlur (getSize (), radiusX, radiusY);
+          getActiveLayer ().boxBlur (getSize (), radiusX, radiusY);
         }
       undoManager.activeLayerDataChange (getSize ());
     }
@@ -1843,7 +1849,7 @@ public void invert (boolean applyToAllLayers)
     {
       undoManager.preserveActiveLayerState ();
 
-      getCurLayer ().invert (getSize ());
+      getActiveLayer ().invert (getSize ());
 
       undoManager.activeLayerDataChange (getSize ());
     }
@@ -1867,7 +1873,7 @@ public void makeMonochrome (boolean applyToAllLayers, int type)
     {
       undoManager.preserveActiveLayerState ();
 
-      getCurLayer ().makeMonochrome (getSize (), type, curColor);
+      getActiveLayer ().makeMonochrome (getSize (), type, curColor);
 
       undoManager.activeLayerDataChange (getSize ());
     }
@@ -1923,12 +1929,12 @@ public void setLayers (Vector<CPLayer> layers)
 
 public int getActiveLayerNum ()
 {
-  return activeLayer;
+  return activeLayerNumber;
 }
 
 void setActiveLayerNum (int activeLayer)
 {
-  this.activeLayer = activeLayer;
+  this.activeLayerNumber = activeLayer;
 }
 
 public boolean isLockAlpha ()

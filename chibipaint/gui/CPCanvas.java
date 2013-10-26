@@ -999,6 +999,7 @@ public void modeChange (int mode)
 
       setActiveMode (freeTransformMode);
       artwork.initializeTransform ();
+      artwork.getTransformHandler ().updatePreview (interpolation);
       artwork.invalidateFusion ();
       break;
 
@@ -2024,7 +2025,8 @@ class CPFreeTransformMode extends CPMode
   {
     Point2D.Float p = coordToDocument (new Point (getCursorX (), getCursorY ()));
     transformHandler.cursorDragged (p);
-    repaint ();
+    transformHandler.updatePreview (interpolation);
+    artwork.invalidateFusion ();
   }
 
   @Override
@@ -2036,7 +2038,7 @@ class CPFreeTransformMode extends CPMode
   @Override
   public void paint (Graphics2D g2d)
   {
-    transformHandler.drawTransformPreviewAndHandles (g2d, transform, interpolation);
+    transformHandler.drawTransformHandles (g2d, transform);
   }
 
   public void setTransformHandler (CPTransformHandler transformHandlerArg)
@@ -2056,6 +2058,7 @@ class CPFreeTransformMode extends CPMode
         repaint ();
         break;
       case KeyEvent.VK_ESCAPE:
+        transformHandler.stopTransform ();
         transformHandler.clearTransforms ();
         artwork.RestoreActiveLayerAndSelection ();
         setActiveMode (defaultMode);

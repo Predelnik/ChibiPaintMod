@@ -24,6 +24,7 @@ package chibipaint.engine;
 
 import chibipaint.util.CPRect;
 
+import java.util.Arrays;
 import java.util.Random;
 
 public class CPLayer extends CPColorBmp
@@ -97,10 +98,7 @@ public void clear ()
 
 public void clear (int color)
 {
-  for (int i = 0; i < width * height; i++)
-    {
-      getData ()[i] = color;
-    }
+  Arrays.fill (getData (), color);
 }
 
 public void clear (CPRect r, int color)

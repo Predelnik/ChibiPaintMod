@@ -40,7 +40,7 @@ private final int eyeW = 24;
 private final CPLayerWidget lw;
 private final JScrollPane sp;
 private final CPAlphaSlider alphaSlider;
-private final JComboBox blendCombo;
+private final JComboBox<String> blendCombo;
 
 private final CPRenameField renameField;
 
@@ -70,7 +70,7 @@ public CPLayersPalette (CPController controller)
 
   alphaSlider = new CPAlphaSlider ();
 
-  blendCombo = new JComboBox (modeNames);
+  blendCombo = new JComboBox<String> (modeNames);
   blendCombo.addActionListener (this);
 
   lw = new CPLayerWidget ();
@@ -373,7 +373,7 @@ class CPLayerWidget extends JComponent implements MouseListener, MouseMotionList
               }
             else
               {
-                artwork.setActiveLayer (layerIndex);
+                artwork.setActiveLayerNumber (layerIndex);
               }
 
           }

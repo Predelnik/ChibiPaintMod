@@ -194,7 +194,7 @@ public CPArtwork read (InputStream is)
             }
         }
 
-      a.setActiveLayer (0);
+      a.setActiveLayerNumber (0);
       iis.close ();
       return a;
 

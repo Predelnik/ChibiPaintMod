@@ -79,7 +79,7 @@ void restoreActiveLayerAlpha (CPRect r)
 
 public void preserveActiveLayerState ()
 {
-  preservedActiveLayer.copyFrom (artwork.getCurLayer ());
+  preservedActiveLayer.copyFrom (artwork.getActiveLayer ());
 }
 
 public void preserveAllLayersState ()
@@ -300,7 +300,7 @@ class CPUndoPaint extends CPUndo
     layer = artwork.getActiveLayerNb ();
     rect = new CPRect (rectArg);
 
-    data = getPreservedActiveLayer ().copyRectXOR (artwork.getCurLayer (), rect);
+    data = getPreservedActiveLayer ().copyRectXOR (artwork.getActiveLayer (), rect);
   }
 
   @Override
@@ -438,7 +438,7 @@ class CPUndoMergeAllLayers extends CPUndo
   public void undo ()
   {
     artwork.setLayers ((Vector<CPLayer>) oldLayers.clone ());
-    artwork.setActiveLayer (oldActiveLayer);
+    artwork.setActiveLayerNumber (oldActiveLayer);
 
     artwork.invalidateFusion ();
     artwork.callListenersLayerChange ();
@@ -479,7 +479,7 @@ class CPUndoMergeDownLayer extends CPUndo
   {
     artwork.getLayersVector ().elementAt (layer - 1).copyFrom (layerBottom);
     artwork.getLayersVector ().add (layer, layerTop);
-    artwork.setActiveLayer (layer);
+    artwork.setActiveLayerNumber (layer);
 
     layerBottom = layerTop = null;
 
@@ -494,7 +494,7 @@ class CPUndoMergeDownLayer extends CPUndo
     layerBottom.copyFrom (artwork.getLayersVector ().elementAt (layer - 1));
     layerTop = artwork.getLayersVector ().elementAt (layer);
 
-    artwork.setActiveLayer (layer);
+    artwork.setActiveLayerNumber (layer);
     artwork.mergeDown ();
     discardUndo ();
   }
@@ -558,7 +558,7 @@ static class CPUndoRemoveLayer extends CPUndo
   public void undo ()
   {
     artwork.getLayersVector ().add (layer, layerObj);
-    artwork.setActiveLayer (layer);
+    artwork.setActiveLayerNumber (layer);
     artwork.invalidateFusion ();
     artwork.callListenersLayerChange ();
   }
@@ -567,7 +567,7 @@ static class CPUndoRemoveLayer extends CPUndo
   public void redo ()
   {
     artwork.getLayersVector ().remove (layer);
-    artwork.setActiveLayer (layer < artwork.getLayersVector ().size () ? layer : layer - 1);
+    artwork.setActiveLayerNumber (layer < artwork.getLayersVector ().size () ? layer : layer - 1);
     artwork.invalidateFusion ();
     artwork.callListenersLayerChange ();
   }
@@ -647,7 +647,7 @@ static class CPUndoAddLayer extends CPUndo
   public void undo ()
   {
     artwork.getLayersVector ().remove (layer + 1);
-    artwork.setActiveLayer (layer);
+    artwork.setActiveLayerNumber (layer);
     artwork.invalidateFusion ();
     artwork.callListenersLayerChange ();
   }
@@ -659,7 +659,7 @@ static class CPUndoAddLayer extends CPUndo
     newLayer.setName (artwork.getDefaultLayerName ());
     artwork.getLayersVector ().add (layer + 1, newLayer);
 
-    artwork.setActiveLayer (layer + 1);
+    artwork.setActiveLayerNumber (layer + 1);
     artwork.invalidateFusion ();
     artwork.callListenersLayerChange ();
   }
@@ -681,7 +681,7 @@ static class CPUndoDuplicateLayer extends CPUndo
   public void undo ()
   {
     artwork.getLayersVector ().remove (layer + 1);
-    artwork.setActiveLayer (layer);
+    artwork.setActiveLayerNumber (layer);
     artwork.invalidateFusion ();
     artwork.callListenersLayerChange ();
   }
@@ -699,7 +699,7 @@ static class CPUndoDuplicateLayer extends CPUndo
       }
     artwork.getLayersVector ().add (layer + 1, newLayer);
 
-    artwork.setActiveLayer (layer + 1);
+    artwork.setActiveLayerNumber (layer + 1);
     artwork.invalidateFusion ();
     artwork.callListenersLayerChange ();
   }

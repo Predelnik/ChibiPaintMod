@@ -32,9 +32,31 @@ import java.awt.image.MemoryImageSource;
 public class CPTransformHandler
 {
 
+private boolean transformActive;
+
+public CPTransformHandler (int width, int height)
+{
+  previewLayer = new CPLayer (width, height);
+}
+
 public void clearTransforms ()
 {
   activeAction.cancelTransform ();
+}
+
+public boolean isTransformActive ()
+{
+  return transformActive;
+}
+
+public void stopTransform ()
+{
+  transformActive = false;
+}
+
+public CPLayer getPreviewLayer ()
+{
+  return previewLayer;
 }
 
 private enum actionType
@@ -276,6 +298,7 @@ class CPTransformAction
 CPColorBmp transformedPart;
 CPRect transformingRect = new CPRect ();
 CPLayer activeLayer = null;
+final CPLayer previewLayer;
 CPSelection currentSelection = null;
 CPTransformAction activeAction = new CPTransformAction ();
 final Point2D pointOfOrigin = new Point2D.Float ();
@@ -310,7 +333,11 @@ public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg)
   activeLayer = activeLayerArg; // TODO: Disable any actions with layer while transformation is in process.
   MemoryImageSource imgSource = new MemoryImageSource (transformedPart.getWidth (), transformedPart.getHeight (), transformedPart.getData (), 0, transformedPart.getWidth ());
   transformedPartImage = Toolkit.getDefaultToolkit ().createImage (imgSource);
+  transformActive = true;
   currentSelection.makeEmpty ();
+
+  previewLayer.setBlendMode (activeLayer.getBlendMode ());
+  previewLayer.setAlpha (activeLayer.getAlpha ());
 }
 
 public void cursorPressed (Point2D p)
@@ -474,23 +501,48 @@ static Path2D.Float transformRectToPath (float left, float top, float right, flo
   return path;
 }
 
-public void drawTransformPreviewAndHandles (Graphics2D g2d, AffineTransform canvasTransform, boolean interpolation)
+public void updatePreview (boolean interpolation)
 {
-  Path2D clipPath = transformRectToPath (0, 0, artworkWidth, artworkHeight, canvasTransform);
-  g2d.setClip (clipPath);
-  Graphics2D g2doc = (Graphics2D) g2d.create ();
-  g2doc.transform (canvasTransform);
+  previewLayer.clear ();
+  drawItselfOnLayer (previewLayer, interpolation ? RenderingHints.VALUE_INTERPOLATION_BILINEAR : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+}
 
-  if (interpolation)
+private void drawItselfOnLayer (CPLayer layer, Object interpolation)
+{
+  // First we finding minimal rectangle we could put our transformed picture to.
+  Path2D path = transformRectToPath (transformingRect.getLeft (), transformingRect.getTop (), transformingRect.getRight (), transformingRect.getBottom (), transform);
+  Rectangle bounds = path.getBounds ();
+  // Fuzzing them a little for better interpolation
+  bounds.setRect (bounds.getX () - fuzzyValue, bounds.getY () - fuzzyValue, bounds.getWidth () + 2 * fuzzyValue, bounds.getHeight () + 2 * fuzzyValue);
+  BufferedImage bI = new BufferedImage ((int) bounds.getWidth (), (int) bounds.getHeight (), BufferedImage.TYPE_INT_ARGB);
+  Graphics gBuffered = bI.createGraphics ();
+  Graphics2D g = bI.createGraphics ();
+
+  if (interpolation != null)
     {
-      RenderingHints hints = g2doc.getRenderingHints ();
-      hints.put (RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      g2doc.addRenderingHints (hints);
+      RenderingHints hints = g.getRenderingHints ();
+      hints.put (RenderingHints.KEY_INTERPOLATION, interpolation);
+      g.addRenderingHints (hints);
     }
 
+  AffineTransform finalTransform = new AffineTransform ();
+  finalTransform.translate (-bounds.getX (), -bounds.getY ());
+  finalTransform.concatenate (transform);
+  g.transform (finalTransform);
+  // Image should transform to be put exactly into our prearranged BufferedImage
+  // Uber cool render hints because we're rendering it only one time obviously
+  g.drawImage (transformedPartImage, shiftX, shiftY, transformedPartImage.getWidth (null) + shiftX, transformedPartImage.getHeight (null) + shiftY, 0, 0, transformedPartImage.getWidth (null), transformedPartImage.getHeight (null), null);
+  CPColorBmp transformedPartBmp = new CPColorBmp (bI);
+  // Now all we need is to fusion this part with activeLayer, also change current selection
+  currentSelection.make (transformedPartBmp, (int) (bounds.getX ()), (int) (bounds.getY ()));
+  transformedPartBmp.drawItselfOnTarget (layer, (int) (bounds.getX ()), (int) (bounds.getY ()));
+}
+
+public void drawTransformHandles (Graphics2D g2d, AffineTransform canvasTransform)
+{
+  Graphics2D g2doc = (Graphics2D) g2d.create ();
+  g2doc.transform (canvasTransform);
   Graphics2D gTransformed = (Graphics2D) g2doc.create ();
-  gTransformed.transform (transform);
-  gTransformed.drawImage (transformedPartImage, shiftX, shiftY, transformedPartImage.getWidth (null) + shiftX, transformedPartImage.getHeight (null) + shiftY, 0, 0, transformedPartImage.getWidth (null), transformedPartImage.getHeight (null), null);
   gTransformed.setXORMode (Color.white);
 
   finalTransform = new AffineTransform ();
@@ -524,30 +576,8 @@ final float fuzzyValue = 5.0f;
 
 public void finalizeTransform ()
 {
-  // First we finding minimal rectangle we could put our transformed picture to.
-  Path2D path = transformRectToPath (transformingRect.getLeft (), transformingRect.getTop (), transformingRect.getRight (), transformingRect.getBottom (), transform);
-  Rectangle bounds = path.getBounds ();
-  // Fuzzing them a little for better interpolation
-  bounds.setRect (bounds.getX () - fuzzyValue, bounds.getY () - fuzzyValue, bounds.getWidth () + 2 * fuzzyValue, bounds.getHeight () + 2 * fuzzyValue);
-  BufferedImage bI = new BufferedImage ((int) bounds.getWidth (), (int) bounds.getHeight (), BufferedImage.TYPE_INT_ARGB);
-  Graphics gBuffered = bI.createGraphics ();
-  Graphics2D g = bI.createGraphics ();
-
-  RenderingHints hints = g.getRenderingHints ();
-  hints.put (RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-  g.addRenderingHints (hints);
-
-  AffineTransform finalTransform = new AffineTransform ();
-  finalTransform.translate (-bounds.getX (), -bounds.getY ());
-  finalTransform.concatenate (transform);
-  g.transform (finalTransform);
-  // Image should transform to be put exactly into our prearranged BufferedImage
-  // Uber cool render hints because we're rendering it only one time obviously
-  g.drawImage (transformedPartImage, shiftX, shiftY, transformedPartImage.getWidth (null) + shiftX, transformedPartImage.getHeight (null) + shiftY, 0, 0, transformedPartImage.getWidth (null), transformedPartImage.getHeight (null), null);
-  CPColorBmp transformedPartBmp = new CPColorBmp (bI);
-  // Now all we need is to fusion this part with activeLayer, also change current selection
-  currentSelection.make (transformedPartBmp, (int) (bounds.getX ()), (int) (bounds.getY ()));
-  transformedPartBmp.drawItselfOnTarget (activeLayer, (int) (bounds.getX ()), (int) (bounds.getY ()));
+  transformActive = false;
+  drawItselfOnLayer (activeLayer, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 }
 
 }
