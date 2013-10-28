@@ -578,19 +578,22 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
   // g2d.setStroke(stroke);
 }
 
-private void CalculateBoundingBox ()
+private void CalculateBoundingBox (CPRect rect)
 {
-  for (int i = 0; i < width; i++)
-    for (int j = 0; j < height; j++)
-      {
-        if (data[j * width + i] != 0)
-          {
-            minX = Math.min (minX, i);
-            maxX = Math.max (maxX, i);
-            minY = Math.min (minY, j);
-            maxY = Math.max (maxY, j);
-          }
-      }
+  for (int i = rect.top; i < rect.bottom; i++)
+    {
+      int off = i * width + rect.left;
+      for (int j = rect.left; j < rect.right; j++, off++)
+        {
+          if (data[off] != 0)
+            {
+              minX = Math.min (minX, j);
+              maxX = Math.max (maxX, j);
+              minY = Math.min (minY, i);
+              maxY = Math.max (maxY, i);
+            }
+        }
+    }
 }
 
 public void precalculateSelection ()
@@ -605,7 +608,7 @@ public void precalculateSelection (CPRect rect)
   minY = height;
   maxY = 0;
   rect.clip (getSize ());
-  CalculateBoundingBox (); // Warning: We count everything non-zero into bounding box, so the function is separate.
+  CalculateBoundingBox (rect); // Warning: We count everything non-zero into bounding box, so the function is separate.
   // First step: we're dividing everything on separate 4-connected regions
   ArrayList<Lump> lumps = new ArrayList<Lump> ();
   Arrays.fill (markerArray, (byte) 0);
