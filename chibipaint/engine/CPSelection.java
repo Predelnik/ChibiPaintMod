@@ -43,10 +43,10 @@ private byte[] markerArray;
 private float initialDashPiece = 0.0f;
 private boolean initialDashDrawn = false;
 private ArrayList<PixelSingleLine> CurPixelLines;
-private int minX;
-private int minY;
-private int maxX;
-private int maxY;
+private int minX = 1;
+private int minY = 1;
+private int maxX = 0;
+private int maxY = 0;
 
 public CPSelection (int width, int height)
 {
@@ -119,10 +119,10 @@ public void makeRectangularSelection (CPRect rect)
       else
         {
           if (rect.left > 0)
-            Arrays.fill (data, off, off + rect.left - 1, (byte) 0);
-          Arrays.fill (data, off + rect.left, off + rect.right - 1, (byte) 0xFF);
+            Arrays.fill (data, off, off + rect.left, (byte) 0);
+          Arrays.fill (data, off + rect.left, off + rect.right, (byte) 0xFF);
           if (rect.right < width - 1)
-            Arrays.fill (data, off + rect.right, off + width - 1, (byte) 0);
+            Arrays.fill (data, off + rect.right, off + width, (byte) 0);
         }
     }
   precalculateSelection (rect);
@@ -500,7 +500,7 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
 				new float[] { 8.0f, 8.0f}, 0f));
 		 */
 
-  if (minX >= maxX || minY >= maxY)
+  if (minX > maxX || minY > maxY)
     return;
 
   Color prevColor = g2d.getColor ();

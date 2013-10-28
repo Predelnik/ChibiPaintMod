@@ -866,7 +866,7 @@ Point coordToDocumentInt (Point2D p)
       return new Point (0, 0);
     }
 
-  return new Point ((int) result.x, (int) result.y);
+  return new Point ((int) Math.round (result.x), (int) Math.round (result.y));
 }
 
 public Point2D.Float coordToDisplay (Point2D p)
@@ -884,7 +884,7 @@ Point coordToDisplayInt (Point2D p)
 
   transform.transform (p, result);
 
-  return new Point ((int) result.x, (int) result.y);
+  return new Point ((int) Math.round (result.x), (int) Math.round (result.y));
 }
 
 Polygon coordToDisplay (CPRect r)
@@ -894,13 +894,13 @@ Polygon coordToDisplay (CPRect r)
   Point p = coordToDisplayInt (new Point (r.left, r.top));
   poly.addPoint (p.x, p.y);
 
-  p = coordToDisplayInt (new Point (r.right - 1, r.top));
+  p = coordToDisplayInt (new Point (r.right, r.top));
   poly.addPoint (p.x, p.y);
 
-  p = coordToDisplayInt (new Point (r.right - 1, r.bottom - 1));
+  p = coordToDisplayInt (new Point (r.right, r.bottom));
   poly.addPoint (p.x, p.y);
 
-  p = coordToDisplayInt (new Point (r.left, r.bottom - 1));
+  p = coordToDisplayInt (new Point (r.left, r.bottom));
   poly.addPoint (p.x, p.y);
 
   return poly;
@@ -1923,9 +1923,9 @@ class CPRectSelectionMode extends CPMode
   public void cursorDragAction ()
   {
     Point p = coordToDocumentInt (new Point (getCursorX (), getCursorY ()));
-    boolean square = (getModifiers () & InputEvent.SHIFT_MASK) != 0;
-    int squareDist = Math.max (Math.abs (p.x - firstClick.x), Math.abs (p.y - firstClick.y));
 
+    int squareDist = Math.max (Math.abs (p.x - firstClick.x), Math.abs (p.y - firstClick.y));
+    boolean square = (getModifiers () & InputEvent.SHIFT_MASK) != 0;
     if (p.x >= firstClick.x)
       {
         curRect.left = firstClick.x;
@@ -1947,7 +1947,6 @@ class CPRectSelectionMode extends CPMode
         curRect.top = square ? firstClick.y - squareDist : p.y;
         curRect.bottom = firstClick.y;
       }
-
     repaint ();
   }
 
@@ -1969,7 +1968,7 @@ class CPRectSelectionMode extends CPMode
   {
     if (!curRect.isEmpty ())
       {
-        g2d.setXORMode (Color.WHITE);
+        g2d.setXORMode (Color.GRAY);
         g2d.draw (coordToDisplay (curRect));
       }
   }
