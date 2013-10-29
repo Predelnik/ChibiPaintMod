@@ -57,7 +57,7 @@ public int type, paintMode;
 public int strokeMode = SM_FREEHAND;
 public float resat = 1f, bleed = 0f;
 
-public final float texture = 1f;
+public float texture = 1f;
 
 public boolean pressureScattering = false;
 public float scattering = 0.f, curScattering;

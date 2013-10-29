@@ -1382,7 +1382,6 @@ class CPDefaultMode extends CPMode
   @Override
   public void cursorPressAction ()
   {
-    // FIXME: replace the moveToolMode hack by a new and improved system
     if (!spacePressed && getButton () == MouseEvent.BUTTON1
             && (((getModifiers () & InputEvent.ALT_DOWN_MASK) == 0)))
       {

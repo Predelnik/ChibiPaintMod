@@ -58,7 +58,7 @@ public CPLayersPalette (CPController controller)
 
   // Widgets creation
 
-  Image icons = controller.loadImage ("smallicons.gif");
+  Image icons = controller.loadImage ("smallicons.png");
 
   CPIconButton addButton = new CPIconButton (icons, 16, 16, 0, 1);
   addButton.addCPActionListener (this);

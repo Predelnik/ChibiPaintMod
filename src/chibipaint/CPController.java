@@ -41,7 +41,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public abstract class CPController implements ActionListener
 {
@@ -65,6 +67,7 @@ private final ArrayList<ICPToolListener> toolListeners = new ArrayList<ICPToolLi
 private final ArrayList<ICPModeListener> modeListeners = new ArrayList<ICPModeListener> ();
 private final ArrayList<ICPViewListener> viewListeners = new ArrayList<ICPViewListener> ();
 private final ArrayList<ICPEventListener> cpEventListeners = new ArrayList<ICPEventListener> ();
+private final HashMap<String, Image> imageCache = new HashMap<String, Image> ();
 
 //
 // Definition of all the standard tools available
@@ -720,24 +723,23 @@ byte[] getPngData (Image img)
 
 public Image loadImage (String imageName)
 {
-  Image image = null;
-  image = Toolkit.getDefaultToolkit ().getImage (getClass ().getResource ("/resource/" + imageName));
-  return image;
-    /*
-		Image img = imageCache.get(imageName);
-		if (img == null) {
-			try {
-				ClassLoader loader = getClass().getClassLoader();
-				Class[] classes = { Image.class };
+  Image img = imageCache.get (imageName);
+  if (img == null)
+    {
+      try
+        {
+          ClassLoader loader = getClass ().getClassLoader ();
+          Class[] classes = {Image.class};
 
-				URL url = loader.getResource("images/" + imageName);
-				img = (Image) url.openConnection().getContent(classes);
-			} catch (Throwable t) {
-			}
-			imageCache.put(imageName, img);
-		}
-		return img;
-		 */
+          URL url = loader.getResource ("resource/" + imageName);
+          img = (Image) url.openConnection ().getContent (classes);
+        }
+      catch (Throwable t)
+        {
+        }
+      imageCache.put (imageName, img);
+    }
+  return img;
 }
 
 public CPArtwork getArtwork ()

@@ -45,7 +45,7 @@ public int getHeight ()
   return height;
 }
 
-CPRect getSize ()
+public CPRect getSize ()
 {
   return new CPRect (width, height);
 }
