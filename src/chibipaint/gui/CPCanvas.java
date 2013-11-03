@@ -25,7 +25,10 @@ package chibipaint.gui;
 import chibipaint.CPController;
 import chibipaint.CPControllerApplication;
 import chibipaint.engine.*;
-import chibipaint.util.*;
+import chibipaint.util.CPBezier;
+import chibipaint.util.CPRect;
+import chibipaint.util.CPTablet;
+import chibipaint.util.CPTablet2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -1062,15 +1065,15 @@ public void keyPressed (KeyEvent e)
           return;
         case KeyEvent.VK_V:
           // TODO: Make internal mechanism for copy and pasting if not running as application
-          if (!isRunningAsApplication ())
-            return;
-          Image imageInClipboard = CPClipboardHelper.GetClipboardImage ();
+          CPCopyPasteImage imageInClipboard = CPClipboardHelper.GetClipboardImage (isRunningAsApplication ());
           if (imageInClipboard == null)
             break;
           artwork.addLayer ();
-          CPImageUtils.PasteImageToOrigin (artwork.getActiveLayer (), imageInClipboard);
+          imageInClipboard.paste (artwork.getActiveLayer ());
           CPSelection selection = new CPSelection (artwork.getWidth (), artwork.getHeight ());
-          selection.makeSelectionFromAlpha (artwork.getActiveLayer ().getData (), new CPRect (0, 0, imageInClipboard.getWidth (null), imageInClipboard.getHeight (null)));
+          selection.makeSelectionFromAlpha (artwork.getActiveLayer ().getData (), new CPRect (imageInClipboard.getPosX (), imageInClipboard.getPosY (),
+                                                                                              imageInClipboard.getPosX () + imageInClipboard.getWidth (),
+                                                                                              imageInClipboard.getPosY () + imageInClipboard.getHeight ()));
           artwork.getUndoManager ().activeLayerDataChange (selection.getBoundingRect ());
           artwork.DoSelection (SelectionTypeOfAppliance.CREATE, selection);
           artwork.finalizeUndo ();
@@ -1081,8 +1084,13 @@ public void keyPressed (KeyEvent e)
           if (!isRunningAsApplication ())
             return;
 
-          Image image = CPImageUtils.RenderLayerSelectionToImage (artwork.getActiveLayer (), artwork.getCurSelection ());
-          CPClipboardHelper.SetClipboardImage (image);
+          CPColorBmp copy = new CPColorBmp (artwork.getWidth (), artwork.getHeight ());
+          copy.copyDataFrom (artwork.getActiveLayer ());
+          copy.cutBySelection (artwork.getCurSelection ());
+          CPRect rect = artwork.getCurSelection ().getBoundingRect ();
+          CPCopyPasteImage img = new CPCopyPasteImage (rect.getWidth (), rect.getHeight (), rect.getLeft (), rect.getTop ());
+          img.setData (copy.copyRectToIntArray (rect));
+          CPClipboardHelper.SetClipboardImage (img, isRunningAsApplication ());
           return;
         }
     }

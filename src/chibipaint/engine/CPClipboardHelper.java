@@ -27,6 +27,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.image.BufferedImage;
+import java.awt.image.MemoryImageSource;
 import java.io.IOException;
 
 public class CPClipboardHelper
@@ -34,19 +36,27 @@ public class CPClipboardHelper
 private static class TransferableImage implements Transferable
 {
 
-  private final Image image;
+  private boolean isApp;
+  private final CPCopyPasteImage image;
 
-  public TransferableImage (Image imageArg)
+  public TransferableImage (CPCopyPasteImage imageArg, boolean isAppArg)
   {
     image = imageArg;
+    isApp = isAppArg;
   }
 
   public Object getTransferData (DataFlavor flavor)
           throws UnsupportedFlavorException, IOException
   {
-    if (flavor.equals (DataFlavor.imageFlavor) && image != null)
+    if (flavor.equals (cpmImageFlavor) && image != null)
       {
         return image;
+      }
+    else if (isApp && flavor.equals (DataFlavor.imageFlavor) && image != null)
+      {
+        MemoryImageSource imgSource = new MemoryImageSource (image.getWidth (), image.getHeight (), image.getData (), 0, image.getWidth ());
+        Image img = Toolkit.getDefaultToolkit ().createImage (imgSource);
+        return img;
       }
     else
       {
@@ -75,12 +85,33 @@ private static class TransferableImage implements Transferable
   }
 }
 
-static public Image GetClipboardImage ()
+
+public static final DataFlavor cpmImageFlavor = new DataFlavor ("image/cpm-image; class=chibipaint.engine.CPCopyPasteImage", "ChibiPaint Image");
+
+static public CPCopyPasteImage GetClipboardImage (boolean isApp)
 {
   Clipboard clipboard = Toolkit.getDefaultToolkit ().getSystemClipboard ();
   try
     {
-      return (Image) clipboard.getData (DataFlavor.imageFlavor);
+      return (CPCopyPasteImage) clipboard.getData (cpmImageFlavor);
+    }
+  catch (UnsupportedFlavorException e)
+    {
+      if (!isApp)
+        return null;
+    }
+  catch (IOException e)
+    {
+      return null;
+    }
+
+  try
+    {
+      Image img = (Image) clipboard.getData (DataFlavor.imageFlavor);
+      BufferedImage bI = new BufferedImage (img.getWidth (null), img.getHeight (null), BufferedImage.TYPE_INT_ARGB);
+      Graphics g = bI.createGraphics ();
+      g.drawImage (img, 0, 0, null);
+      return new CPCopyPasteImage (bI);
     }
   catch (UnsupportedFlavorException e)
     {
@@ -92,9 +123,9 @@ static public Image GetClipboardImage ()
     }
 }
 
-static public void SetClipboardImage (Image image)
+static public void SetClipboardImage (CPCopyPasteImage image, boolean isApp)
 {
-  TransferableImage transferable = new TransferableImage (image);
+  TransferableImage transferable = new TransferableImage (image, isApp);
   Clipboard clipboard = Toolkit.getDefaultToolkit ().getSystemClipboard ();
   clipboard.setContents (transferable, null);
 }

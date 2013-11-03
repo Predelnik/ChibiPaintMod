@@ -43,7 +43,7 @@ private int[] data;
 //
 
 // Allocates a new bitmap
-CPColorBmp (int width, int height)
+public CPColorBmp (int width, int height)
 {
   super (width, height);
   this.data = new int[width * height];
