@@ -1007,6 +1007,10 @@ public void modeChange (int mode)
       artwork.initializeTransform ();
       artwork.invalidateFusion ();
       setEnabledForTransform (false);
+      if (isRunningAsApplication ())
+        {
+          ((CPControllerApplication) controller).setTransformState (true);
+        }
       break;
 
     case CPController.M_RECT_SELECTION:
@@ -2074,6 +2078,10 @@ class CPFreeTransformMode extends CPMode
         artwork.FinishTransformUndo ();
         repaint ();
         setEnabledForTransform (true);
+        if (isRunningAsApplication ())
+          {
+            ((CPControllerApplication) controller).setTransformState (false);
+          }
         break;
       case KeyEvent.VK_ESCAPE:
         transformHandler.stopTransform ();
@@ -2083,6 +2091,10 @@ class CPFreeTransformMode extends CPMode
         prevMode = null;
         artwork.invalidateFusion ();
         setEnabledForTransform (true);
+        if (isRunningAsApplication ())
+          {
+            ((CPControllerApplication) controller).setTransformState (false);
+          }
         repaint ();
         break;
       }

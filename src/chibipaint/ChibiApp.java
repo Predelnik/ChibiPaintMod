@@ -45,10 +45,16 @@ public enum appState
 {
   FREE,
   SAVING,
-  LOADING
+  LOADING,
+  TRANSFORM,
 }
 
 private appState curAppState = appState.FREE;
+
+void transformIsInProgressMsgBox ()
+{
+  JOptionPane.showMessageDialog (null, "Please finish or cancel currently ongoing transformation before exiting application", "Transformation is in progress", JOptionPane.INFORMATION_MESSAGE);
+}
 
 // Returns true if it is ok to continue operation
 boolean confirmDialog ()
@@ -102,6 +108,11 @@ private ChibiApp ()
     @Override
     public void windowClosing (WindowEvent e)
     {
+      if (curAppState == appState.TRANSFORM)
+        {
+          transformIsInProgressMsgBox ();
+          return;
+        }
       while (curAppState != appState.FREE)
         {
           try

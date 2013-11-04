@@ -30,6 +30,13 @@ import java.awt.*;
 class CPMiscPalette extends CPPalette
 {
 
+private final CPIconButton zoomInButton;
+private final CPIconButton zoomOutButton;
+private final CPIconButton zoom100Button;
+private final CPIconButton undoButton;
+private final CPIconButton redoButton;
+private CPIconButton sendButton = null;
+
 public CPMiscPalette (CPController controller)
 {
   super (controller);
@@ -41,34 +48,34 @@ public CPMiscPalette (CPController controller)
 
   Component spacer;
 
-  CPIconButton button = new CPIconButton (icons, 32, 32, 13, 1);
-  add (button);
-  button.addCPActionListener (controller);
-  button.setCPActionCommand ("CPZoomIn");
+  zoomInButton = new CPIconButton (icons, 32, 32, 13, 1);
+  add (zoomInButton);
+  zoomInButton.addCPActionListener (controller);
+  zoomInButton.setCPActionCommand ("CPZoomIn");
 
-  button = new CPIconButton (icons, 32, 32, 14, 1);
-  add (button);
-  button.addCPActionListener (controller);
-  button.setCPActionCommand ("CPZoomOut");
+  zoomOutButton = new CPIconButton (icons, 32, 32, 14, 1);
+  add (zoomOutButton);
+  zoomOutButton.addCPActionListener (controller);
+  zoomOutButton.setCPActionCommand ("CPZoomOut");
 
-  button = new CPIconButton (icons, 32, 32, 15, 1);
-  add (button);
-  button.addCPActionListener (controller);
-  button.setCPActionCommand ("CPZoom100");
+  zoom100Button = new CPIconButton (icons, 32, 32, 15, 1);
+  add (zoom100Button);
+  zoom100Button.addCPActionListener (controller);
+  zoom100Button.setCPActionCommand ("CPZoom100");
 
   spacer = new JPanel ();
   spacer.setSize (16, 32);
   add (spacer);
 
-  button = new CPIconButton (icons, 32, 32, 10, 1);
-  add (button);
-  button.addCPActionListener (controller);
-  button.setCPActionCommand ("CPUndo");
+  undoButton = new CPIconButton (icons, 32, 32, 10, 1);
+  add (undoButton);
+  undoButton.addCPActionListener (controller);
+  undoButton.setCPActionCommand ("CPUndo");
 
-  button = new CPIconButton (icons, 32, 32, 11, 1);
-  add (button);
-  button.addCPActionListener (controller);
-  button.setCPActionCommand ("CPRedo");
+  redoButton = new CPIconButton (icons, 32, 32, 11, 1);
+  add (redoButton);
+  redoButton.addCPActionListener (controller);
+  redoButton.setCPActionCommand ("CPRedo");
 
   if (controller.isRunningAsApplet ())
     {
@@ -76,11 +83,19 @@ public CPMiscPalette (CPController controller)
       spacer.setSize (16, 32);
       add (spacer);
 
-      button = new CPIconButton (icons, 32, 32, 12, 1);
-      add (button);
-      button.addCPActionListener (controller);
-      button.setCPActionCommand ("CPSend");
+      sendButton = new CPIconButton (icons, 32, 32, 12, 1);
+      add (sendButton);
+      sendButton.addCPActionListener (controller);
+      sendButton.setCPActionCommand ("CPSend");
     }
+}
+
+void setEnabledForTransform (boolean enabled)
+{
+  undoButton.setEnabled (enabled);
+  redoButton.setEnabled (enabled);
+  if (sendButton != null)
+    sendButton.setEnabled (enabled);
 }
 
 }

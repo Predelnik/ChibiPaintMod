@@ -485,6 +485,14 @@ private boolean saveLoadImageFile (
   return true; // Actually that's ok behaviour, just cancel was pressed
 }
 
+public void setTransformState (boolean transformIsOn)
+{
+  if (transformIsOn)
+    ((ChibiApp) mainFrame).setAppState (appState.TRANSFORM);
+  else
+    ((ChibiApp) mainFrame).setAppState (appState.FREE);
+}
+
 void saveControllerSettings ()
 {
   Preferences userRoot = Preferences.userRoot ();

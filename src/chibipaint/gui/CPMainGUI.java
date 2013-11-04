@@ -151,6 +151,7 @@ void setEnabledForTransform (boolean enabled)
       item.setEnabled (enabled);
     }
   ((CPLayersPalette) getPaletteManager ().getPalettes ().get ("layers")).setEnabledForTransform (enabled);
+  ((CPMiscPalette) getPaletteManager ().getPalettes ().get ("misc")).setEnabledForTransform (enabled);
 }
 
 void addMenuItem (String title, int mnemonic, String command)
