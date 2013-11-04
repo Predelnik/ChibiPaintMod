@@ -36,7 +36,7 @@ private boolean transformActive;
 
 public CPTransformHandler (int width, int height)
 {
-  previewLayer = new CPLayer (width, height);
+
 }
 
 public void clearTransforms ()
@@ -54,10 +54,6 @@ public void stopTransform ()
   transformActive = false;
 }
 
-public CPLayer getPreviewLayer ()
-{
-  return previewLayer;
-}
 
 private enum actionType
 {
@@ -238,7 +234,8 @@ class CPTransformAction
       case STRETCH_TO_SIDE:
         return getCursorByAngle (getAbsoluteAngleByLine (getFullyTransformedSideByIndex (sideIndex)));
       case STRETCH_TO_ANGLE:
-        return getCursorByAngle ((float) (getAbsoluteAngleByLine (getFullyTransformedSideByIndex (angleIndex)) + Math.PI * 0.25));
+        return getCursorByAngle ((float) (getAbsoluteAngleByLine (getFullyTransformedSideByIndex (angleIndex)) + Math.signum (finalTransform.getScaleX ()) * Math.signum (finalTransform.getScaleY ()) * Math.PI * 0.25))
+                ;
       case ROTATE:
         return Cursor.getPredefinedCursor (Cursor.HAND_CURSOR); // For now (placeholder)
       }
@@ -298,7 +295,6 @@ class CPTransformAction
 CPColorBmp transformedPart;
 CPRect transformingRect = new CPRect ();
 CPLayer activeLayer = null;
-final CPLayer previewLayer;
 CPSelection currentSelection = null;
 CPTransformAction activeAction = new CPTransformAction ();
 final Point2D pointOfOrigin = new Point2D.Float ();
@@ -335,9 +331,6 @@ public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg)
   transformedPartImage = Toolkit.getDefaultToolkit ().createImage (imgSource);
   transformActive = true;
   currentSelection.makeEmpty ();
-
-  previewLayer.setBlendMode (activeLayer.getBlendMode ());
-  previewLayer.setAlpha (activeLayer.getAlpha ());
 }
 
 public void cursorPressed (Point2D p)
@@ -365,16 +358,21 @@ Line2D getSideByIndex (int index)
 }
 
 
-Line2D getTransformedSideByIndex (int index, AffineTransform transformArg)
+Line2D getTransformedLine (Line2D line, AffineTransform transformArg)
 {
   Line2D resultLine = new Line2D.Float ();
-  Line2D line = getSideByIndex (index);
   Point2D point1 = new Point2D.Float ();
   Point2D point2 = new Point2D.Float ();
   transformArg.transform (line.getP1 (), point1);
   transformArg.transform (line.getP2 (), point2);
   resultLine.setLine (point1, point2);
   return resultLine;
+}
+
+Line2D getTransformedSideByIndex (int index, AffineTransform transformArg)
+{
+  Line2D line = getSideByIndex (index);
+  return getTransformedLine (line, transformArg);
 }
 
 Line2D getCanvasTransformedSideByIndex (int index)
@@ -385,6 +383,11 @@ Line2D getCanvasTransformedSideByIndex (int index)
 Line2D getFullyTransformedSideByIndex (int index)
 {
   return getTransformedSideByIndex (index, finalTransform);
+}
+
+Line2D getFullyTransformedLine (Line2D line)
+{
+  return getTransformedLine (line, finalTransform);
 }
 
 
@@ -501,10 +504,9 @@ static Path2D.Float transformRectToPath (float left, float top, float right, flo
   return path;
 }
 
-public void updatePreview (boolean interpolation)
+public void drawPreviewOn (CPLayer layer)
 {
-  previewLayer.clear ();
-  drawItselfOnLayer (previewLayer, interpolation ? RenderingHints.VALUE_INTERPOLATION_BILINEAR : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR, false);
+  drawItselfOnLayer (layer, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
 }
 
 public Rectangle getRectNeededForUpdating ()

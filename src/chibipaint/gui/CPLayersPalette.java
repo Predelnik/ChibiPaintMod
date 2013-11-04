@@ -46,9 +46,13 @@ private final CPRenameField renameField;
 
 private final JCheckBox cbSampleAllLayers;
 private final JCheckBox cbLockAlpha;
+private boolean layerMovingAndChangingCurrentEnabled = true;
+
 
 private final String[] modeNames = {"Normal", "Multiply", "Add", "Screen", "Lighten", "Darken", "Subtract", "Dodge", "Burn",
         "Overlay", "Hard Light", "Soft Light", "Vivid Light", "Linear Light", "Pin Light"};
+private final CPIconButton addButton;
+private final CPIconButton removeButton;
 
 public CPLayersPalette (CPController controller)
 {
@@ -60,11 +64,11 @@ public CPLayersPalette (CPController controller)
 
   Image icons = controller.loadImage ("smallicons.png");
 
-  CPIconButton addButton = new CPIconButton (icons, 16, 16, 0, 1);
+  addButton = new CPIconButton (icons, 16, 16, 0, 1);
   addButton.addCPActionListener (this);
   addButton.setCPActionCommand ("CPAddLayer");
 
-  CPIconButton removeButton = new CPIconButton (icons, 16, 16, 1, 1);
+  removeButton = new CPIconButton (icons, 16, 16, 1, 1);
   removeButton.addCPActionListener (this);
   removeButton.setCPActionCommand ("CPRemoveLayer");
 
@@ -142,6 +146,13 @@ public CPLayersPalette (CPController controller)
   addListener ();
   // validate();
   // pack();
+}
+
+public void setEnabledForTransform (boolean enabled)
+{
+  layerMovingAndChangingCurrentEnabled = enabled;
+  addButton.setEnabled (enabled);
+  removeButton.setEnabled (enabled);
 }
 
 public void addListener ()
@@ -355,6 +366,8 @@ class CPLayerWidget extends JComponent implements MouseListener, MouseMotionList
   @Override
   public void mousePressed (MouseEvent e)
   {
+    if (!layerMovingAndChangingCurrentEnabled)
+      return;
     // click, moved from mouseClicked due
     // to problems with focus and stuff
     if ((e.getModifiers () & InputEvent.BUTTON1_MASK) != 0)

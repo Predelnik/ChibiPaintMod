@@ -45,6 +45,7 @@ private int activeLayerNumber;
 
 private final CPLayer fusion; // fusion is a final view of the image, like which should be saved to png (no overlays like selection or grid here)
 private final CPLayer opacityBuffer;
+private final CPLayer transformBuffer; // temporary place to fusion active layer with preview in case if transformation is taking place.
 private final CPRect fusionArea;
 private final CPRect opacityArea;
 private final CPTransformHandler transformHandler;
@@ -271,6 +272,7 @@ public CPArtwork (int width, int height)
 
   // we reserve a double sized buffer to be used as a 16bits per channel buffer
   opacityBuffer = new CPLayer (width, height);
+  transformBuffer = new CPLayer (width, height);
 
   fusion = new CPLayer (width, height);
 }
@@ -310,12 +312,18 @@ public void fusionLayers ()
           fullAlpha = fullAlpha && fusion.hasAlpha (fusionArea);
         }
 
-      doFusionWith (l, fullAlpha);
-
       if (getActiveLayer () == l && transformHandler.isTransformActive ())
         {
-          doFusionWith (transformHandler.getPreviewLayer (), fullAlpha);
+          transformBuffer.clear ();
+          // transformBuffer.copyDataFrom (l);
+          transformBuffer.copyRectFrom (l, fusionArea);
+          transformBuffer.setAlpha (l.getAlpha ());
+          transformBuffer.setBlendMode (l.getBlendMode ());
+          transformHandler.drawPreviewOn (transformBuffer);
+          doFusionWith (transformBuffer, fullAlpha);
         }
+      else
+        doFusionWith (l, fullAlpha);
     }
 
   fusionArea.makeEmpty ();

@@ -1005,7 +1005,6 @@ public void modeChange (int mode)
 
       setActiveMode (freeTransformMode);
       artwork.initializeTransform ();
-      artwork.getTransformHandler ().updatePreview (interpolation);
       artwork.invalidateFusion ();
       setEnabledForTransform (false);
       break;
@@ -1982,7 +1981,7 @@ class CPRectSelectionMode extends CPMode
 
 void setEnabledForTransform (boolean enabled)
 {
-  controller.getMainGUI ().setEverythingEnabled (enabled);
+  controller.getMainGUI ().setEnabledForTransform (enabled);
   String viewItems[] = {"CPZoomIn", "CPZoomOut", "CPZoom100", "CPAbout", "CPLinearInterpolation", "CPToggleGrid",
           "CPGridOptions", "CPTogglePalettes", "CPPalBrush", "CPPalColor", "CPPalLayers", "CPPalMisc", "CPPalStroke",
           "CPPalSwatches", "CPPalTextures", "CPPalTool", "CPLayerToggleAll"};
@@ -2043,7 +2042,6 @@ class CPFreeTransformMode extends CPMode
     transformHandler.cursorDragged (p);
     CPRect rectAfter = new CPRect (transformHandler.getRectNeededForUpdating ());
     updatingRect.union (rectAfter);
-    transformHandler.updatePreview (interpolation);
     artwork.invalidateFusion (updatingRect);
     repaint ();
   }

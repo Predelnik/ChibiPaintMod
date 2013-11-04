@@ -141,7 +141,7 @@ JMenuItem getMenuItemByCmd (String cmd)
   return menuItems.get (cmd);
 }
 
-void setEverythingEnabled (boolean enabled)
+void setEnabledForTransform (boolean enabled)
 {
   Iterator it = menuItems.entrySet ().iterator ();
   while (it.hasNext ())
@@ -150,6 +150,7 @@ void setEverythingEnabled (boolean enabled)
       JMenuItem item = (JMenuItem) pairs.getValue ();
       item.setEnabled (enabled);
     }
+  ((CPLayersPalette) getPaletteManager ().getPalettes ().get ("layers")).setEnabledForTransform (enabled);
 }
 
 void addMenuItem (String title, int mnemonic, String command)

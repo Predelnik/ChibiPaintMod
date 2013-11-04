@@ -175,6 +175,24 @@ public int[] copyRectXOR (CPColorBmp bmp, CPRect rect)
   return buffer;
 }
 
+
+public void copyRectFrom (CPColorBmp bmp, CPRect rect)        // Copy rectangle of pixels exactly from the picture of the same size
+{
+  CPRect r = new CPRect (0, 0, width, height);
+  r.clip (rect);
+
+  int w = r.getWidth ();
+  int h = r.getHeight ();
+  for (int j = 0; j < h; j++)
+    {
+      int offset = (j + r.top) * width + r.left;
+      for (int i = 0; i < w; i++, offset++)
+        {
+          getData ()[offset] = bmp.getData ()[offset];
+        }
+    }
+}
+
 public void setRectXOR (int[] buffer, CPRect rect)
 {
   CPRect r = new CPRect (0, 0, width, height);

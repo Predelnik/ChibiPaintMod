@@ -84,7 +84,11 @@ public void paint (Graphics g)
   g.drawImage (icons, border, border, iconW + border, iconH + border, 0, iconIndex * iconH, iconW, (iconIndex + 1)
           * iconH, null);
 
-  if (mouseOver && !mousePressed)
+  if (!this.isEnabled ())
+    {
+      g.setColor (Color.lightGray);
+    }
+  else if (mouseOver && !mousePressed)
     {
       g.setColor (Color.orange);
     }
@@ -128,6 +132,9 @@ public void mousePressed (MouseEvent e)
 {
   requestFocusInWindow ();
 
+  if (!this.isEnabled ())
+    return;
+
   mousePressed = true;
   repaint ();
   if (onClickDown)
@@ -139,6 +146,9 @@ public void mousePressed (MouseEvent e)
 @Override
 public void mouseReleased (MouseEvent e)
 {
+  if (!this.isEnabled ())
+    return;
+
   if (!onClickDown && mouseOver)
     {
       callActionListeners ();
