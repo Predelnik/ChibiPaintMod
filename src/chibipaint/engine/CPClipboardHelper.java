@@ -36,13 +36,13 @@ public class CPClipboardHelper
 private static class TransferableImage implements Transferable
 {
 
-  private boolean isApp;
+  private boolean limited;
   private final CPCopyPasteImage image;
 
-  public TransferableImage (CPCopyPasteImage imageArg, boolean isAppArg)
+  public TransferableImage (CPCopyPasteImage imageArg, boolean limitedArg)
   {
     image = imageArg;
-    isApp = isAppArg;
+    limited = limitedArg;
   }
 
   public Object getTransferData (DataFlavor flavor)
@@ -52,7 +52,7 @@ private static class TransferableImage implements Transferable
       {
         return image;
       }
-    else if (isApp && flavor.equals (DataFlavor.imageFlavor) && image != null)
+    else if (!limited && flavor.equals (DataFlavor.imageFlavor) && image != null)
       {
         MemoryImageSource imgSource = new MemoryImageSource (image.getWidth (), image.getHeight (), image.getData (), 0, image.getWidth ());
         Image img = Toolkit.getDefaultToolkit ().createImage (imgSource);
@@ -88,7 +88,7 @@ private static class TransferableImage implements Transferable
 
 public static final DataFlavor cpmImageFlavor = new DataFlavor ("image/cpm-image; class=chibipaint.engine.CPCopyPasteImage", "ChibiPaint Image");
 
-static public CPCopyPasteImage GetClipboardImage (boolean isApp)
+static public CPCopyPasteImage GetClipboardImage (boolean limited)
 {
   Clipboard clipboard = Toolkit.getDefaultToolkit ().getSystemClipboard ();
   try
@@ -97,7 +97,7 @@ static public CPCopyPasteImage GetClipboardImage (boolean isApp)
     }
   catch (UnsupportedFlavorException e)
     {
-      if (!isApp)
+      if (limited)
         return null;
     }
   catch (IOException e)
@@ -123,9 +123,9 @@ static public CPCopyPasteImage GetClipboardImage (boolean isApp)
     }
 }
 
-static public void SetClipboardImage (CPCopyPasteImage image, boolean isApp)
+static public void SetClipboardImage (CPCopyPasteImage image, boolean limited)
 {
-  TransferableImage transferable = new TransferableImage (image, isApp);
+  TransferableImage transferable = new TransferableImage (image, limited);
   Clipboard clipboard = Toolkit.getDefaultToolkit ().getSystemClipboard ();
   clipboard.setContents (transferable, null);
 }
