@@ -40,6 +40,7 @@ public class CPMainGUI
 {
 
 private final CPController controller;
+private final HashMap<String, JMenuItem> menuItems = new HashMap<String, JMenuItem> ();
 private CPPaletteManager paletteManager;
 
 private JMenuBar menuBar;
@@ -126,11 +127,17 @@ private void addMenuItemInternal (String title, int mnemonic, String command, St
   menuItem.getAccessibleContext ().setAccessibleDescription (description);
   menuItem.setActionCommand (command);
   menuItem.addActionListener (controller);
+  menuItems.put (command, menuItem);
   if (lastSubMenu != null)
     lastSubMenu.add (menuItem);
   else
     lastMenu.add (menuItem);
   lastItem = menuItem;
+}
+
+JMenuItem getMenuItemByCmd (String cmd)
+{
+  return menuItems.get (cmd);
 }
 
 void addMenuItem (String title, int mnemonic, String command)
@@ -200,6 +207,7 @@ void createMainMenu ()
   menuBarTemporary = new JMenuBar ();
   lastMenu = null;
   lastSubMenu = null;
+  menuItems.clear ();
 
   // File
   addMenu ("File", KeyEvent.VK_F);

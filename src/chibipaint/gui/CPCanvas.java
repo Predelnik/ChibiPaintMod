@@ -1480,6 +1480,12 @@ class CPDefaultMode extends CPMode
 
 // FIXME: dragLeft no longer necessary, should not specify the drag button
 
+void setUndoRedoEnabled (boolean isEnabled)
+{
+  controller.getMainGUI ().getMenuItemByCmd ("CPUndo").setEnabled (isEnabled);
+  controller.getMainGUI ().getMenuItemByCmd ("CPRedo").setEnabled (isEnabled);
+}
+
 class CPFreehandMode extends CPMode
 {
 
@@ -1498,6 +1504,7 @@ class CPFreehandMode extends CPMode
         artwork.beginStroke (pf.x, pf.y, getLastPressure ());
 
         smoothMouse = (Point2D.Float) pf.clone ();
+        setUndoRedoEnabled (false);
       }
   }
 
@@ -1544,6 +1551,7 @@ class CPFreehandMode extends CPMode
       {
         dragLeft = false;
         artwork.endStroke ();
+        setUndoRedoEnabled (true);
         setActiveMode (defaultMode); // yield control to the default mode
       }
   }

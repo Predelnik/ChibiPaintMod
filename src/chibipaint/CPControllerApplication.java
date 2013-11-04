@@ -62,16 +62,16 @@ public void actionPerformed (ActionEvent e)
   if (e.getActionCommand ().equals ("CPExit"))
     mainFrame.getToolkit ().getSystemEventQueue ().postEvent (new WindowEvent ((mainFrame), WindowEvent.WINDOW_CLOSING));
 
-  // Here we explicitly point that chi extension is native though, it's a little bit bad
-  if (e.getActionCommand ().equals ("CPSave"))
+    // Here we explicitly point that chi extension is native though, it's a little bit bad
+  else if (e.getActionCommand ().equals ("CPSave"))
     save ();
 
-  if (e.getActionCommand ().equals ("CPNew"))
+  else if (e.getActionCommand ().equals ("CPNew"))
     {
       newDialog ();
     }
 
-  if (e.getActionCommand ().startsWith ("CPOpenRecent"))
+  else if (e.getActionCommand ().startsWith ("CPOpenRecent"))
     {
       String command = e.getActionCommand ();
       int num = command.charAt (command.length () - 1) - '0';
