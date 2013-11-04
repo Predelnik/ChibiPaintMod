@@ -1004,6 +1004,7 @@ public void modeChange (int mode)
       artwork.initializeTransform ();
       artwork.getTransformHandler ().updatePreview (interpolation);
       artwork.invalidateFusion ();
+      setEnabledForTransform (false);
       break;
 
     case CPController.M_RECT_SELECTION:
@@ -1990,6 +1991,17 @@ class CPRectSelectionMode extends CPMode
 
 }
 
+void setEnabledForTransform (boolean enabled)
+{
+  controller.getMainGUI ().setEverythingEnabled (enabled);
+  String viewItems[] = {"CPZoomIn", "CPZoomOut", "CPZoom100", "CPAbout", "CPLinearInterpolation", "CPToggleGrid",
+          "CPGridOptions", "CPTogglePalettes", "CPPalBrush", "CPPalColor", "CPPalLayers", "CPPalMisc", "CPPalStroke",
+          "CPPalSwatches", "CPPalTextures", "CPPalTool", "CPLayerToggleAll"};
+  for (String item : viewItems)
+    controller.getMainGUI ().getMenuItemByCmd (item).setEnabled (true);
+
+}
+
 class CPFreeTransformMode extends CPMode
 {
   private CPTransformHandler transformHandler;
@@ -2074,6 +2086,7 @@ class CPFreeTransformMode extends CPMode
         setActiveMode (defaultMode);
         artwork.FinishTransformUndo ();
         repaint ();
+        setEnabledForTransform (true);
         break;
       case KeyEvent.VK_ESCAPE:
         transformHandler.stopTransform ();
@@ -2082,6 +2095,7 @@ class CPFreeTransformMode extends CPMode
         setActiveMode (defaultMode);
         prevMode = null;
         artwork.invalidateFusion ();
+        setEnabledForTransform (true);
         repaint ();
         break;
       }

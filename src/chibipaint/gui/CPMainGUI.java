@@ -33,6 +33,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.prefs.Preferences;
 
@@ -138,6 +139,17 @@ private void addMenuItemInternal (String title, int mnemonic, String command, St
 JMenuItem getMenuItemByCmd (String cmd)
 {
   return menuItems.get (cmd);
+}
+
+void setEverythingEnabled (boolean enabled)
+{
+  Iterator it = menuItems.entrySet ().iterator ();
+  while (it.hasNext ())
+    {
+      Map.Entry pairs = (Map.Entry) it.next ();
+      JMenuItem item = (JMenuItem) pairs.getValue ();
+      item.setEnabled (enabled);
+    }
 }
 
 void addMenuItem (String title, int mnemonic, String command)
