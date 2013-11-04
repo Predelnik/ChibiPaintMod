@@ -416,7 +416,7 @@ public void actionPerformed (ActionEvent e)
               + "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
               + "GNU General Public License for more details.\n\n"
 
-              + "You should have received a copy of the GNU General Public License\n"
+              + "You should have received a copySelected of the GNU General Public License\n"
               + "along with ChibiPaintMod. If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>.\n" +
               "</pre></html>");
       ep.setEditable (false);
@@ -631,6 +631,19 @@ public void actionPerformed (ActionEvent e)
   else if (e.getActionCommand ().equals ("CPTogglePalettes"))
     {
       mainGUI.togglePalettes ();
+    }
+
+  else if (e.getActionCommand ().equals ("CPCopy"))
+    {
+      canvas.copy ();
+    }
+  else if (e.getActionCommand ().equals ("CPPaste"))
+    {
+      canvas.paste ();
+    }
+  else if (e.getActionCommand ().equals ("CPCut"))
+    {
+      canvas.cut ();
     }
   callCPEventListeners ();
 }

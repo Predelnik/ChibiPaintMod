@@ -306,7 +306,7 @@ void createMainMenu ()
   addMenu ("Layers", KeyEvent.VK_L);
   addMenuItem ("Show / Hide All Layers", KeyEvent.VK_A, "CPLayerToggleAll", "Toggle All Layers Visibility", KeyStroke.getKeyStroke (KeyEvent.VK_A, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
   addSeparator ();
-  addMenuItem ("Duplicate", KeyEvent.VK_D, "CPLayerDuplicate", "Creates a copy of the currently selected layer", KeyStroke.getKeyStroke (KeyEvent.VK_D, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+  addMenuItem ("Duplicate", KeyEvent.VK_D, "CPLayerDuplicate", "Creates a copySelected of the currently selected layer", KeyStroke.getKeyStroke (KeyEvent.VK_D, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
   addSeparator ();
   addMenuItem ("Merge Down", KeyEvent.VK_E, "CPLayerMergeDown", "Merges the currently selected layer with the one directly below it", KeyStroke.getKeyStroke (KeyEvent.VK_E, InputEvent.CTRL_MASK));
   addMenuItem ("Merge All Layers", KeyEvent.VK_A, "CPLayerMergeAll", "Merges all the layers");

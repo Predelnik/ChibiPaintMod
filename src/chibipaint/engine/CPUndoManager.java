@@ -77,7 +77,7 @@ void restoreActiveLayerAlpha (CPRect r)
   artwork.getActiveLayer ().copyAlphaFrom (preservedActiveLayer, r);
 }
 
-public void preserveActiveLayerState ()
+public void preserveActiveLayerData ()
 {
   preservedActiveLayer.copyFrom (artwork.getActiveLayer ());
 }

@@ -24,7 +24,10 @@ package chibipaint.gui;
 
 import chibipaint.CPController;
 import chibipaint.CPControllerApplication;
-import chibipaint.engine.*;
+import chibipaint.engine.CPArtwork;
+import chibipaint.engine.CPBrushInfo;
+import chibipaint.engine.CPSelection;
+import chibipaint.engine.CPTransformHandler;
 import chibipaint.util.CPBezier;
 import chibipaint.util.CPRect;
 import chibipaint.util.CPTablet;
@@ -993,7 +996,7 @@ public void modeChange (int mode)
       break;
 
     case CPController.M_FREE_TRANSFORM:
-      // Here is the special case we should remove selected part of active layer, cut off inactive parts of selection
+      // Here is the special case we should remove selected part of active layer, cutSelected off inactive parts of selection
       // Then show the controls for doing transformation and operate the exact pixels which were removed.
 
       // TODO: Separate active and current mode for different classes
@@ -1034,6 +1037,21 @@ public void componentResized (ComponentEvent e)
   repaint ();
 }
 
+public void copy ()
+{
+  artwork.copySelected (!isRunningAsApplication ());
+}
+
+public void cut ()
+{
+  artwork.cutSelected (!isRunningAsApplication ());
+}
+
+public void paste ()
+{
+  artwork.pasteFromClipboard (!isRunningAsApplication ());
+}
+
 @Override
 public void keyPressed (KeyEvent e)
 {
@@ -1063,35 +1081,6 @@ public void keyPressed (KeyEvent e)
         case KeyEvent.VK_0:
           // case KeyEvent.VK_NUMPAD0:
           zoom100 ();
-          return;
-        case KeyEvent.VK_V:
-          // TODO: Make internal mechanism for copy and pasting if not running as application
-          CPCopyPasteImage imageInClipboard = CPClipboardHelper.GetClipboardImage (isRunningAsApplication ());
-          if (imageInClipboard == null)
-            break;
-          artwork.addLayer ();
-          imageInClipboard.paste (artwork.getActiveLayer ());
-          CPSelection selection = new CPSelection (artwork.getWidth (), artwork.getHeight ());
-          selection.makeSelectionFromAlpha (artwork.getActiveLayer ().getData (), new CPRect (imageInClipboard.getPosX (), imageInClipboard.getPosY (),
-                                                                                              imageInClipboard.getPosX () + imageInClipboard.getWidth (),
-                                                                                              imageInClipboard.getPosY () + imageInClipboard.getHeight ()));
-          artwork.getUndoManager ().activeLayerDataChange (selection.getBoundingRect ());
-          artwork.DoSelection (SelectionTypeOfAppliance.CREATE, selection);
-          artwork.finalizeUndo ();
-
-          artwork.invalidateFusion ();
-          break;
-        case KeyEvent.VK_C:
-          if (!isRunningAsApplication ())
-            return;
-
-          CPColorBmp copy = new CPColorBmp (artwork.getWidth (), artwork.getHeight ());
-          copy.copyDataFrom (artwork.getActiveLayer ());
-          copy.cutBySelection (artwork.getCurSelection ());
-          CPRect rect = artwork.getCurSelection ().getBoundingRect ();
-          CPCopyPasteImage img = new CPCopyPasteImage (rect.getWidth (), rect.getHeight (), rect.getLeft (), rect.getTop ());
-          img.setData (copy.copyRectToIntArray (rect));
-          CPClipboardHelper.SetClipboardImage (img, isRunningAsApplication ());
           return;
         }
     }

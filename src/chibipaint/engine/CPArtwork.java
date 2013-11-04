@@ -67,7 +67,7 @@ public CPClip getClipboard ()
 
 public void initializeTransform ()
 {
-  undoManager.preserveActiveLayerState ();
+  undoManager.preserveActiveLayerData ();
   undoManager.preserveCurrentSelection ();
   transformHandler.initialize (curSelection, getActiveLayer ());
 }
@@ -89,6 +89,52 @@ public void RestoreActiveLayerAndSelection ()
 {
   undoManager.restoreActiveLayerData ();
   undoManager.restoreSelection ();
+}
+
+public void copySelected (boolean limited)
+{
+  CPColorBmp copy = new CPColorBmp (width, height);
+  copy.copyDataFrom (activeLayer);
+  copy.cutBySelection (curSelection);
+  CPRect rect = curSelection.getBoundingRect ();
+  CPCopyPasteImage img = new CPCopyPasteImage (rect.getWidth (), rect.getHeight (), rect.getLeft (), rect.getTop ());
+  img.setData (copy.copyRectToIntArray (rect));
+  CPClipboardHelper.SetClipboardImage (img, limited);
+  return;
+}
+
+
+public void cutSelected (boolean limited)
+{
+  undoManager.preserveActiveLayerData ();
+  undoManager.preserveCurrentSelection ();
+  copySelected (limited);
+  activeLayer.removePartsCutBySelection (curSelection);
+  CPRect rect = curSelection.getBoundingRect ();
+  invalidateFusion (rect);
+  curSelection.makeEmpty ();
+  undoManager.selectionChanged ();
+  undoManager.activeLayerDataChange (rect);
+  undoManager.finalizeUndo ();
+  return;
+}
+
+public void pasteFromClipboard (boolean limited)
+{
+  CPCopyPasteImage imageInClipboard = CPClipboardHelper.GetClipboardImage (limited);
+  if (imageInClipboard == null)
+    return;
+  addLayer ();
+  imageInClipboard.paste (getActiveLayer ());
+  CPSelection selection = new CPSelection (getWidth (), getHeight ());
+  selection.makeSelectionFromAlpha (getActiveLayer ().getData (), new CPRect (imageInClipboard.getPosX (), imageInClipboard.getPosY (),
+                                                                              imageInClipboard.getPosX () + imageInClipboard.getWidth (),
+                                                                              imageInClipboard.getPosY () + imageInClipboard.getHeight ()));
+  getUndoManager ().activeLayerDataChange (selection.getBoundingRect ());
+  DoSelection (SelectionTypeOfAppliance.CREATE, selection);
+  finalizeUndo ();
+
+  invalidateFusion ();
 }
 
 public enum SelectionTypeOfAppliance
@@ -430,7 +476,7 @@ abstract class CPBrushToolBase extends CPBrushTool
   @Override
   public void beginStroke (float x, float y, float pressure)
   {
-    undoManager.preserveActiveLayerState ();
+    undoManager.preserveActiveLayerData ();
 
     opacityBuffer.clear ();
     opacityArea.makeEmpty ();
@@ -1537,7 +1583,7 @@ public void removeLayer ()
   if (getLayersVector ().size () > 1)
     {
       int previouslyActiveLayerNum = getActiveLayerNum ();
-      undoManager.preserveActiveLayerState ();
+      undoManager.preserveActiveLayerData ();
       getLayersVector ().remove (getActiveLayerNum ());
       setActiveLayerNumber (getActiveLayerNum () < getLayersVector ().size () ? getActiveLayerNum () : getActiveLayerNum () - 1);
       undoManager.layerWasRemoved (previouslyActiveLayerNum);
@@ -1680,7 +1726,7 @@ public void setLayerName (int layer, String name)
 
 public void floodFill (float x, float y, int colorDistance)
 {
-  undoManager.preserveActiveLayerState ();
+  undoManager.preserveActiveLayerData ();
 
   getActiveLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), colorDistance);
 
@@ -1695,7 +1741,7 @@ public void fill (int color, boolean applyToAllLayers)
 
   if (!applyToAllLayers)
     {
-      undoManager.preserveActiveLayerState ();
+      undoManager.preserveActiveLayerData ();
 
       getActiveLayer ().clear (r, color);
       undoManager.activeLayerDataChange (getSize ());
@@ -1723,7 +1769,7 @@ public void hFlip (boolean applyToAllLayers)
 {
   if (!applyToAllLayers)
     {
-      undoManager.preserveActiveLayerState ();
+      undoManager.preserveActiveLayerData ();
 
       getActiveLayer ().copyRegionHFlip (getSize (), undoManager.getActiveLayerPreservedData ());
       undoManager.activeLayerDataChange (getSize ());
@@ -1747,7 +1793,7 @@ public void vFlip (boolean applyToAllLayers)
 
   if (!applyToAllLayers)
     {
-      undoManager.preserveActiveLayerState ();
+      undoManager.preserveActiveLayerData ();
 
       getActiveLayer ().copyRegionVFlip (getSize (), undoManager.getActiveLayerPreservedData ());
       undoManager.activeLayerDataChange (getSize ());
@@ -1770,7 +1816,7 @@ public void monochromaticNoise (boolean applyToAllLayers)
 
   if (!applyToAllLayers)
     {
-      undoManager.preserveActiveLayerState ();
+      undoManager.preserveActiveLayerData ();
 
       getActiveLayer ().fillWithNoise (getSize ());
       undoManager.activeLayerDataChange (getSize ());
@@ -1794,7 +1840,7 @@ public void colorNoise (boolean applyToAllLayers)
 
   if (!applyToAllLayers)
     {
-      undoManager.preserveActiveLayerState ();
+      undoManager.preserveActiveLayerData ();
 
       getActiveLayer ().fillWithColorNoise (getSize ());
       undoManager.activeLayerDataChange (getSize ());
@@ -1818,7 +1864,7 @@ public void boxBlur (int radiusX, int radiusY, int iterations, boolean applyToAl
 
   if (!applyToAllLayers)
     {
-      undoManager.preserveActiveLayerState ();
+      undoManager.preserveActiveLayerData ();
 
       for (int c = 0; c < iterations; c++)
         {
@@ -1847,7 +1893,7 @@ public void invert (boolean applyToAllLayers)
 
   if (!applyToAllLayers)
     {
-      undoManager.preserveActiveLayerState ();
+      undoManager.preserveActiveLayerData ();
 
       getActiveLayer ().invert (getSize ());
 
@@ -1871,7 +1917,7 @@ public void makeMonochrome (boolean applyToAllLayers, int type)
 
   if (!applyToAllLayers)
     {
-      undoManager.preserveActiveLayerState ();
+      undoManager.preserveActiveLayerData ();
 
       getActiveLayer ().makeMonochrome (getSize (), type, curColor);
 

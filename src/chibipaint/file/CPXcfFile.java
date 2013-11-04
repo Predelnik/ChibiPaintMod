@@ -312,7 +312,7 @@ private static boolean readLayer (
         setPosition (is, tilePointers[i * wTiles + j]);
         if (compression == 1)
           // warning offset should be taken into account correctly and
-          // pixels out of bound should be cut
+          // pixels out of bound should be cutSelected
           try
             {
               readTileRLE (is, layer.getData (), j, i, layerWidth,
