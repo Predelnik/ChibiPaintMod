@@ -493,7 +493,7 @@ public void actionPerformed (ActionEvent e)
 
   else if (e.getActionCommand ().equals ("CPDeselectAll"))
     {
-      artwork.getCurSelection ().makeEmpty ();
+      artwork.deselectAll ();
       canvas.repaint ();
     }
 

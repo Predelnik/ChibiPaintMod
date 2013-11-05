@@ -138,6 +138,14 @@ public void pasteFromClipboard (boolean limited)
   invalidateFusion ();
 }
 
+public void deselectAll ()
+{
+  undoManager.preserveCurrentSelection ();
+  curSelection.makeEmpty ();
+  getUndoManager ().selectionChanged ();
+  undoManager.finalizeUndo ();
+}
+
 public enum SelectionTypeOfAppliance
 {
   CREATE,
