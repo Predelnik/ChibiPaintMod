@@ -103,7 +103,7 @@ public void preserveCurrentSelection ()
   preservedSelection.copyFrom (artwork.getCurSelection ());
 }
 
-public void selectionChanged ()
+public void currentSelectionChanged ()
 {
   CPRect rect = preservedSelection.getBoundingRect ();
   rect.union (artwork.getCurSelection ().getBoundingRect ());

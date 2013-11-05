@@ -80,7 +80,7 @@ public CPTransformHandler getTransformHandler ()
 
 public void FinishTransformUndo ()
 {
-  getUndoManager ().selectionChanged ();
+  getUndoManager ().currentSelectionChanged ();
   getUndoManager ().activeLayerDataChange (getSize ());
   getUndoManager ().finalizeUndo ();
   invalidateFusion ();
@@ -114,7 +114,7 @@ public void cutSelected (boolean limited)
   CPRect rect = curSelection.getBoundingRect ();
   invalidateFusion (rect);
   curSelection.makeEmpty ();
-  undoManager.selectionChanged ();
+  undoManager.currentSelectionChanged ();
   undoManager.activeLayerDataChange (rect);
   undoManager.finalizeUndo ();
   return;
@@ -142,7 +142,15 @@ public void deselectAll ()
 {
   undoManager.preserveCurrentSelection ();
   curSelection.makeEmpty ();
-  getUndoManager ().selectionChanged ();
+  getUndoManager ().currentSelectionChanged ();
+  undoManager.finalizeUndo ();
+}
+
+public void selectAll ()
+{
+  undoManager.preserveCurrentSelection ();
+  curSelection.selectAll ();
+  undoManager.currentSelectionChanged ();
   undoManager.finalizeUndo ();
 }
 
@@ -176,7 +184,7 @@ public void DoSelection (SelectionTypeOfAppliance type, CPSelection selection)
     }
   CPRect rect = undoManager.getPreservedSelection ().getBoundingRect ();
   rect.union (curSelection.getBoundingRect ());
-  undoManager.selectionChanged ();
+  undoManager.currentSelectionChanged ();
 }
 
 public CPSelection getCurSelection ()

@@ -487,7 +487,7 @@ public void actionPerformed (ActionEvent e)
 
   else if (e.getActionCommand ().equals ("CPSelectAll"))
     {
-      artwork.getCurSelection ().selectAll ();
+      artwork.selectAll ();
       canvas.repaint ();
     }
 
