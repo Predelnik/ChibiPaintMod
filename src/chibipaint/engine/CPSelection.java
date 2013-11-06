@@ -25,6 +25,7 @@ package chibipaint.engine;
 
 import chibipaint.gui.CPCanvas;
 import chibipaint.util.CPRect;
+import sun.awt.SunHints;
 
 import java.awt.*;
 import java.awt.geom.*;
@@ -161,6 +162,9 @@ public void makeSelectionFromPolygon (Path2D polygon, AffineTransform canvasTran
     }
   Graphics2D g = bImage.createGraphics ();
   g.setColor (Color.WHITE);
+  RenderingHints hints = g.getRenderingHints ();
+  hints.put (SunHints.KEY_ANTIALIASING, SunHints.VALUE_ANTIALIAS_ON);
+  g.addRenderingHints (hints);
   transformedPolygon.setWindingRule (Path2D.WIND_EVEN_ODD);
   g.fill (transformedPolygon);
   data = ((DataBufferByte) bImage.getData ().getDataBuffer ()).getData ();
@@ -270,7 +274,7 @@ public int getData (int i, int j)
   return data[j * width + i];
 }
 
-public int getData (int offset)
+public byte getData (int offset)
 {
   return data[offset];
 }
@@ -284,6 +288,11 @@ public int cutOpacity (int value, int i, int j)
   if (selection < newValue)
     newValue = selection;
   return newValue;
+}
+
+public byte[] getData ()
+{
+  return data;
 }
 
 

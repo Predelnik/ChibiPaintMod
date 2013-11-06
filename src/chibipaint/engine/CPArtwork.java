@@ -23,6 +23,7 @@
 package chibipaint.engine;
 
 import chibipaint.CPController;
+import chibipaint.effects.CPEffect;
 import chibipaint.engine.CPBrushManager.CPBrushDab;
 import chibipaint.util.CPColorFloat;
 import chibipaint.util.CPRect;
@@ -1758,6 +1759,31 @@ public void floodFill (float x, float y, int colorDistance)
   invalidateFusion ();
 }
 
+public void doEffectAction (boolean applyToAllLayers, CPEffect effect)
+{
+  // TODO: Limit to selection
+  CPRect r = getSize ();
+
+  if (!applyToAllLayers)
+    {
+      undoManager.preserveActiveLayerData ();
+      effect.doEffectOn (getActiveLayer (), curSelection);
+      undoManager.activeLayerDataChange (getSize ());
+    }
+  else
+    {
+      undoManager.preserveAllLayersState ();
+      for (int i = 0; i < getLayersVector ().size (); i++)
+        {
+          effect.doEffectOn (getLayersVector ().elementAt (i), curSelection);
+        }
+      undoManager.allLayersChanged (getSize ());
+    }
+
+  invalidateFusion ();
+}
+
+
 public void fill (int color, boolean applyToAllLayers)
 {
   // TODO: Limit to selection
@@ -1766,7 +1792,6 @@ public void fill (int color, boolean applyToAllLayers)
   if (!applyToAllLayers)
     {
       undoManager.preserveActiveLayerData ();
-
       getActiveLayer ().clear (r, color);
       undoManager.activeLayerDataChange (getSize ());
     }
@@ -1776,7 +1801,6 @@ public void fill (int color, boolean applyToAllLayers)
       for (int i = 0; i < getLayersVector ().size (); i++)
         {
           getLayersVector ().elementAt (i).clear (r, color);
-
         }
       undoManager.allLayersChanged (getSize ());
     }

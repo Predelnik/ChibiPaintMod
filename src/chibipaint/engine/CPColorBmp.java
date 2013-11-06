@@ -36,7 +36,7 @@ public class CPColorBmp extends CPBitmap
 {
 
 // The bitmap data
-private int[] data;
+public int[] data;
 
 //
 // Constructors

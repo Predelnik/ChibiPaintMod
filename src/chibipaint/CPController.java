@@ -24,6 +24,7 @@
 package chibipaint;
 
 import cello.jtablet.installer.BrowserLauncher;
+import chibipaint.effects.CPClearEffect;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPBrushInfo;
 import chibipaint.gui.CPCanvas;
@@ -546,7 +547,7 @@ public void actionPerformed (ActionEvent e)
 
   else if (e.getActionCommand ().equals ("CPClear"))
     {
-      artwork.clear (canvas.getApplyToAllLayers ());
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPClearEffect ());
       artwork.finalizeUndo ();
     }
 
