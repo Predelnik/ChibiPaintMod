@@ -38,6 +38,7 @@ import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
+import java.util.Arrays;
 import java.util.prefs.Preferences;
 
 import static chibipaint.engine.CPArtwork.SelectionTypeOfAppliance;
@@ -171,6 +172,28 @@ private static SelectionTypeOfAppliance modifiersToSelectionApplianceType (int m
 public CPCanvas getCanvas ()
 {
   return this;
+}
+
+public void reinitCanvas ()
+{
+  setArtwork (controller.getArtwork ());
+  buffer = artwork.getDisplayBM ().getData ();
+  int w = artwork.getWidth ();
+  int h = artwork.getHeight ();
+
+  imgSource = new MemoryImageSource (w, h, buffer, 0, w);
+  imgSource.setAnimated (true);
+  img = createImage (imgSource);
+  artwork.setCurSelection (new CPSelection (w, h));
+  artwork.addListener (this);
+
+  updateRegion = new CPRect (w, h);
+  if (Arrays.asList (drawingModes).contains (curSelectedMode))
+    {
+      controller.setTool (controller.getCurBrush ());
+    }
+
+  repaint ();
 }
 
 public void initCanvas (CPController ctrl)

@@ -195,24 +195,12 @@ public static void main (String[] args)
 
 public void recreateEverything (CPArtwork artwork)
 {
-  mainGUI.getPaletteManager ().savePalettesSettings ();
-  controller.canvas.saveCanvasSettings ();
-  controller.saveControllerSettings ();
-
-  controller.canvas.KillCanvas (); // Kind of disconnecting previous canvas from everything
-  controller.canvas.setArtwork (null);
-  controller.artwork = null;
-  mainGUI.recreateMenuBar ();
-
-  setJMenuBar (mainGUI.getMenuBar ());
   controller.setArtwork (artwork);
-  controller.canvas.initCanvas (controller); // Reinit canvas
-  ((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers")).removeListener ();
+  controller.canvas.reinitCanvas (); // Reinit canvas
   ((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers")).addListener ();
 
-  controller.loadControllerSettings ();
-  mainGUI.getPaletteManager ().loadPalettesSettings ();
-  controller.canvas.loadCanvasSettings ();
+  mainGUI.recreateMenuBar (); // TODO: Change this to correct update of recent files
+  setJMenuBar (mainGUI.getMenuBar ());
 }
 
 public void resetMainMenu ()
