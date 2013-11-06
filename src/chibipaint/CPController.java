@@ -29,6 +29,8 @@ import chibipaint.engine.CPBrushInfo;
 import chibipaint.gui.CPCanvas;
 import chibipaint.gui.CPMainGUI;
 import chibipaint.util.CPColor;
+import chibipaint.util.CPTablet;
+import chibipaint.util.CPTablet2;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -37,9 +39,12 @@ import javax.swing.event.HyperlinkListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -51,12 +56,13 @@ public abstract class CPController implements ActionListener
 private final static String VERSION_STRING = "0.0.5 (alpha)";
 
 private final CPColor curColor = new CPColor ();
+private boolean oldJTabletUsed;
 // int curAlpha = 255;
 // int brushSize = 16;
 
 // some important object references
 public CPArtwork artwork;
-public CPCanvas canvas;
+public CPCanvas canvas = null;
 
 final CPBrushInfo[] tools;
 private int curBrush = T_PENCIL;
@@ -177,9 +183,68 @@ public void setArtwork (CPArtwork artwork)
     this.artwork.getUndoManager ().setMaxUndo (50);
 }
 
-public void setCanvas (CPCanvas canvas)
+public void setCanvas (CPCanvas canvasArg)
 {
-  this.canvas = canvas;
+  if (this.canvas == null)
+    initTablet (canvasArg);
+  this.canvas = canvasArg;
+}
+
+private void initTablet (final CPCanvas canvasArg)
+{
+  Class<?> JTabletExtensionClass;
+  try
+    {
+      JTabletExtensionClass = Class.forName ("cello.jtablet.installer.JTabletExtension");
+      try
+        {
+          Class<?>[] params = new Class[2];
+          params[0] = Component.class;
+          params[1] = String.class;
+          Method checkCompatibility = JTabletExtensionClass.getMethod ("checkCompatibility", params);
+          oldJTabletUsed = !(((Boolean) checkCompatibility.invoke (JTabletExtensionClass, canvasArg, "1.2.0")).booleanValue ());
+        }
+      catch (Exception e)
+        {
+          System.out.format ("Error happened during checking compatility with JTablet 1.2\n");
+          System.exit (1);
+        }
+    }
+  catch (ClassNotFoundException e)
+    {
+      oldJTabletUsed = true;
+    }
+
+  if (!oldJTabletUsed)
+    {
+      CPTablet2.connectToCanvas (canvasArg);
+
+      // This stuff is to fix bug with not disappearing brush preview while moving cursor on widgets while
+      // using tablet
+      // It's bug of nature unknown to me, that's why I fixed it in a little confusing kind of way.
+      // TODO: Maybe fix it a better way.
+      canvasArg.addMouseListener (new MouseAdapter ()
+      {
+        @Override
+        public void mouseExited (MouseEvent me)
+        {
+          canvasArg.setCursorIn (false);
+          canvasArg.repaint ();
+        }
+
+        @Override
+        public void mouseEntered (MouseEvent me)
+        {
+          canvasArg.setCursorIn (true);
+        }
+      });
+    }
+  else
+    {
+      canvasArg.ShowLoadingTabletListenerMessage ();
+      CPTablet.getRef ();
+      canvasArg.HideLoadingTabletListenerMessage ();
+    }
 }
 
 public void setCurColor (CPColor color)

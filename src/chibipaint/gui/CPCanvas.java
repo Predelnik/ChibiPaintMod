@@ -31,7 +31,6 @@ import chibipaint.engine.CPTransformHandler;
 import chibipaint.util.CPBezier;
 import chibipaint.util.CPRect;
 import chibipaint.util.CPTablet;
-import chibipaint.util.CPTablet2;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,7 +38,6 @@ import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
-import java.lang.reflect.Method;
 import java.util.prefs.Preferences;
 
 import static chibipaint.engine.CPArtwork.SelectionTypeOfAppliance;
@@ -226,29 +224,6 @@ public void initCanvas (CPController ctrl)
 		 * escapeAction);
 		 */
 
-  Class<?> JTabletExtensionClass;
-  try
-    {
-      JTabletExtensionClass = Class.forName ("cello.jtablet.installer.JTabletExtension");
-      try
-        {
-          Class<?>[] params = new Class[2];
-          params[0] = Component.class;
-          params[1] = String.class;
-          Method checkCompatibility = JTabletExtensionClass.getMethod ("checkCompatibility", params);
-          oldJTabletUsed = !(((Boolean) checkCompatibility.invoke (JTabletExtensionClass, this, "1.2.0")).booleanValue ());
-        }
-      catch (Exception e)
-        {
-          System.out.format ("Error happened during checking compatility with JTablet 1.2");
-          System.exit (1);
-        }
-    }
-  catch (ClassNotFoundException e)
-    {
-      oldJTabletUsed = true;
-    }
-
   // register as a listener for Mouse & MouseMotion events
   if (oldJTabletUsed) // Otherwise listening of these events would be done by JTablet itself
     {
@@ -269,37 +244,6 @@ public void initCanvas (CPController ctrl)
 
   // So that the tab key will work
   setFocusTraversalKeysEnabled (false);
-
-  if (!oldJTabletUsed)
-    {
-      CPTablet2.connectToCanvas (this);
-
-      // This stuff is to fix bug with not disappearing brush preview while moving cursor on widgets while
-      // using tablet
-      // It's bug of nature unknown to me, that's why I fixed it in a little confusing kind of way.
-      // TODO: Maybe fix it a better way.
-      addMouseListener (new MouseAdapter ()
-      {
-        @Override
-        public void mouseExited (MouseEvent me)
-        {
-          cursorIn = false;
-          repaint ();
-        }
-
-        @Override
-        public void mouseEntered (MouseEvent me)
-        {
-          cursorIn = true;
-        }
-      });
-    }
-  else
-    {
-      ShowLoadingTabletListenerMessage ();
-      CPTablet.getRef ();
-      HideLoadingTabletListenerMessage ();
-    }
 
   killTimers ();
   selectionUpdateTimer = new Timer (50, new ActionListener ()
@@ -1323,6 +1267,11 @@ int getButton ()
 public void setButton (int button)
 {
   this.button = button;
+}
+
+public void setCursorIn (boolean cursorIn)
+{
+  this.cursorIn = cursorIn;
 }
 
 public abstract class CPMode
