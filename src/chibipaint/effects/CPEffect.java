@@ -35,39 +35,107 @@ public int modify (int[] data, byte[] selData, int offset)
   // Do nothing
 }
 
+public int modify (int[] data, int offset)
+{
+  return 0;
+  // Do nothing
+}
+
 public int modify (int[] data, byte[] selData, int i, int j, int offset)
 {
   return 0;
   // Do nothing
 }
 
+public int modify (int[] data, int i, int j, int offset)
+{
+  return 0;
+  // Do nothing
+}
+
+
 public void modifyByOffset (CPLayer layer, CPSelection selection)
 {
-  CPRect rect = selection.getBoundingRect ();
-  int off = 0;
-  for (int j = 0; j < rect.getHeight (); j++)
+  if (selection.isEmpty ())
     {
-      off = (j + rect.getTop ()) * layer.getWidth () + rect.getLeft ();
-      for (int i = 0; i < rect.getWidth (); i++, off++)
+      for (int off = 0; off < layer.getWidth () * layer.getHeight (); off++)
+        layer.getData ()[off] = modify (layer.getData (), off);
+    }
+  else
+    {
+      CPRect rect = selection.getBoundingRect ();
+      int off = 0;
+      for (int j = 0; j < rect.getHeight (); j++)
         {
-          layer.getData ()[off] = modify (layer.getData (), selection.getData (), off);
+          off = (j + rect.getTop ()) * layer.getWidth () + rect.getLeft ();
+          for (int i = 0; i < rect.getWidth (); i++, off++)
+            {
+              layer.getData ()[off] = modify (layer.getData (), selection.getData (), off);
+            }
         }
     }
 }
 
 public void modifyByIndices (CPLayer layer, CPSelection selection)
 {
-  CPRect rect = selection.getBoundingRect ();
-  int off = 0;
-  for (int j = 0; j < rect.getHeight (); j++)
+  if (selection.isEmpty ())
     {
-      off = (j + rect.getTop ()) * layer.getWidth () + rect.getLeft ();
-      for (int i = 0; i < rect.getWidth (); i++, off++)
+      int off = 0;
+      for (int j = 0; j < layer.getHeight (); j++)
         {
-          layer.getData ()[off] = modify (layer.getData (), selection.getData (), i, j, off);
+          off = j * layer.getWidth ();
+          for (int i = 0; i < layer.getWidth (); i++, off++)
+            layer.getData ()[off] = modify (layer.getData (), i, j, off);
+        }
+    }
+  else
+    {
+      CPRect rect = selection.getBoundingRect ();
+      int off = 0;
+      for (int j = 0; j < rect.getHeight (); j++)
+        {
+          off = (j + rect.getTop ()) * layer.getWidth () + rect.getLeft ();
+          for (int i = 0; i < rect.getWidth (); i++, off++)
+            {
+              layer.getData ()[off] = modify (layer.getData (), selection.getData (), i, j, off);
+            }
         }
     }
 }
 
+// Colors the pixel with current color according to layer's transparency and selection. (color's own transparency being disregarded)
+protected int colorInOpaque (int layerColor, int selValue, int newColor)
+{
+  int destColor = layerColor;
+  int destAlpha = destColor >>> 24;
+  int srcAlpha = selValue & 0xFF;
+  int newLayerAlpha = srcAlpha + destAlpha * (255 - srcAlpha) / 255;
+  if (newLayerAlpha > 0)
+    {
+      int realAlpha = 255 * srcAlpha / newLayerAlpha;
+      int invAlpha = 255 - realAlpha;
+
+      if (srcAlpha > 0)
+        {
+          int finalColor = (((newColor >>> 16 & 0xff) * realAlpha + (destColor >>> 16 & 0xff) * invAlpha) / 255) << 16
+                  & 0xff0000
+                  | (((newColor >>> 8 & 0xff) * realAlpha + (destColor >>> 8 & 0xff) * invAlpha) / 255) << 8
+                  & 0xff00 | (((newColor & 0xff) * realAlpha + (destColor & 0xff) * invAlpha) / 255) & 0xff;
+          finalColor |= newLayerAlpha << 24 & 0xff000000;
+          return finalColor;
+        }
+      else
+        return layerColor;
+    }
+  else
+    return 0x00FFFFFF;
+}
+
+// Colors the pixel with current color according to layer's transparency and selection. (color's own transparency being counted)
+protected int colorIn (int layerColor, int selValue, int newColor)
+{
+  int newColorAlpha = (newColor >>> 24) & 0xFF;
+  return colorInOpaque (layerColor, selValue > newColorAlpha ? newColorAlpha : selValue, newColor);
+}
 }
 

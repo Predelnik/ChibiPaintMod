@@ -387,6 +387,7 @@ class CPLayerWidget extends JComponent implements MouseListener, MouseMotionList
             else
               {
                 artwork.setActiveLayerNumber (layerIndex);
+                artwork.finalizeUndo ();
               }
 
           }

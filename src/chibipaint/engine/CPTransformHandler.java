@@ -312,20 +312,17 @@ static float controlDistance = 10.0f;
 public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg)
 {
   currentSelection = currentSelectionArg;
-  CPColorBmp tempBmp = new CPColorBmp (0, 0);
-  tempBmp.copyDataFrom (activeLayerArg);
-  artworkWidth = activeLayerArg.getWidth ();
-  artworkHeight = activeLayerArg.getHeight ();
-  tempBmp.cutBySelection (currentSelection);
-  transformingRect = tempBmp.getBoundingBox ();
-  transformedPart = new CPColorBmp (transformingRect.getWidth (), transformingRect.getHeight ());
-  transformedPart.setFromBitmapRect (tempBmp, transformingRect);
+  transformedPart = new CPColorBmp (0, 0);
+  transformedPart.copyDataFromSelectedPart (activeLayerArg, currentSelection);
   activeAction.setToNothing ();
+  transformingRect = currentSelection.getBoundingRect ();
   shiftX = transformingRect.getLeft ();
   shiftY = transformingRect.getTop ();
   editTransform.setToIdentity ();
   updateCurrentTransform ();
   activeLayerArg.removePartsCutBySelection (currentSelection);
+  artworkWidth = activeLayerArg.getWidth ();
+  artworkHeight = activeLayerArg.getHeight ();
   activeLayer = activeLayerArg; // TODO: Disable any actions with layer while transformation is in process.
   MemoryImageSource imgSource = new MemoryImageSource (transformedPart.getWidth (), transformedPart.getHeight (), transformedPart.getData (), 0, transformedPart.getWidth ());
   transformedPartImage = Toolkit.getDefaultToolkit ().createImage (imgSource);
@@ -488,7 +485,7 @@ private void updateCurrentTransform ()
   transform.concatenate (editTransform);
 }
 
-final int smallRectPixelSize = 6;
+final int smallRectPixelSize = 7;
 
 static Path2D.Float transformRectToPath (float left, float top, float right, float bottom, AffineTransform transformArg)
 {

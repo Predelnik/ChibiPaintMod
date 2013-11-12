@@ -24,28 +24,30 @@ package chibipaint.effects;
 import chibipaint.engine.CPLayer;
 import chibipaint.engine.CPSelection;
 
-public class CPClearEffect extends CPEffect
+public class CPMakeGrayscaleEffect extends CPEffect
 {
-public CPClearEffect ()
-{
-}
-
 @Override
 public void doEffectOn (CPLayer layer, CPSelection selection)
 {
   modifyByOffset (layer, selection);
 }
 
+private int transformColor (int color)
+{
+  int red = color & 0xFF0000 >>> 16;
+  int green = color & 0x00FF00 >> 8;
+  int blue = color & 0xFF;
+  int v = (int) (0.2125 * red + 0.7154 * green + 0.0721 * blue);
+  return (color & 0xFF000000) | v << 16 | v << 8 | v;
+}
+
 public int modify (int[] data, byte[] selData, int offset)
 {
-  int color = data[offset];
-  int opacity = color >>> 24;
-  int selValue = selData[offset] & 0xFF;
-  return (selValue > opacity ? 0x00FFFFFF : (color & 0x00FFFFFF) | ((opacity - selValue) << 24));
+  return colorInOpaque (data[offset], selData[offset], transformColor (data[offset]));
 }
 
 public int modify (int[] data, int offset)
 {
-  return 0x00FFFFFF;
+  return transformColor (data[offset]);
 }
 }

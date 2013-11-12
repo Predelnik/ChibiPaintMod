@@ -236,7 +236,7 @@ void createMainMenu ()
       addSeparator ();
 
       addMenuItem ("Save", KeyEvent.VK_S, "CPSave", "Save existing file", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK));
-      addMenuItem ("Save as...", KeyEvent.VK_A, "CPSaveChi", "Save .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+      addMenuItem ("Save as...", KeyEvent.VK_A, "CPSaveCHI", "Save .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
       addMenuItem ("Open...", KeyEvent.VK_O, "CPLoadCHI", "Open .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_O, InputEvent.CTRL_MASK));
 
       boolean subMenuCreated = false;
@@ -323,13 +323,7 @@ void createMainMenu ()
   addMenuItem ("Fill", KeyEvent.VK_F, "CPFill", "Fills the selected area with the current color", KeyStroke.getKeyStroke (KeyEvent.VK_F, InputEvent.CTRL_MASK));
   addMenuItem ("Invert", KeyEvent.VK_F, "CPFXInvert", "Invert the image colors");
 
-  addSubMenu ("Make Grayscale", KeyEvent.VK_G);
-  addMenuItem ("By Intensity", KeyEvent.VK_I, "CPFXMakeMonochromeByIntensity", "Make image grayscale by Intensity Formula");
-  addMenuItem ("By Value", KeyEvent.VK_V, "CPFXMakeMonochromeByValue", "Make image grayscale by Value Formula");
-  addMenuItem ("By Lightness", KeyEvent.VK_V, "CPFXMakeMonochromeByLightness", "Make image grayscale by Lightness Formula");
-  addMenuItem ("By Luma", KeyEvent.VK_U, "CPFXMakeMonochromeByLuma", "Make image grayscale by Luma Formula");
-  addMenuItem ("By Selected Color", KeyEvent.VK_C, "CPFXMakeMonochromeBySelColor", "Make image grayscale by Selected Color");
-  endSubMenu ();
+  addMenuItem ("Make Grayscale", KeyEvent.VK_M, "CPFXMakeMonochromeByLuma", "Make image grayscale by Luma Formula");
 
   addSubMenu ("Blur", KeyEvent.VK_B);
   addMenuItem ("Box Blur...", KeyEvent.VK_B, "CPFXBoxBlur", "Blur Effect");

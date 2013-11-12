@@ -24,7 +24,7 @@
 package chibipaint;
 
 import cello.jtablet.installer.BrowserLauncher;
-import chibipaint.effects.CPClearEffect;
+import chibipaint.effects.*;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPBrushInfo;
 import chibipaint.gui.CPCanvas;
@@ -541,7 +541,7 @@ public void actionPerformed (ActionEvent e)
 
   else if (e.getActionCommand ().equals ("CPFill"))
     {
-      artwork.fill (getCurColorRgb () | 0xff000000, canvas.getApplyToAllLayers ());
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPFillEffect (getCurColorRgb () | 0xff000000));
       artwork.finalizeUndo ();
     }
 
@@ -577,55 +577,30 @@ public void actionPerformed (ActionEvent e)
 
   else if (e.getActionCommand ().equals ("CPMNoise"))
     {
-      artwork.monochromaticNoise (canvas.getApplyToAllLayers ());
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPGrayscaleNoiseEffect ());
       artwork.finalizeUndo ();
     }
 
   else if (e.getActionCommand ().equals ("CPCNoise"))
     {
-      artwork.colorNoise (canvas.getApplyToAllLayers ());
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPColorNoiseEffect ());
       artwork.finalizeUndo ();
     }
 
   else if (e.getActionCommand ().equals ("CPFXBoxBlur"))
     {
       showBoxBlurDialog ();
-      artwork.finalizeUndo ();
     }
 
   else if (e.getActionCommand ().equals ("CPFXInvert"))
     {
-      artwork.invert (canvas.getApplyToAllLayers ());
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPFXMakeMonochromeByIntensity"))
-    {
-      artwork.makeMonochrome (canvas.getApplyToAllLayers (), 0);
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPFXMakeMonochromeByValue"))
-    {
-      artwork.makeMonochrome (canvas.getApplyToAllLayers (), 1);
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPFXMakeMonochromeByLightness"))
-    {
-      artwork.makeMonochrome (canvas.getApplyToAllLayers (), 2);
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPInverseEffect ());
       artwork.finalizeUndo ();
     }
 
   else if (e.getActionCommand ().equals ("CPFXMakeMonochromeByLuma"))
     {
-      artwork.makeMonochrome (canvas.getApplyToAllLayers (), 3);
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPFXMakeMonochromeBySelColor"))
-    {
-      artwork.makeMonochrome (canvas.getApplyToAllLayers (), 4);
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPMakeGrayscaleEffect ());
       artwork.finalizeUndo ();
     }
 
@@ -862,11 +837,12 @@ void showBoxBlurDialog ()
 
   if (choice == JOptionPane.OK_OPTION)
     {
+
       int blur = ((Integer) blurX.getValue ()).intValue ();
       int iterations = ((Integer) iter.getValue ()).intValue ();
-
-      artwork.boxBlur (blur, blur, iterations, canvas.getApplyToAllLayers ());
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPBoxBlurEffect (blur, blur, iterations));
       canvas.repaint ();
+      artwork.finalizeUndo ();
     }
 }
 

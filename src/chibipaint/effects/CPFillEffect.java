@@ -24,10 +24,13 @@ package chibipaint.effects;
 import chibipaint.engine.CPLayer;
 import chibipaint.engine.CPSelection;
 
-public class CPClearEffect extends CPEffect
+public class CPFillEffect extends CPEffect
 {
-public CPClearEffect ()
+private final int color;
+
+public CPFillEffect (int colorArg)
 {
+  color = colorArg;
 }
 
 @Override
@@ -38,14 +41,14 @@ public void doEffectOn (CPLayer layer, CPSelection selection)
 
 public int modify (int[] data, byte[] selData, int offset)
 {
-  int color = data[offset];
-  int opacity = color >>> 24;
-  int selValue = selData[offset] & 0xFF;
-  return (selValue > opacity ? 0x00FFFFFF : (color & 0x00FFFFFF) | ((opacity - selValue) << 24));
+  return colorInOpaque (data[offset], selData[offset], color);
 }
 
 public int modify (int[] data, int offset)
 {
-  return 0x00FFFFFF;
+  return color;
 }
+
 }
+
+

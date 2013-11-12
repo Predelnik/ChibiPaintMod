@@ -114,41 +114,6 @@ public void clear (CPRect r, int color)
     }
 }
 
-public void clear (int color, CPSelection selection)
-{
-  CPRect rect = new CPRect (0, 0, width, height);
-  rect.clip (selection.getBoundingRect ());
-  for (int j = rect.top; j < rect.bottom; j++)
-    {
-      for (int i = rect.left; i < rect.right; i++)
-        {
-          set (i + j * width, selection.getData (j * width + i), color);
-        }
-    }
-}
-
-private void set (int index, byte selectionValue, int color)
-{
-  // TODO: Check this formula
-  int destColor = data[index];
-  int destAlpha = destColor >>> 24;
-  int opacityAlpha = Math.min (255 * 255, destAlpha * 255 + (255 - destAlpha) * (selectionValue & 0xFF) / 255) / 255;
-  int newLayerAlpha = opacityAlpha + destAlpha * (255 - opacityAlpha) / 255;
-  int realAlpha = 255 * opacityAlpha / newLayerAlpha;
-  int invAlpha = 255 - realAlpha;
-
-  if (opacityAlpha > 0)
-    {
-      int newColor = (((color >>> 16 & 0xff) * realAlpha + (destColor >>> 16 & 0xff) * invAlpha) / 255) << 16
-              & 0xff0000
-              | (((color >>> 8 & 0xff) * realAlpha + (destColor >>> 8 & 0xff) * invAlpha) / 255) << 8
-              & 0xff00 | (((color & 0xff) * realAlpha + (destColor & 0xff) * invAlpha) / 255) & 0xff;
-      newColor |= newLayerAlpha << 24 & 0xff000000;
-      data[index] = newColor;
-    }
-}
-
-
 public int getAlpha ()
 {
   return alpha;

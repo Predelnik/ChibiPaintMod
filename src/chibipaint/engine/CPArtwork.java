@@ -155,6 +155,11 @@ public void selectAll ()
   undoManager.finalizeUndo ();
 }
 
+public void setActiveLayerNumberWithoutUpdate (int activeLayerNumberArg)
+{
+  activeLayerNumber = activeLayerNumberArg;
+}
+
 public enum SelectionTypeOfAppliance
 {
   CREATE,
@@ -285,7 +290,7 @@ public CPArtwork (int width, int height)
   activeLayer = getLayersVector ().get (0);
   fusionArea = new CPRect (0, 0, width, height);
   opacityArea = new CPRect ();
-  setActiveLayerNum (0);
+  setActiveLayerNumberWithoutUpdate (0);
 
   // we reserve a double sized buffer to be used as a 16bits per channel buffer
   opacityBuffer = new CPLayer (width, height);
@@ -1399,16 +1404,23 @@ class CPBrushToolSmudge extends CPBrushToolDirectBrush
 // Layer methods
 // ///////////////////////////////////////////////////////////////////////////////////
 
-public void setActiveLayerNumber (int i)
+public void setActiveLayerNumberWithoutUndo (int i)       // warning, use it only if you're using other kind of layer undo
 {
   if (i < 0 || i >= getLayersVector ().size ())
     {
       return;
     }
 
-  setActiveLayerNum (i);
+  setActiveLayerNumberWithoutUpdate (i);
   activeLayer = getLayersVector ().get (i);
   callListenersLayerChange ();
+}
+
+public void setActiveLayerNumber (int i)
+{
+  undoManager.preserveActiveLayerNumber ();
+  setActiveLayerNumberWithoutUndo (i);
+  undoManager.activeLayerNumberChanged ();
 }
 
 public int getActiveLayerNb ()
@@ -1596,7 +1608,7 @@ public void addLayer ()
   CPLayer newLayer = new CPLayer (getWidth (), getHeight ());
   newLayer.setName (getDefaultLayerName ());
   getLayersVector ().add (getActiveLayerNum () + 1, newLayer);
-  setActiveLayerNumber (getActiveLayerNum () + 1);
+  setActiveLayerNumberWithoutUndo (getActiveLayerNum () + 1);
   undoManager.layerWasAppended ();
 
   invalidateFusion ();
@@ -1610,7 +1622,7 @@ public void removeLayer ()
       int previouslyActiveLayerNum = getActiveLayerNum ();
       undoManager.preserveActiveLayerData ();
       getLayersVector ().remove (getActiveLayerNum ());
-      setActiveLayerNumber (getActiveLayerNum () < getLayersVector ().size () ? getActiveLayerNum () : getActiveLayerNum () - 1);
+      setActiveLayerNumberWithoutUndo (getActiveLayerNum () < getLayersVector ().size () ? getActiveLayerNum () : getActiveLayerNum () - 1);
       undoManager.layerWasRemoved (previouslyActiveLayerNum);
       invalidateFusion ();
       callListenersLayerChange ();
@@ -1647,7 +1659,7 @@ public void duplicateLayer ()
     }
   getLayersVector ().add (getActiveLayerNum () + 1, newLayer);
 
-  setActiveLayerNumber (getActiveLayerNum () + 1);
+  setActiveLayerNumberWithoutUndo (getActiveLayerNum () + 1);
   undoManager.layerDuplicationTookPlace ();
   invalidateFusion ();
   callListenersLayerChange ();
@@ -1661,7 +1673,7 @@ public void mergeDown ()
       getLayersVector ().elementAt (getActiveLayerNum ()).fusionWithFullAlpha (getLayersVector ().elementAt (getActiveLayerNum () - 1),
                                                                                new CPRect (getWidth (), getHeight ()));
       getLayersVector ().remove (getActiveLayerNum ());
-      setActiveLayerNumber (getActiveLayerNum () - 1);
+      setActiveLayerNumberWithoutUndo (getActiveLayerNum () - 1);
 
       invalidateFusion ();
       callListenersLayerChange ();
@@ -1682,7 +1694,7 @@ public void mergeAllLayers ()
       layer.setName (getDefaultLayerName ());
       layer.copyDataFrom (fusion);
       getLayersVector ().add (layer);
-      setActiveLayerNumber (0);
+      setActiveLayerNumberWithoutUndo (0);
 
       invalidateFusion ();
       callListenersLayerChange ();
@@ -1705,12 +1717,12 @@ void moveLayerReal (int from, int to)
   if (to <= from)
     {
       getLayersVector ().add (to, layer);
-      setActiveLayerNumber (to);
+      setActiveLayerNumberWithoutUndo (to);
     }
   else
     {
       getLayersVector ().add (to - 1, layer);
-      setActiveLayerNumber (to - 1);
+      setActiveLayerNumberWithoutUndo (to - 1);
     }
 
   invalidateFusion ();
@@ -1761,14 +1773,14 @@ public void floodFill (float x, float y, int colorDistance)
 
 public void doEffectAction (boolean applyToAllLayers, CPEffect effect)
 {
-  // TODO: Limit to selection
-  CPRect r = getSize ();
+  CPRect rect = curSelection.isEmpty () ? getSize () : curSelection.getBoundingRect ();
 
   if (!applyToAllLayers)
     {
       undoManager.preserveActiveLayerData ();
       effect.doEffectOn (getActiveLayer (), curSelection);
-      undoManager.activeLayerDataChange (getSize ());
+
+      undoManager.activeLayerDataChange (rect);
     }
   else
     {
@@ -1777,7 +1789,7 @@ public void doEffectAction (boolean applyToAllLayers, CPEffect effect)
         {
           effect.doEffectOn (getLayersVector ().elementAt (i), curSelection);
         }
-      undoManager.allLayersChanged (getSize ());
+      undoManager.allLayersChanged (rect);
     }
 
   invalidateFusion ();
@@ -2024,11 +2036,6 @@ public void setLayers (Vector<CPLayer> layers)
 public int getActiveLayerNum ()
 {
   return activeLayerNumber;
-}
-
-void setActiveLayerNum (int activeLayer)
-{
-  this.activeLayerNumber = activeLayer;
 }
 
 public boolean isLockAlpha ()

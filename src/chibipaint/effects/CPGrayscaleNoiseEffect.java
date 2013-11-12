@@ -24,10 +24,15 @@ package chibipaint.effects;
 import chibipaint.engine.CPLayer;
 import chibipaint.engine.CPSelection;
 
-public class CPClearEffect extends CPEffect
+import java.util.Random;
+
+public class CPGrayscaleNoiseEffect extends CPEffect
 {
-public CPClearEffect ()
+private final Random rand;
+
+public CPGrayscaleNoiseEffect ()
 {
+  rand = new Random ();
 }
 
 @Override
@@ -38,14 +43,20 @@ public void doEffectOn (CPLayer layer, CPSelection selection)
 
 public int modify (int[] data, byte[] selData, int offset)
 {
-  int color = data[offset];
-  int opacity = color >>> 24;
-  int selValue = selData[offset] & 0xFF;
-  return (selValue > opacity ? 0x00FFFFFF : (color & 0x00FFFFFF) | ((opacity - selValue) << 24));
+  int color = rand.nextInt ();
+  color &= 0xff;
+  color |= (color << 8) | (color << 16) | 0xff000000;
+  return colorInOpaque (data[offset], selData[offset], color);
 }
 
 public int modify (int[] data, int offset)
 {
-  return 0x00FFFFFF;
+  int color = rand.nextInt ();
+  color &= 0xff;
+  color |= (color << 8) | (color << 16) | 0xff000000;
+  return color;
 }
+
 }
+
+

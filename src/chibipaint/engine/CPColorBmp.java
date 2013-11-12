@@ -352,7 +352,7 @@ public void removePartsCutBySelection (CPSelection selection)
     }
 }
 
-void drawItselfOnTarget (CPColorBmp target, int shiftX, int shiftY)
+public void drawItselfOnTarget (CPColorBmp target, int shiftX, int shiftY)
 {
   for (int j = 0; j < height; j++)
     {
@@ -385,6 +385,31 @@ void drawItselfOnTarget (CPColorBmp target, int shiftX, int shiftY)
                       | (((color1 & 0xff) * realAlpha + (color2 & 0xff)
                       * invAlpha) / 255);
             }
+        }
+    }
+}
+
+public void copyDataFromSelectedPart (CPColorBmp bmp, CPSelection selection)
+{
+  CPRect rect = selection.getBoundingRect ();
+  if (width != rect.getWidth () || height != rect.getHeight ())
+    {
+      width = rect.getWidth ();
+      height = rect.getHeight ();
+      data = new int[width * height];
+    }
+
+  for (int j = 0; j < height; j++)
+    {
+      int offSource = (rect.getTop () + j) * bmp.getWidth () + rect.getLeft ();
+      int offDest = j * width;
+      for (int i = 0; i < width; i++, offSource++, offDest++)
+        {
+          int selValue = (int) (selection.getData ()[offSource] & 0xFF);
+          int alphaValue = bmp.getData ()[offSource] >>> 24;
+          if (selValue < alphaValue)
+            alphaValue = selValue;
+          data[offDest] = (bmp.getData ()[offSource] & 0x00FFFFFF) | (alphaValue << 24);
         }
     }
 }
