@@ -47,7 +47,7 @@ public void doEffectOn (CPLayer layer, CPSelection selection)
   if (selection.isEmpty ())
     boxBlur (layer, iterations);
   else
-    boxBlur (layer, selection, iterations);
+    boxBlurWithWeights (layer, selection, iterations);
 }
 
 private void boxBlur (CPLayer layer, int iterations)
@@ -84,7 +84,7 @@ private void boxBlur (CPLayer layer, int iterations)
     }
 }
 
-private void boxBlur (CPLayer layer, CPSelection selection, int iterations)
+private void boxBlurWithWeights (CPLayer layer, CPSelection selection, int iterations)
 {
   int layerWidth = layer.getWidth ();
   int layerHeight = layer.getHeight ();
@@ -102,61 +102,61 @@ private void boxBlur (CPLayer layer, CPSelection selection, int iterations)
 
   int[] src = new int[maxPossibleLength];
   int[] dst = new int[maxPossibleLength];
+  float[] weights = new float[maxPossibleLength];
 
   for (int k = 0; k < iterations; k++)
     {
       for (int j = 0; j < rectHeight; j++)
         {
+          makeWeightsFromRow (selection, j, rect.getLeft (), rect.getTop (), rectWidth, weights);
           System.arraycopy (tempBmp.getData (), j * rectWidth, src, 0, rectWidth);
           multiplyAlpha (src, rectWidth);
-          int leftLimit = 0, rightLimit = rectWidth;
-          int off = (j + rect.getTop ()) * layerWidth + rect.getLeft ();
-          while (leftLimit < rectWidth && ((selection.getData ()[off] & 0xFF) < 32))
-            {
-              leftLimit++;
-              off++;
-            }
-
-          off = (j + rect.getTop ()) * layerWidth + rect.getRight ();
-          while (rightLimit > 0 && ((selection.getData ()[off] & 0xFF) < 32))
-            {
-              rightLimit--;
-              off--;
-            }
-
-          Arrays.fill (dst, 0);
-          if (leftLimit < rightLimit)
-            boxBlurLine (src, dst, radiusX, leftLimit, rightLimit);
+          boxBlurLine (src, dst, radiusX, 0, rectWidth - 1, weights);
           copyArrayToRow (tempBmp, j, rectWidth, dst);
         }
 
       for (int i = 0; i < rectWidth; i++)
         {
+          makeWeightsFromColumn (selection, i, rect.getLeft (), rect.getTop (), rectHeight, weights);
           copyColumnToArray (tempBmp, i, rectHeight, src);
-          int bottomLimit = 0, topLimit = rectHeight;
-          int off = (rect.getTop ()) * layerWidth + i + rect.getLeft ();
-          while (bottomLimit < rectWidth && (selection.getData ()[off] & 0xFF) < 32)
-            {
-              bottomLimit++;
-              off += layerWidth;
-            }
-
-          off = rect.getBottom () * layerWidth + i + rect.getLeft ();
-          while (topLimit > 0 && (selection.getData ()[off] & 0xFF) < 32)
-            {
-              topLimit--;
-              off -= layerWidth;
-            }
-
-          Arrays.fill (dst, 0);
-          if (bottomLimit < topLimit)
-            boxBlurLine (src, dst, radiusY, bottomLimit, topLimit);
+          boxBlurLine (src, dst, radiusY, 0, rectHeight - 1, weights);
           restoreAlpha (dst, rectHeight);
           copyArrayToColumn (tempBmp, i, rectHeight, dst);
         }
     }
 
+  // Post processing
+  for (int j = 0; j < rectHeight; j++)
+    {
+      int off = j * rectWidth;
+      int selOff = (j + rect.getTop ()) * selection.getWidth () + rect.getLeft ();
+      for (int i = 0; i < rectWidth; i++, off++, selOff++)
+        {
+          int selValue = (int) selection.getData ()[selOff] & 0xFF;
+          if (selValue == 0)
+            tempBmp.getData ()[off] = (tempBmp.getData ()[off] & 0xFFFFFF) | (selValue << 24);
+        }
+    }
+
   tempBmp.drawItselfOnTarget (layer, rect.getLeft (), rect.getTop ());
+}
+
+private void makeWeightsFromRow (CPSelection sel, int j, int initialXOffset, int initialYOffset, int len, float[] weights)
+{
+  int offset = (j + initialYOffset) * sel.getWidth () + initialXOffset;
+  for (int i = 0; i < len; i++, offset++)
+    {
+      weights[i] = (((int) (sel.getData ()[offset] & 0xFF)) / 255.0f);
+    }
+}
+
+void makeWeightsFromColumn (CPSelection sel, int x, int initialXOffset, int initialYOffset, int len, float[] weights)
+{
+  for (int i = 0; i < len; i++)
+    {
+      int offset = initialXOffset + x + (i + initialYOffset) * sel.getWidth ();
+      weights[i] = (((int) (sel.getData ()[offset] & 0xFF)) / 255.0f);
+    }
 }
 
 void copyColumnToArray (CPColorBmp layer, int x, int len, int[] buffer)
@@ -248,6 +248,51 @@ private static void boxBlurLine (int[] src, int dst[], int radius, int startOffs
           tg -= (pix >>> 8) & 0xff;
           tb -= pix & 0xff;
           s--;
+        }
+    }
+}
+
+private static void boxBlurLine (int[] src, int dst[], int radius, int startOffset, int endOffset, float[] weights)
+{
+  float ta, s, tr, tg, tb;
+
+  s = ta = tr = tg = tb = 0.0f;
+  int pix;
+
+  for (int i = startOffset; i < startOffset + radius && i <= endOffset; i++)
+    {
+      pix = src[i];
+      ta += (pix >>> 24) * weights[i];
+      tr += ((pix >>> 16) & 0xff) * weights[i];
+      tg += ((pix >>> 8) & 0xff) * weights[i];
+      tb += (pix & 0xff) * weights[i];
+      s += weights[i];
+    }
+  for (int i = startOffset; i <= endOffset; i++)
+    {
+      if (i + radius <= endOffset)
+        {
+          pix = src[i + radius];
+          ta += (pix >>> 24) * weights[i + radius];
+          tr += ((pix >>> 16) & 0xff) * weights[i + radius];
+          tg += ((pix >>> 8) & 0xff) * weights[i + radius];
+          tb += (pix & 0xff) * weights[i + radius];
+          s += weights[i + radius];
+        }
+
+      if (s > 1.e-3f)
+        dst[i] = ((int) (ta / s) << 24) | ((int) (tr / s) << 16) | ((int) (tg / s) << 8) | (int) (tb / s);
+      else
+        dst[i] = 0;
+
+      if (i - radius >= startOffset)
+        {
+          pix = src[i - radius];
+          ta -= (pix >>> 24) * weights[i - radius];
+          tr -= ((pix >>> 16) & 0xff) * weights[i - radius];
+          tg -= ((pix >>> 8) & 0xff) * weights[i - radius];
+          tb -= (pix & 0xff) * weights[i - radius];
+          s -= weights[i - radius];
         }
     }
 }
