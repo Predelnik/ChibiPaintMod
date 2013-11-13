@@ -29,32 +29,32 @@ public abstract class CPEffect
 {
 public abstract void doEffectOn (CPLayer layer, CPSelection selection);
 
-public int modify (int[] data, byte[] selData, int offset)
+int modify (int[] data, byte[] selData, int offset)
 {
   return 0;
   // Do nothing
 }
 
-public int modify (int[] data, int offset)
+int modify (int[] data, int offset)
 {
   return 0;
   // Do nothing
 }
 
-public int modify (int[] data, byte[] selData, int i, int j, int offset)
+int modify (int[] data, byte[] selData, int i, int j, int offset)
 {
   return 0;
   // Do nothing
 }
 
-public int modify (int[] data, int i, int j, int offset)
+int modify (int[] data, int i, int j, int offset)
 {
   return 0;
   // Do nothing
 }
 
 
-public void modifyByOffset (CPLayer layer, CPSelection selection)
+void modifyByOffset (CPLayer layer, CPSelection selection)
 {
   if (selection.isEmpty ())
     {
@@ -64,7 +64,7 @@ public void modifyByOffset (CPLayer layer, CPSelection selection)
   else
     {
       CPRect rect = selection.getBoundingRect ();
-      int off = 0;
+      int off;
       for (int j = 0; j < rect.getHeight (); j++)
         {
           off = (j + rect.getTop ()) * layer.getWidth () + rect.getLeft ();
@@ -80,7 +80,7 @@ public void modifyByIndices (CPLayer layer, CPSelection selection)
 {
   if (selection.isEmpty ())
     {
-      int off = 0;
+      int off;
       for (int j = 0; j < layer.getHeight (); j++)
         {
           off = j * layer.getWidth ();
@@ -91,7 +91,7 @@ public void modifyByIndices (CPLayer layer, CPSelection selection)
   else
     {
       CPRect rect = selection.getBoundingRect ();
-      int off = 0;
+      int off;
       for (int j = 0; j < rect.getHeight (); j++)
         {
           off = (j + rect.getTop ()) * layer.getWidth () + rect.getLeft ();
@@ -104,9 +104,8 @@ public void modifyByIndices (CPLayer layer, CPSelection selection)
 }
 
 // Colors the pixel with current color according to layer's transparency and selection. (color's own transparency being disregarded)
-protected int colorInOpaque (int layerColor, int selValue, int newColor)
+int colorInOpaque (int destColor, int selValue, int newColor)
 {
-  int destColor = layerColor;
   int destAlpha = destColor >>> 24;
   int srcAlpha = selValue & 0xFF;
   int newLayerAlpha = srcAlpha + destAlpha * (255 - srcAlpha) / 255;
@@ -125,17 +124,10 @@ protected int colorInOpaque (int layerColor, int selValue, int newColor)
           return finalColor;
         }
       else
-        return layerColor;
+        return destColor;
     }
   else
     return 0x00FFFFFF;
-}
-
-// Colors the pixel with current color according to layer's transparency and selection. (color's own transparency being counted)
-protected int colorIn (int layerColor, int selValue, int newColor)
-{
-  int newColorAlpha = (newColor >>> 24) & 0xFF;
-  return colorInOpaque (layerColor, selValue > newColorAlpha ? newColorAlpha : selValue, newColor);
 }
 }
 

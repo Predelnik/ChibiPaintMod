@@ -107,7 +107,7 @@ public void paint (Graphics g)
 @Override
 public void mouseClicked (MouseEvent e)
 {
-  if (!onClickDown && e.getClickCount () == 2 && actionCommandDoubleClick != null)
+  if (e.getClickCount () == 2 && actionCommandDoubleClick != null)
     {
       callActionListenersDouble ();
     }
@@ -149,7 +149,7 @@ public void mouseReleased (MouseEvent e)
   if (!this.isEnabled ())
     return;
 
-  if (!onClickDown && mouseOver)
+  if (mouseOver)
     {
       callActionListeners ();
     }

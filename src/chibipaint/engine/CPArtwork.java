@@ -155,7 +155,7 @@ public void selectAll ()
   undoManager.finalizeUndo ();
 }
 
-public void setActiveLayerNumberWithoutUpdate (int activeLayerNumberArg)
+void setActiveLayerNumberWithoutUpdate (int activeLayerNumberArg)
 {
   activeLayerNumber = activeLayerNumberArg;
 }
@@ -1795,36 +1795,6 @@ public void doEffectAction (boolean applyToAllLayers, CPEffect effect)
   invalidateFusion ();
 }
 
-
-public void fill (int color, boolean applyToAllLayers)
-{
-  // TODO: Limit to selection
-  CPRect r = getSize ();
-
-  if (!applyToAllLayers)
-    {
-      undoManager.preserveActiveLayerData ();
-      getActiveLayer ().clear (r, color);
-      undoManager.activeLayerDataChange (getSize ());
-    }
-  else
-    {
-      undoManager.preserveAllLayersState ();
-      for (int i = 0; i < getLayersVector ().size (); i++)
-        {
-          getLayersVector ().elementAt (i).clear (r, color);
-        }
-      undoManager.allLayersChanged (getSize ());
-    }
-
-  invalidateFusion ();
-}
-
-public void clear (boolean applyToAllLayers)
-{
-  fill (0xffffff, applyToAllLayers);
-}
-
 public void hFlip (boolean applyToAllLayers)
 {
   if (!applyToAllLayers)
@@ -1868,131 +1838,6 @@ public void vFlip (boolean applyToAllLayers)
         }
       undoManager.allLayersChanged (getSize ());
     }
-  invalidateFusion ();
-}
-
-public void monochromaticNoise (boolean applyToAllLayers)
-{
-
-  if (!applyToAllLayers)
-    {
-      undoManager.preserveActiveLayerData ();
-
-      getActiveLayer ().fillWithNoise (getSize ());
-      undoManager.activeLayerDataChange (getSize ());
-    }
-  else
-    {
-      undoManager.preserveAllLayersState ();
-      for (int i = 0; i < getLayersVector ().size (); i++)
-        {
-          getLayersVector ().elementAt (i).fillWithNoise (getSize ());
-
-        }
-      undoManager.allLayersChanged (getSize ());
-    }
-
-  invalidateFusion ();
-}
-
-public void colorNoise (boolean applyToAllLayers)
-{
-
-  if (!applyToAllLayers)
-    {
-      undoManager.preserveActiveLayerData ();
-
-      getActiveLayer ().fillWithColorNoise (getSize ());
-      undoManager.activeLayerDataChange (getSize ());
-    }
-  else
-    {
-      undoManager.preserveAllLayersState ();
-      for (int i = 0; i < getLayersVector ().size (); i++)
-        {
-          getLayersVector ().elementAt (i).fillWithColorNoise (getSize ());
-
-        }
-      undoManager.allLayersChanged (getSize ());
-    }
-
-  invalidateFusion ();
-}
-
-public void boxBlur (int radiusX, int radiusY, int iterations, boolean applyToAllLayers)
-{
-
-  if (!applyToAllLayers)
-    {
-      undoManager.preserveActiveLayerData ();
-
-      for (int c = 0; c < iterations; c++)
-        {
-          getActiveLayer ().boxBlur (getSize (), radiusX, radiusY);
-        }
-      undoManager.activeLayerDataChange (getSize ());
-    }
-  else
-    {
-      undoManager.preserveAllLayersState ();
-      for (int i = 0; i < getLayersVector ().size (); i++)
-        {
-          for (int c = 0; c < iterations; c++)
-            {
-              getLayersVector ().elementAt (i).boxBlur (getSize (), radiusX, radiusY);
-            }
-        }
-      undoManager.allLayersChanged (getSize ());
-    }
-
-  invalidateFusion ();
-}
-
-public void invert (boolean applyToAllLayers)
-{
-
-  if (!applyToAllLayers)
-    {
-      undoManager.preserveActiveLayerData ();
-
-      getActiveLayer ().invert (getSize ());
-
-      undoManager.activeLayerDataChange (getSize ());
-    }
-  else
-    {
-      undoManager.preserveAllLayersState ();
-      for (int i = 0; i < getLayersVector ().size (); i++)
-        {
-          getLayersVector ().elementAt (i).invert (getSize ());
-        }
-      undoManager.allLayersChanged (getSize ());
-    }
-
-  invalidateFusion ();
-}
-
-public void makeMonochrome (boolean applyToAllLayers, int type)
-{
-
-  if (!applyToAllLayers)
-    {
-      undoManager.preserveActiveLayerData ();
-
-      getActiveLayer ().makeMonochrome (getSize (), type, curColor);
-
-      undoManager.activeLayerDataChange (getSize ());
-    }
-  else
-    {
-      undoManager.preserveAllLayersState ();
-      for (int i = 0; i < getLayersVector ().size (); i++)
-        {
-          getLayersVector ().elementAt (i).makeMonochrome (getSize (), type, curColor);
-        }
-      undoManager.allLayersChanged (getSize ());
-    }
-
   invalidateFusion ();
 }
 

@@ -55,8 +55,7 @@ private static class TransferableImage implements Transferable
     else if (!limited && flavor.equals (DataFlavor.imageFlavor) && image != null)
       {
         MemoryImageSource imgSource = new MemoryImageSource (image.getWidth (), image.getHeight (), image.getData (), 0, image.getWidth ());
-        Image img = Toolkit.getDefaultToolkit ().createImage (imgSource);
-        return img;
+        return Toolkit.getDefaultToolkit ().createImage (imgSource);
       }
     else
       {

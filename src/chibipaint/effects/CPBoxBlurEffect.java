@@ -30,7 +30,9 @@ import java.util.Arrays;
 
 public class CPBoxBlurEffect extends CPEffect
 {
-int radiusX, radiusY, iterations;
+private final int radiusX;
+private final int radiusY;
+private final int iterations;
 
 public CPBoxBlurEffect (int radiusXArg, int radiusYArg, int iterationsArg)
 {
@@ -52,7 +54,6 @@ private void boxBlur (CPLayer layer, int iterations)
 {
   int layerWidth = layer.getWidth ();
   int layerHeight = layer.getHeight ();
-  CPRect rect = new CPRect (0, 0, layerWidth, layerHeight);
 
   // At first we need to copy modifiable part, sadly it's inevitable.
   // selection.applySelectionToData ();
@@ -66,19 +67,19 @@ private void boxBlur (CPLayer layer, int iterations)
       for (int j = 0; j < layerHeight; j++)
         {
           System.arraycopy (layer.getData (), j * layerWidth, src, 0, layerWidth);
-          multiplyAlpha (src, layerWidth, 0);
+          multiplyAlpha (src, layerWidth);
           Arrays.fill (dst, 0);
           boxBlurLine (src, dst, radiusX, 0, layerWidth - 1);
-          copyArrayToRow (layer, 0, j, layerWidth, dst);
+          copyArrayToRow (layer, j, layerWidth, dst);
         }
 
       for (int i = 0; i < layerWidth; i++)
         {
-          copyColumnToArray (layer, i, 0, layerHeight, src);
+          copyColumnToArray (layer, i, layerHeight, src);
           Arrays.fill (dst, 0);
           boxBlurLine (src, dst, radiusY, 0, layerHeight - 1);
-          restoreAlpha (dst, layerHeight, 0);
-          copyArrayToColumn (layer, i, 0, layerHeight, dst);
+          restoreAlpha (dst, layerHeight);
+          copyArrayToColumn (layer, i, layerHeight, dst);
         }
     }
 }
@@ -107,17 +108,17 @@ private void boxBlur (CPLayer layer, CPSelection selection, int iterations)
       for (int j = 0; j < rectHeight; j++)
         {
           System.arraycopy (tempBmp.getData (), j * rectWidth, src, 0, rectWidth);
-          multiplyAlpha (src, rectWidth, 0);
+          multiplyAlpha (src, rectWidth);
           int leftLimit = 0, rightLimit = rectWidth;
           int off = (j + rect.getTop ()) * layerWidth + rect.getLeft ();
-          while (leftLimit < rectWidth && ((int) (selection.getData ()[off] & 0xFF) < 32))
+          while (leftLimit < rectWidth && ((selection.getData ()[off] & 0xFF) < 32))
             {
               leftLimit++;
               off++;
             }
 
           off = (j + rect.getTop ()) * layerWidth + rect.getRight ();
-          while (rightLimit > 0 && ((int) (selection.getData ()[off] & 0xFF) < 32))
+          while (rightLimit > 0 && ((selection.getData ()[off] & 0xFF) < 32))
             {
               rightLimit--;
               off--;
@@ -126,22 +127,22 @@ private void boxBlur (CPLayer layer, CPSelection selection, int iterations)
           Arrays.fill (dst, 0);
           if (leftLimit < rightLimit)
             boxBlurLine (src, dst, radiusX, leftLimit, rightLimit);
-          copyArrayToRow (tempBmp, 0, j, rectWidth, dst);
+          copyArrayToRow (tempBmp, j, rectWidth, dst);
         }
 
       for (int i = 0; i < rectWidth; i++)
         {
-          copyColumnToArray (tempBmp, i, 0, rectHeight, src);
+          copyColumnToArray (tempBmp, i, rectHeight, src);
           int bottomLimit = 0, topLimit = rectHeight;
           int off = (rect.getTop ()) * layerWidth + i + rect.getLeft ();
-          while (bottomLimit < rectWidth && ((int) (selection.getData ()[off] & 0xFF)) < 32)
+          while (bottomLimit < rectWidth && (selection.getData ()[off] & 0xFF) < 32)
             {
               bottomLimit++;
               off += layerWidth;
             }
 
           off = rect.getBottom () * layerWidth + i + rect.getLeft ();
-          while (topLimit > 0 && ((int) (selection.getData ()[off] & 0xFF)) < 32)
+          while (topLimit > 0 && (selection.getData ()[off] & 0xFF) < 32)
             {
               topLimit--;
               off -= layerWidth;
@@ -150,45 +151,45 @@ private void boxBlur (CPLayer layer, CPSelection selection, int iterations)
           Arrays.fill (dst, 0);
           if (bottomLimit < topLimit)
             boxBlurLine (src, dst, radiusY, bottomLimit, topLimit);
-          restoreAlpha (dst, rectHeight, 0);
-          copyArrayToColumn (tempBmp, i, 0, rectHeight, dst);
+          restoreAlpha (dst, rectHeight);
+          copyArrayToColumn (tempBmp, i, rectHeight, dst);
         }
     }
 
   tempBmp.drawItselfOnTarget (layer, rect.getLeft (), rect.getTop ());
 }
 
-void copyColumnToArray (CPColorBmp layer, int x, int y, int len, int[] buffer)
+void copyColumnToArray (CPColorBmp layer, int x, int len, int[] buffer)
 {
   for (int i = 0; i < len; i++)
     {
-      int offset = x + (i + y) * layer.getWidth ();
+      int offset = x + i * layer.getWidth ();
       buffer[i] = layer.getData ()[offset];
     }
 }
 
-void copyArrayToColumn (CPColorBmp layer, int x, int y, int len, int[] buffer)
+void copyArrayToColumn (CPColorBmp layer, int x, int len, int[] buffer)
 {
   for (int i = 0; i < len; i++)
     {
-      int offset = x + (i + y) * layer.getWidth ();
+      int offset = x + i * layer.getWidth ();
       layer.getData ()[offset] = buffer[i];
     }
 }
 
 
-void copyArrayToRow (CPColorBmp layer, int x, int y, int len, int[] buffer)
+void copyArrayToRow (CPColorBmp layer, int y, int len, int[] buffer)
 {
-  int offset = x + y * layer.getWidth ();
+  int offset = y * layer.getWidth ();
   for (int i = 0; i < len; i++, offset++)
     {
       layer.getData ()[offset] = buffer[i];
     }
 }
 
-private static void multiplyAlpha (int[] buffer, int len, int offset)
+private static void multiplyAlpha (int[] buffer, int len)
 {
-  for (int i = offset; i < len + offset; i++)
+  for (int i = 0; i < len; i++)
     {
       buffer[i] = buffer[i] & 0xff000000 | ((buffer[i] >>> 24) * (buffer[i] >>> 16 & 0xff) / 255) << 16
               | ((buffer[i] >>> 24) * (buffer[i] >>> 8 & 0xff) / 255) << 8 | (buffer[i] >>> 24)
@@ -196,9 +197,9 @@ private static void multiplyAlpha (int[] buffer, int len, int offset)
     }
 }
 
-private static void restoreAlpha (int[] buffer, int len, int offset)
+private static void restoreAlpha (int[] buffer, int len)
 {
-  for (int i = offset; i < len + offset; i++)
+  for (int i = 0; i < len; i++)
     {
       if ((buffer[i] & 0xff000000) != 0)
         {

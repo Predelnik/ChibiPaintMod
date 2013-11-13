@@ -38,7 +38,6 @@ private final int layerH = 32;
 private final int eyeW = 24;
 
 private final CPLayerWidget lw;
-private final JScrollPane sp;
 private final CPAlphaSlider alphaSlider;
 private final JComboBox<String> blendCombo;
 
@@ -80,7 +79,7 @@ public CPLayersPalette (CPController controller)
   lw = new CPLayerWidget ();
   renameField = new CPRenameField ();
   lw.add (renameField);
-  sp = new JScrollPane (lw);
+  JScrollPane sp = new JScrollPane (lw);
 
   cbSampleAllLayers = new JCheckBox ("Sample All Layers");
   cbSampleAllLayers.setSelected (controller.artwork.isSampleAllLayers ());

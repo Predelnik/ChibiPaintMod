@@ -92,7 +92,7 @@ private Cursor defaultCursor;
 private Cursor moveCursor;
 private Cursor crossCursor;
 private CPMode prevMode = null;
-boolean drawPrevMode = false;
+private boolean drawPrevMode = false;
 
 public boolean isCursorIn ()
 {
@@ -135,12 +135,9 @@ private JPanel container;
 private JScrollBar horizontalScroll;
 private JScrollBar verticalScroll;
 
-// Are we using old JTable or 1.2
-private boolean oldJTabletUsed;
-
 private float lastPressure;
 
-public void setArtwork (CPArtwork artwork)
+void setArtwork (CPArtwork artwork)
 {
   this.artwork = artwork;
   if (artwork != null)
@@ -169,7 +166,7 @@ private static SelectionTypeOfAppliance modifiersToSelectionApplianceType (int m
     return SelectionTypeOfAppliance.SUBTRACT;
 }
 
-public CPCanvas getCanvas ()
+CPCanvas getCanvas ()
 {
   return this;
 }
@@ -196,7 +193,7 @@ public void reinitCanvas ()
   repaint ();
 }
 
-public void initCanvas (CPController ctrl)
+void initCanvas (CPController ctrl)
 {
   this.controller = ctrl;
   setArtwork (ctrl.getArtwork ());
@@ -248,11 +245,6 @@ public void initCanvas (CPController ctrl)
 		 */
 
   // register as a listener for Mouse & MouseMotion events
-  if (oldJTabletUsed) // Otherwise listening of these events would be done by JTablet itself
-    {
-      addMouseListener (this);
-      addMouseMotionListener (this);
-    }
   addMouseWheelListener (this);
   addComponentListener (this);
   addKeyListener (this);
@@ -282,23 +274,15 @@ public void initCanvas (CPController ctrl)
   selectionUpdateTimer.start ();
 }
 
+public void initMouseListeners ()
+{
+  addMouseListener (this);
+  addMouseMotionListener (this);
+}
+
 CPCanvas getThis ()
 {
   return this;
-}
-
-public void KillCanvas ()
-{
-  removeMouseListener (this);
-  removeMouseMotionListener (this);
-  removeMouseWheelListener (this);
-  removeComponentListener (this);
-  removeKeyListener (this);
-
-  controller.removeToolListener (this);
-  controller.removeModeListener (this);
-
-  artwork.removeListener (this);
 }
 
 public CPCanvas (CPController ctrl)

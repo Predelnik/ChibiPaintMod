@@ -158,7 +158,7 @@ public void makeSelectionFromPolygon (Path2D polygon, AffineTransform canvasTran
     }
   catch (NoninvertibleTransformException e)
     {
-      e.printStackTrace ();  //To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace ();
     }
   Graphics2D g = bImage.createGraphics ();
   g.setColor (Color.WHITE);
@@ -256,7 +256,7 @@ public void applySelectionToData (int dataArg[])
     {
       int selectionValue = getData (off);
       int sourceAlpha = ((dataArg[off] & (0xff000000)) >>> 24);
-      dataArg[off] = (dataArg[off] & (0x00ffffff)) | ((int) (sourceAlpha >= (int) (selectionValue & 0xFF) ? (int) (selectionValue & 0xFF) : sourceAlpha) << 24);
+      dataArg[off] = (dataArg[off] & (0x00ffffff)) | ((sourceAlpha >= (selectionValue & 0xFF) ? selectionValue & 0xFF : sourceAlpha) << 24);
     }
 }
 
@@ -513,8 +513,7 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
     return;
 
   Color prevColor = g2d.getColor ();
-  float defaultDashLength = DASH_ZOOM_INDEPENDENT_LENGTH / canvas.getZoom ();
-  float dashLength = defaultDashLength;
+  float dashLength = DASH_ZOOM_INDEPENDENT_LENGTH / canvas.getZoom ();
 
   for (int i = 0; i < CurPixelLines.size (); i++)
     {

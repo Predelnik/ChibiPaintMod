@@ -337,7 +337,7 @@ public void cutBySelection (CPSelection selection)
       int curAlpha = (data[i] & 0xFF000000) >>> 24;
       int selData = selection.data[i] & 0xFF;
       data[i] &= 0x00FFFFFF;
-      data[i] |= (int) (curAlpha > selData ? selData : curAlpha) << 24;
+      data[i] |= (curAlpha > selData ? selData : curAlpha) << 24;
     }
 }
 
@@ -348,7 +348,7 @@ public void removePartsCutBySelection (CPSelection selection)
       int curAlpha = (data[i] & 0xFF000000) >>> 24;
       int selData = selection.data[i] & 0xFF;
       data[i] &= 0x00FFFFFF;
-      data[i] |= (int) (curAlpha - (curAlpha > selData ? selData : curAlpha)) << 24;
+      data[i] |= curAlpha - (curAlpha > selData ? selData : curAlpha) << 24;
     }
 }
 
@@ -359,7 +359,7 @@ public void drawItselfOnTarget (CPColorBmp target, int shiftX, int shiftY)
       if (j + shiftY < 0 || j + shiftY >= target.getHeight ())
         continue;
 
-      int off = 0 + j * width;
+      int off = j * width;
       int targetOff = shiftX + (j + shiftY) * target.getWidth ();
       for (int i = 0; i < width; i++, off++, targetOff++)
         {
@@ -405,7 +405,7 @@ public void copyDataFromSelectedPart (CPColorBmp bmp, CPSelection selection)
       int offDest = j * width;
       for (int i = 0; i < width; i++, offSource++, offDest++)
         {
-          int selValue = (int) (selection.getData ()[offSource] & 0xFF);
+          int selValue = selection.getData ()[offSource] & 0xFF;
           int alphaValue = bmp.getData ()[offSource] >>> 24;
           if (selValue < alphaValue)
             alphaValue = selValue;

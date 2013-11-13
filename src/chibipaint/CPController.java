@@ -245,6 +245,7 @@ private void initTablet (final CPCanvas canvasArg)
       canvasArg.ShowLoadingTabletListenerMessage ();
       CPTablet.getRef ();
       canvasArg.HideLoadingTabletListenerMessage ();
+      canvasArg.initMouseListeners ();
     }
 }
 

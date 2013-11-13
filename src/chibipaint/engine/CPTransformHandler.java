@@ -93,7 +93,7 @@ class CPTransformAction
       }
     catch (NoninvertibleTransformException e)
       {
-        e.printStackTrace ();  //To change body of catch statement use File | Settings | File Templates.
+        e.printStackTrace ();
       }
     switch (type)
       {
@@ -267,8 +267,7 @@ class CPTransformAction
     double ay = 0.0;
     double bx = transformedSideByIndex.getX2 () - transformedSideByIndex.getX1 ();
     double by = transformedSideByIndex.getY2 () - transformedSideByIndex.getY1 ();
-    float angleValue = -(float) Math.atan2 (ax * by - ay * bx, ax * bx + ay * by);
-    return angleValue;
+    return -(float) Math.atan2 (ax * by - ay * bx, ax * bx + ay * by);
   }
 
   public boolean isMovement ()
@@ -421,7 +420,7 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
     }
   catch (NoninvertibleTransformException e)
     {
-      e.printStackTrace ();  //To change body of catch statement use File | Settings | File Templates.
+      e.printStackTrace ();
     }
 
   for (int i = 0; i < 4; i++)
@@ -458,7 +457,6 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
       return;
     }
 
-  return;
 }
 
 public void cursorReleased ()
