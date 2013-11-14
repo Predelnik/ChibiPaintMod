@@ -746,6 +746,8 @@ void zoomOnPoint (float zoomArg, int centerX, int centerY)
       viewInfo.zoom = zoom_;
       viewInfo.offsetX = offsetX;
       viewInfo.offsetY = offsetY;
+      viewInfo.height = artwork.getHeight ();
+      viewInfo.width = artwork.getWidth ();
       controller.callViewListeners (viewInfo);
 
       repaint ();
@@ -1889,7 +1891,7 @@ class CPRectSelectionMode extends CPMode
     Point p = coordToDocumentInt (new Point (getCursorX (), getCursorY ()));
 
     int squareDist = Math.max (Math.abs (p.x - firstClick.x), Math.abs (p.y - firstClick.y));
-    boolean square = (getModifiers () & InputEvent.SHIFT_MASK) != 0;
+    boolean square = (getModifiers () & InputEvent.ALT_MASK) != 0;
     if (p.x >= firstClick.x)
       {
         curRect.left = firstClick.x;

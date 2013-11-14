@@ -148,6 +148,8 @@ public static class CPViewInfo
 
   public float zoom;
   public int offsetX, offsetY;
+  public int width;
+  public int height;
 }
 
 CPController ()
@@ -182,6 +184,7 @@ public void setArtwork (CPArtwork artwork)
   this.artwork = artwork;
   if (isRunningAsApplication ())
     this.artwork.getUndoManager ().setMaxUndo (50);
+
 }
 
 public void setCanvas (CPCanvas canvasArg)

@@ -38,15 +38,15 @@ public class CPStatusBar extends JPanel implements CPController.ICPViewListener,
 
 private final CPController controller;
 private final JLabel memory;
-private final JLabel zoom;
+private final JLabel viewport;
 
 public CPStatusBar (CPController controller)
 {
   super (new BorderLayout ());
   this.controller = controller;
 
-  zoom = new JLabel ("Zoom: 100%");
-  add (zoom, BorderLayout.LINE_START);
+  viewport = new JLabel ("");
+  add (viewport, BorderLayout.LINE_START);
 
   memory = new JLabel ("");
   add (memory, BorderLayout.LINE_END);
@@ -89,7 +89,7 @@ public CPStatusBar (CPController controller)
 public void viewChange (CPController.CPViewInfo viewInfo)
 {
   DecimalFormat format = new DecimalFormat ("0.0%");
-  zoom.setText ("Zoom: " + format.format (viewInfo.zoom));
+  viewport.setText (" Picture Size: " + viewInfo.width + " x " + viewInfo.height + ", Zoom: " + format.format (viewInfo.zoom));
 }
 
 void updateMemory ()
