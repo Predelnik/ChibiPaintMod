@@ -362,21 +362,21 @@ void createMainMenu ()
   addSubMenu ("Palettes", KeyEvent.VK_P);
   addMenuItem ("Toggle Palettes", KeyEvent.VK_P, "CPTogglePalettes", "Hides or shows all palettes", KeyStroke.getKeyStroke (KeyEvent.VK_TAB, 0));
   addSeparator ();
-  addCheckBoxMenuItem ("Show Brush", KeyEvent.VK_B, "CPPalBrush", true);
-  paletteItems.put ("Brush", (JCheckBoxMenuItem) lastItem);
+  addCheckBoxMenuItem ("Show Tool Preferences", KeyEvent.VK_T, "CPPalBrush", true);
+  paletteItems.put ("ToolPreferences", (JCheckBoxMenuItem) lastItem);
   addCheckBoxMenuItem ("Show Color", KeyEvent.VK_C, "CPPalColor", true);
   paletteItems.put ("Color", (JCheckBoxMenuItem) lastItem);
   addCheckBoxMenuItem ("Show Layers", KeyEvent.VK_Y, "CPPalLayers", true);
   paletteItems.put ("Layers", (JCheckBoxMenuItem) lastItem);
   addCheckBoxMenuItem ("Show Misc", KeyEvent.VK_M, "CPPalMisc", true);
   paletteItems.put ("Misc", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Stroke", KeyEvent.VK_S, "CPPalStroke", true);
+  addCheckBoxMenuItem ("Show Stroke", KeyEvent.VK_R, "CPPalStroke", true);
   paletteItems.put ("Stroke", (JCheckBoxMenuItem) lastItem);
   addCheckBoxMenuItem ("Show Swatches", KeyEvent.VK_S, "CPPalSwatches", true);
   paletteItems.put ("Color Swatches", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Textures", KeyEvent.VK_S, "CPPalTextures", true);
+  addCheckBoxMenuItem ("Show Textures", KeyEvent.VK_T, "CPPalTextures", true);
   paletteItems.put ("Textures", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Tools", KeyEvent.VK_S, "CPPalTool", true);
+  addCheckBoxMenuItem ("Show Tools", KeyEvent.VK_O, "CPPalTool", true);
   paletteItems.put ("Tools", (JCheckBoxMenuItem) lastItem);
   endSubMenu ();
 

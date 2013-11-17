@@ -105,13 +105,24 @@ public static final int M_FLOODFILL = 1;
 public static final int M_RECT_SELECTION = 3;
 public static final int M_ROTATE_CANVAS = 4;
 public static final int M_FREE_SELECTION = 5;
-public static final int M_FREE_TRANSFORM = 6;
-public static final int M_MAX = 7;
+public static final int M_MAX = 6;
 
 // Setting for other modes than draw (probably should do different class for them)
 private int colorDistance;
+private boolean transformIsOn;
 
 private CPMainGUI mainGUI;
+private int activeMode;
+
+public boolean getTransformIsOn ()
+{
+  return transformIsOn;
+}
+
+public CPBrushInfo[] getTools ()
+{
+  return tools;
+}
 
 public interface ICPColorListener
 {
@@ -430,7 +441,8 @@ public void actionPerformed (ActionEvent e)
 
   else if (e.getActionCommand ().equals ("CPFreeTransform"))
     {
-      setMode (M_FREE_TRANSFORM);
+      canvas.initTransform ();
+      callToolListeners ();
     }
 
   else if (e.getActionCommand ().equals ("CPRectSelection"))
@@ -640,7 +652,7 @@ public void actionPerformed (ActionEvent e)
 
   else if (e.getActionCommand ().equals ("CPPalBrush"))
     {
-      mainGUI.showPalette ("brush", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
+      mainGUI.showPalette ("tool_preferences", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
     }
 
   else if (e.getActionCommand ().equals ("CPPalLayers"))
@@ -690,7 +702,40 @@ public void actionPerformed (ActionEvent e)
     {
       canvas.cut ();
     }
+  else if (e.getActionCommand ().equals ("CPApplyTransform"))
+    {
+      canvas.applyTransform ();
+    }
+  else if (e.getActionCommand ().equals ("CPCancelTransform"))
+    {
+      canvas.cancelTransform ();
+    }
+  else if (e.getActionCommand ().equals ("CPFlipHorizontally"))
+    {
+      artwork.doTransformAction (CPArtwork.transformType.FLIP_H);
+      canvas.repaint ();
+    }
+  else if (e.getActionCommand ().equals ("CPFlipVertically"))
+    {
+      artwork.doTransformAction (CPArtwork.transformType.FLIP_V);
+      canvas.repaint ();
+    }
+  else if (e.getActionCommand ().equals ("CPRotate90CCW"))
+    {
+      artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CCW);
+      canvas.repaint ();
+    }
+  else if (e.getActionCommand ().equals ("CPRotate90CW"))
+    {
+      artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CW);
+      canvas.repaint ();
+    }
   callCPEventListeners ();
+}
+
+protected void initTransform ()
+{
+
 }
 
 public void addColorListener (ICPColorListener listener)
@@ -911,4 +956,16 @@ void setCurBrush (int curBrush)
 {
   this.curBrush = curBrush;
 }
+
+public void setTransformStateImpl (boolean transformIsOnArg)
+{
+}
+
+public void setTransformState (boolean transformIsOnArg)
+{
+  transformIsOn = transformIsOnArg;
+  setTransformStateImpl (transformIsOnArg);
+}
+
+
 }

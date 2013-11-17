@@ -29,7 +29,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class CPBrushPalette extends CPPalette implements CPController.ICPToolListener, ActionListener
+public class CPToolPreferencesPalette extends CPPalette implements CPController.ICPToolListener, ActionListener
 {
 
 private final CPAlphaSlider alphaSlider;
@@ -50,22 +50,44 @@ private final CPSlider colorDistanceSlider;
 
 private final JComboBox tipCombo;
 private final String[] tipNames = {"Round Pixelated", "Round Hard Edge", "Round Soft", "Square Pixelated", "Square Hard Edge"};
+private final JButton transformOkButton;
+private final JButton transformCancelButton;
+private final JButton transformFlipHButton;
+private final JButton transformFlipVButton;
+private final JButton transformRotate90CCWButton;
+private final JButton transformRotate90CWButton;
+private final JLabel transformLabel;
 
 @SuppressWarnings ("serial")
-public CPBrushPalette (CPController ctrlr)
+public CPToolPreferencesPalette (CPController ctrlr)
 {
   super (ctrlr);
 
   setSize (160, 270);
 
-  title = "Brush";
-  // setBounds(getInnerDimensions());
+  title = "ToolPreferences";
+
 
   setLayout (null);
+  // setBounds(getInnerDimensions());
+
+  // transform controls
+  transformLabel = addLabel (10, 5, "Transform:");
+  transformOkButton = addTextButton (10, 30, 60, 16, "Ok", "CPApplyTransform");
+  transformCancelButton = addTextButton (75, 30, 75, 16, "Cancel", "CPCancelTransform");
+
+  transformFlipHButton = addTextButton (10, 100, 140, 16, "Flip Horizontally", "CPFlipHorizontally");
+  transformFlipVButton = addTextButton (10, 125, 140, 16, "Flip Verticaly", "CPFlipVertically");
+  transformRotate90CCWButton = addTextButton (10, 150, 140, 16, "Rotate 90° CCW", "CPRotate90CCW");
+  transformRotate90CWButton = addTextButton (10, 175, 140, 16, "Rotate 90° CW", "CPRotate90CW");
+
+  // fill controls
   colorDistanceSlider = new CPColorDistanceSlider ();
   colorDistanceSlider.setLocation (20, 25);
   colorDistanceSlider.setSize (130, 16);
   add (colorDistanceSlider);
+
+  // for brush controls:
 
   alphaSlider = new CPAlphaSlider ();
   alphaSlider.setLocation (20, 120);
@@ -211,25 +233,36 @@ public CPBrushPalette (CPController ctrlr)
 @Override
 public void newTool (int tool, CPBrushInfo toolInfo)
 {
-  JComponent[] brush_controls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
+  JComponent[] brushControls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
           bleedSlider, spacingSlider, scatteringSlider, smoothingSlider, tipCombo, brushPreview};
-  JComponent[] flood_fill_controls = {colorDistanceSlider};
-  for (JComponent jc : brush_controls)
-    jc.setVisible (false);
+  JComponent[] floodFillControls = {colorDistanceSlider};
+  JComponent[] transformControls = {transformLabel, transformOkButton, transformCancelButton, transformFlipHButton, transformFlipVButton,
+          transformRotate90CCWButton, transformRotate90CWButton};
+  JComponent[][] toolArrays = {brushControls, floodFillControls, transformControls};
 
-  for (JComponent jc : flood_fill_controls)
-    jc.setVisible (false);
+  for (JComponent[] toolArray : toolArrays)
+    for (JComponent jc : toolArray)
+      jc.setVisible (false);
 
-  switch (controller.getCurMode ())
+
+  if (controller.getTransformIsOn ())
     {
-    case CPController.M_DRAW:
-      for (JComponent jc : brush_controls)
+      for (JComponent jc : transformControls)
         jc.setVisible (true);
-      break;
-    case CPController.M_FLOODFILL:
-      for (JComponent jc : flood_fill_controls)
-        jc.setVisible (true);
-      break;
+    }
+  else
+    {
+      switch (controller.getCurMode ())
+        {
+        case CPController.M_DRAW:
+          for (JComponent jc : brushControls)
+            jc.setVisible (true);
+          break;
+        case CPController.M_FLOODFILL:
+          for (JComponent jc : floodFillControls)
+            jc.setVisible (true);
+          break;
+        }
     }
 
   if (toolInfo == null)

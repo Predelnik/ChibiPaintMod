@@ -26,10 +26,13 @@ import chibipaint.CPController;
 import chibipaint.gui.CPPaletteManager.ICPPaletteContainer;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionListener;
 
 class CPPalette extends JComponent
 {
 
+protected Image icons = null;
 final CPController controller;
 private ICPPaletteContainer container;
 
@@ -48,5 +51,73 @@ public void setContainer (ICPPaletteContainer container)
 public ICPPaletteContainer getPaletteContainer ()
 {
   return container;
+}
+
+protected JLabel addLabel (int x, int y, String text)
+{
+  // transform controls
+  JLabel label = new JLabel ();
+  label.setText (text);
+  label.setLocation (x, y);
+  label.setSize (label.getPreferredSize ());
+  add (label);
+  return label;
+}
+
+protected JButton addTextButton (int x, int y, int width, int height, String text, String action)
+{
+  // transform controls
+  CPTextButton button = new CPTextButton ();
+  button.setLocation (x, y);
+  button.setSize (width, height);
+  button.setText (text);
+  button.addCPActionListener (controller);
+  button.setCPActionCommand (action);
+  add (button);
+  return button;
+}
+
+protected CPIconButton addIconButton (int iconIndex, String action, int mode, String actionDouble, int brushType)
+{
+  CPIconButton button;
+  int buttonSize = 32;
+  button = new CPIconButton (icons, buttonSize, buttonSize, iconIndex, 1);
+  add (button);
+
+  button.addCPActionListener (controller);
+  // If inherited class isn't listener itself than we're supposing that controller is actual listener
+  if (ActionListener.class.isAssignableFrom (getClass ()))
+    button.addCPActionListener ((ActionListener) this);
+
+  button.setCPActionCommand (action);
+  if (actionDouble != null)
+    button.setCPActionCommandDouble (actionDouble);
+
+  if (mode != CPController.M_INVALID && controller.getCurMode () == mode &&
+          (brushType == CPController.T_INVALID || controller.getCurBrush () == brushType))
+    button.setSelected (true);
+  return button;
+}
+
+protected CPIconButton addIconButton (int iconIndex, String action, int mode, String actionDouble)
+{
+  return addIconButton (iconIndex, action, mode, null, CPController.T_INVALID);
+}
+
+protected CPIconButton addIconButton (int iconIndex, String action, int mode)
+{
+  return addIconButton (iconIndex, action, mode, null);
+}
+
+protected CPIconButton addIconButton (int iconIndex, String action)
+{
+  return addIconButton (iconIndex, action, CPController.M_INVALID);
+}
+
+protected void addSpacer ()
+{
+  JPanel spacer = new JPanel ();
+  spacer.setSize (16, 32);
+  add (spacer);
 }
 }

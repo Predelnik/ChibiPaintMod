@@ -37,6 +37,37 @@ import java.util.Vector;
 public class CPArtwork
 {
 
+public void doTransformAction (transformType type)
+{
+  CPRect updatingRect = new CPRect (transformHandler.getRectNeededForUpdating ());
+  switch (type)
+    {
+    case FLIP_H:
+      transformHandler.flipHorizontally ();
+      break;
+    case FLIP_V:
+      transformHandler.flipVertically ();
+      break;
+    case ROTATE_90_CW:
+      transformHandler.rotate90CW ();
+      break;
+    case ROTATE_90_CCW:
+      transformHandler.rotate90CCW ();
+      break;
+    }
+  CPRect rectAfter = new CPRect (transformHandler.getRectNeededForUpdating ());
+  updatingRect.union (rectAfter);
+  invalidateFusion (updatingRect);
+}
+
+public enum transformType
+{
+  FLIP_H,
+  FLIP_V,
+  ROTATE_90_CW,
+  ROTATE_90_CCW,
+}
+
 private final int width;
 private final int height;
 
@@ -50,7 +81,6 @@ private final CPLayer transformBuffer; // temporary place to fusion active layer
 private final CPRect fusionArea;
 private final CPRect opacityArea;
 private final CPTransformHandler transformHandler;
-
 CPSelection curSelection;
 
 private final Random rnd = new Random ();

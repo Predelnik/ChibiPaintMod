@@ -117,8 +117,8 @@ public CPPaletteManager (CPController controller, JDesktopPane desktop)
 
   // Brush Palette
 
-  palette = new CPBrushPalette (controller);
-  getPalettes ().put ("brush", palette);
+  palette = new CPToolPreferencesPalette (controller);
+  getPalettes ().put ("tool_preferences", palette);
 
   frame = new CPPaletteFrame (palette);
   paletteFrames.add (frame);
@@ -154,7 +154,7 @@ public CPPaletteManager (CPController controller, JDesktopPane desktop)
 
   // Tool Palette
 
-  palette = new CPToolPalette (controller);
+  palette = new CPToolsPalette (controller);
   getPalettes ().put ("tool", palette);
 
   frame = new CPPaletteFrame (palette);

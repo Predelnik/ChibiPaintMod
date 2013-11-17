@@ -261,4 +261,14 @@ public Path2D toPath2D ()
   path.closePath ();
   return path;
 }
+
+public CPRect makeFuzzy ()
+{
+  CPRect rect = new CPRect ();
+  rect.left = left - 1;
+  rect.right = right + 1;
+  rect.top = top - 1;
+  rect.bottom = bottom + 1;
+  return rect;
+}
 }

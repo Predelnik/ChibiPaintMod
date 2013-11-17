@@ -931,6 +931,25 @@ public void newTool (int tool, CPBrushInfo toolInfo)
     }
 }
 
+public void initTransform ()
+{
+// Here is the special case we should remove selected part of active layer, cutSelected off inactive parts of selection
+// Then show the controls for doing transformation and operate the exact pixels which were removed.
+
+// TODO: Separate active and current mode for different classes
+  if (artwork.getCurSelection ().isEmpty ())
+    return; // TODO: Message Box about selection being empty
+
+  setActiveMode (freeTransformMode);
+  artwork.initializeTransform ();
+  artwork.invalidateFusion ();
+  setEnabledForTransform (false);
+  if (isRunningAsApplication ())
+    {
+      ((CPControllerApplication) controller).setTransformState (true);
+    }
+}
+
 @Override
 public void modeChange (int mode)
 {
@@ -946,24 +965,6 @@ public void modeChange (int mode)
 
     case CPController.M_FREE_SELECTION:
       curSelectedMode = freeSelectionMode;
-      break;
-
-    case CPController.M_FREE_TRANSFORM:
-      // Here is the special case we should remove selected part of active layer, cutSelected off inactive parts of selection
-      // Then show the controls for doing transformation and operate the exact pixels which were removed.
-
-      // TODO: Separate active and current mode for different classes
-      if (artwork.getCurSelection ().isEmpty ())
-        return; // TODO: Message Box about selection being empty
-
-      setActiveMode (freeTransformMode);
-      artwork.initializeTransform ();
-      artwork.invalidateFusion ();
-      setEnabledForTransform (false);
-      if (isRunningAsApplication ())
-        {
-          ((CPControllerApplication) controller).setTransformState (true);
-        }
       break;
 
     case CPController.M_RECT_SELECTION:
@@ -1282,6 +1283,7 @@ public void setCursorIn (boolean cursorIn)
 {
   this.cursorIn = cursorIn;
 }
+
 
 public abstract class CPMode
 {
@@ -1952,6 +1954,27 @@ void setEnabledForTransform (boolean enabled)
 
 }
 
+public void applyTransform ()
+{
+  if (activeMode == freeTransformMode)
+    {
+      freeTransformMode.applyTransform ();
+      setActiveMode (defaultMode);
+      controller.callToolListeners ();
+    }
+}
+
+public void cancelTransform ()
+{
+  if (activeMode == freeTransformMode)
+    {
+      freeTransformMode.cancelTransform ();
+      setActiveMode (defaultMode);
+      controller.callToolListeners ();
+    }
+}
+
+
 class CPFreeTransformMode extends CPMode
 {
   private CPTransformHandler transformHandler;
@@ -2030,31 +2053,39 @@ class CPFreeTransformMode extends CPMode
     switch (e.getKeyCode ())
       {
       case KeyEvent.VK_ENTER:
-        transformHandler.finalizeTransform ();
-        transformHandler.clearTransforms ();
-        setActiveMode (defaultMode);
-        artwork.FinishTransformUndo ();
-        repaint ();
-        setEnabledForTransform (true);
-        if (isRunningAsApplication ())
-          {
-            ((CPControllerApplication) controller).setTransformState (false);
-          }
+        controller.actionPerformed (new ActionEvent (this, ActionEvent.ACTION_PERFORMED, "CPApplyTransform"));
         break;
       case KeyEvent.VK_ESCAPE:
-        transformHandler.stopTransform ();
-        transformHandler.clearTransforms ();
-        artwork.RestoreActiveLayerAndSelection ();
-        setActiveMode (defaultMode);
-        prevMode = null;
-        artwork.invalidateFusion ();
-        setEnabledForTransform (true);
-        if (isRunningAsApplication ())
-          {
-            ((CPControllerApplication) controller).setTransformState (false);
-          }
-        repaint ();
+        controller.actionPerformed (new ActionEvent (this, ActionEvent.ACTION_PERFORMED, "CPCancelTransform"));
         break;
+      }
+  }
+
+  public void cancelTransform ()
+  {
+    transformHandler.stopTransform ();
+    transformHandler.clearTransforms ();
+    artwork.RestoreActiveLayerAndSelection ();
+    prevMode = null;
+    artwork.invalidateFusion ();
+    setEnabledForTransform (true);
+    if (isRunningAsApplication ())
+      {
+        ((CPControllerApplication) controller).setTransformState (false);
+      }
+    repaint ();
+  }
+
+  public void applyTransform ()
+  {
+    transformHandler.finalizeTransform ();
+    transformHandler.clearTransforms ();
+    artwork.FinishTransformUndo ();
+    repaint ();
+    setEnabledForTransform (true);
+    if (isRunningAsApplication ())
+      {
+        ((CPControllerApplication) controller).setTransformState (false);
       }
   }
 

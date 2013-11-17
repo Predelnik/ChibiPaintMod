@@ -485,7 +485,7 @@ private boolean saveLoadImageFile (
   return true; // Actually that's ok behaviour, just cancel was pressed
 }
 
-public void setTransformState (boolean transformIsOn)
+public void setTransformStateImpl (boolean transformIsOn)
 {
   if (transformIsOn)
     ((ChibiApp) mainFrame).setAppState (appState.TRANSFORM);
@@ -498,7 +498,7 @@ void saveControllerSettings ()
   Preferences userRoot = Preferences.userRoot ();
   Preferences preferences = userRoot.node ("chibipaintmod");
   preferences.putInt ("Mode", getCurMode ());
-  preferences.putInt ("Brush", getCurBrush ());
+  preferences.putInt ("ToolPreferences", getCurBrush ());
   for (int i = 0; i < T_MAX; i++)
     {
       preferences.putInt ("Tool " + String.valueOf (i) + " - Type",
@@ -538,7 +538,7 @@ void loadUrgentSettings ()
   Preferences preferences = userRoot.node ("chibipaintmod");
   setMode (preferences.getInt ("Mode", getCurMode ()));
   if (getCurMode () == M_DRAW)
-    setTool (preferences.getInt ("Brush", getCurBrush ()));
+    setTool (preferences.getInt ("ToolPreferences", getCurBrush ()));
   // Well this settings are stored in artwork...
   artwork.setLockAlpha ((preferences.getBoolean ("Lock Alpha", artwork.isLockAlpha ())));
   artwork.setSampleAllLayers ((preferences.getBoolean ("Sample All Layers", artwork.isSampleAllLayers ())));
@@ -581,7 +581,7 @@ void loadControllerSettings ()
     }
   setMode (preferences.getInt ("Mode", getCurMode ())); // Note these settings reading two times
   if (getCurMode () == M_DRAW)                             // Because we should set them one more time after enabling
-    setTool (preferences.getInt ("Brush", getCurBrush ())); // of some canvas listeners
+    setTool (preferences.getInt ("ToolPreferences", getCurBrush ())); // of some canvas listeners
   // Well this settings are stored in artwork...
   artwork.setLockAlpha ((preferences.getBoolean ("Lock Alpha", artwork.isLockAlpha ())));
   artwork.setSampleAllLayers ((preferences.getBoolean ("Sample All Layers", artwork.isSampleAllLayers ())));

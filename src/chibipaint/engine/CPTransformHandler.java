@@ -31,7 +31,6 @@ import java.awt.image.MemoryImageSource;
 
 public class CPTransformHandler
 {
-
 private boolean transformActive;
 
 public CPTransformHandler (int width, int height)
@@ -54,6 +53,27 @@ public void stopTransform ()
   transformActive = false;
 }
 
+public void flipHorizontally ()
+{
+  activeAction.flipHorizontally ();
+
+}
+
+public void flipVertically ()
+{
+  activeAction.flipVertically ();
+}
+
+public void rotate90CCW ()
+{
+  activeAction.rotate90CCW ();
+}
+
+public void rotate90CW ()
+{
+  activeAction.rotate90CW ();
+}
+
 
 private enum actionType
 {
@@ -68,8 +88,8 @@ private enum actionType
 class CPTransformAction
 {
   private final AffineTransform pendingTransform = new AffineTransform ();
-  private final AffineTransform savedTransformScale = new AffineTransform ();
-  private final AffineTransform savedTransformMovement = new AffineTransform ();
+  private final AffineTransform savedTransformScaleAndMovement = new AffineTransform ();
+  private final AffineTransform savedTransformRotation = new AffineTransform ();
 
   actionType type;
   int sideIndex;
@@ -152,7 +172,7 @@ class CPTransformAction
         Point2D center = getCenter ();
         Point2D transformedCenter = new Point2D.Float ();
         Point2D transformedByScaleOnlyCenter = new Point2D.Float ();
-        savedTransformScale.transform (center, transformedByScaleOnlyCenter);
+        savedTransformScaleAndMovement.transform (center, transformedByScaleOnlyCenter);
         editTransform.transform (center, transformedCenter);
         pendingTransform.setToIdentity ();
 
@@ -167,32 +187,40 @@ class CPTransformAction
       }
 
     editTransform.setToIdentity ();
-    editTransform.concatenate (savedTransformMovement);
-    if (isMovement ())
+    editTransform.concatenate (savedTransformRotation);
+    if (isRotation ())
       editTransform.concatenate (pendingTransform);
-    editTransform.concatenate (savedTransformScale);
-    if (isScale ())
+    editTransform.concatenate (savedTransformScaleAndMovement);
+    if (isNotRotation ())
       editTransform.concatenate (pendingTransform);
   }
 
 
   public void preserveTransform (AffineTransform editTransform)
   {
-    if (isMovement ())
-      savedTransformMovement.concatenate (pendingTransform);
-    else if (isScale ())
-      savedTransformScale.concatenate (pendingTransform);
+    if (isRotation ())
+      savedTransformRotation.concatenate (pendingTransform);
+    else if (isNotRotation ())
+      savedTransformScaleAndMovement.concatenate (pendingTransform);
     pendingTransform.setToIdentity ();
     editTransform.setToIdentity ();
-    editTransform.concatenate (savedTransformMovement);
-    editTransform.concatenate (savedTransformScale);
+    editTransform.concatenate (savedTransformRotation);
+    editTransform.concatenate (savedTransformScaleAndMovement);
+    setToNothing ();
+  }
+
+  public void updateEditTransform (AffineTransform editTransform)
+  {
+    editTransform.setToIdentity ();
+    editTransform.concatenate (savedTransformRotation);
+    editTransform.concatenate (savedTransformScaleAndMovement);
     setToNothing ();
   }
 
   public void cancelTransform ()
   {
-    savedTransformScale.setToIdentity ();
-    savedTransformMovement.setToIdentity ();
+    savedTransformScaleAndMovement.setToIdentity ();
+    savedTransformRotation.setToIdentity ();
     pendingTransform.setToIdentity ();
   }
 
@@ -270,7 +298,7 @@ class CPTransformAction
     return -(float) Math.atan2 (ax * by - ay * bx, ax * bx + ay * by);
   }
 
-  public boolean isMovement ()
+  public boolean isRotation ()
   {
     switch (type)
       {
@@ -285,9 +313,62 @@ class CPTransformAction
     return false;
   }
 
-  public boolean isScale ()
+  public boolean isNotRotation ()
   {
-    return (!isMovement () && type != actionType.NONE);
+    return (!isRotation () && type != actionType.NONE);
+  }
+
+  public void flipHorizontally ()
+  {
+    FixAngleForFlip ();
+    float xShift = (getAngleByIndex (0).x + getAngleByIndex (2).x) * 0.5f;
+    savedTransformScaleAndMovement.translate (xShift, 0);
+    savedTransformScaleAndMovement.scale (-1.0, 1.0);
+    savedTransformScaleAndMovement.translate (-xShift, 0);
+    updateEditTransform (transform);
+  }
+
+  public void flipVertically ()
+  {
+    FixAngleForFlip ();
+    float yShift;
+    yShift = (getAngleByIndex (0).y + getAngleByIndex (2).y) * 0.5f;
+    savedTransformScaleAndMovement.translate (0, yShift);
+    savedTransformScaleAndMovement.scale (1.0, -1.0);
+    savedTransformScaleAndMovement.translate (0, -yShift);
+    updateEditTransform (transform);
+  }
+
+  private void FixAngleForFlip ()
+  {
+    float xShift = (getTransformedAngleByIndex (0, savedTransformScaleAndMovement).x + getTransformedAngleByIndex (2, savedTransformScaleAndMovement).x) * 0.5f;
+    float yShift = (getTransformedAngleByIndex (0, savedTransformScaleAndMovement).y + getTransformedAngleByIndex (2, savedTransformScaleAndMovement).y) * 0.5f;
+    savedTransformRotation.translate (xShift, yShift);
+    double[] m = new double[4];
+    savedTransformRotation.getMatrix (m);
+    float angle = (float) Math.atan2 (m[1], m[0]);
+    savedTransformRotation.rotate (-2 * angle);
+    savedTransformRotation.translate (-xShift, -yShift);
+  }
+
+  private void rotateAroundCenter (double angle)
+  {
+    float xShift = (getTransformedAngleByIndex (0, savedTransformScaleAndMovement).x + getTransformedAngleByIndex (2, savedTransformScaleAndMovement).x) * 0.5f;
+    float yShift = (getTransformedAngleByIndex (0, savedTransformScaleAndMovement).y + getTransformedAngleByIndex (2, savedTransformScaleAndMovement).y) * 0.5f;
+    savedTransformRotation.translate (xShift, yShift);
+    savedTransformRotation.rotate (angle);
+    savedTransformRotation.translate (-xShift, -yShift);
+    updateEditTransform (transform);
+  }
+
+  public void rotate90CCW ()
+  {
+    rotateAroundCenter (-Math.PI * 0.5f);
+  }
+
+  public void rotate90CW ()
+  {
+    rotateAroundCenter (Math.PI * 0.5f);
   }
 }
 
@@ -298,7 +379,6 @@ CPSelection currentSelection = null;
 CPTransformAction activeAction = new CPTransformAction ();
 final Point2D pointOfOrigin = new Point2D.Float ();
 final AffineTransform transform = new AffineTransform ();
-final AffineTransform editTransform = new AffineTransform ();
 private AffineTransform finalTransform; // Last used final transform ,no guarantee that it was last updated
 int shiftX;
 int shiftY;
@@ -317,8 +397,7 @@ public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg)
   transformingRect = currentSelection.getBoundingRect ();
   shiftX = transformingRect.getLeft ();
   shiftY = transformingRect.getTop ();
-  editTransform.setToIdentity ();
-  updateCurrentTransform ();
+  transform.setToIdentity ();
   activeLayerArg.removePartsCutBySelection (currentSelection);
   artworkWidth = activeLayerArg.getWidth ();
   artworkHeight = activeLayerArg.getHeight ();
@@ -371,6 +450,14 @@ Line2D getTransformedSideByIndex (int index, AffineTransform transformArg)
   return getTransformedLine (line, transformArg);
 }
 
+Point2D.Float getTransformedAngleByIndex (int index, AffineTransform transformArg)
+{
+  Point2D point = getAngleByIndex (index);
+  Point2D.Float dstPoint = new Point2D.Float ();
+  transformArg.transform (point, dstPoint);
+  return dstPoint;
+}
+
 Line2D getCanvasTransformedSideByIndex (int index)
 {
   return getTransformedSideByIndex (index, transform);
@@ -393,7 +480,7 @@ public Point2D getCenter ()
                             (transformingRect.getTop () + transformingRect.getBottom ()) * 0.5f);
 }
 
-private Point2D getAngleByIndex (int index)
+private Point2D.Float getAngleByIndex (int index)
 {
   switch (index % 4)
     {
@@ -461,13 +548,12 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
 
 public void cursorReleased ()
 {
-  activeAction.preserveTransform (editTransform);
+  activeAction.preserveTransform (transform);
 }
 
 public void cursorDragged (Point2D p)
 {
-  activeAction.updateEditTransform (editTransform, pointOfOrigin, p);
-  updateCurrentTransform ();
+  activeAction.updateEditTransform (transform, pointOfOrigin, p);
 }
 
 public void cursorMoved (Point2D p, CPCanvas canvas) // TODO: change it to some kind of cursor manager
@@ -477,13 +563,7 @@ public void cursorMoved (Point2D p, CPCanvas canvas) // TODO: change it to some 
   canvas.setCursor (tempAction.cursor ());
 }
 
-private void updateCurrentTransform ()
-{
-  transform.setToIdentity ();
-  transform.concatenate (editTransform);
-}
-
-final int smallRectPixelSize = 7;
+final int smallRectPixelSize = 6;
 
 static Path2D.Float transformRectToPath (float left, float top, float right, float bottom, AffineTransform transformArg)
 {
@@ -551,23 +631,29 @@ public void drawTransformHandles (Graphics2D g2d, AffineTransform canvasTransfor
   finalTransform.concatenate (transform);
 
   g2d.setClip (null);
-  g2d.setXORMode (Color.white);
-  Path2D path = transformRectToPath (transformingRect.getLeft (), transformingRect.getTop (), transformingRect.getRight (), transformingRect.getBottom (), finalTransform);
+  g2d.setXORMode (Color.WHITE);
+  CPRect fuzzyRect = transformingRect.makeFuzzy ();
+  Path2D path = transformRectToPath (fuzzyRect.getLeft (), fuzzyRect.getTop (), fuzzyRect.getRight (), fuzzyRect.getBottom (), finalTransform);
+  int halfSmallRectSize = smallRectPixelSize / 2;
+
   g2d.draw (path);
   // Draw 8 handle rectangles
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++)
       {
-        float xPosition = transformingRect.getLeft () + transformingRect.getWidth () * (i * 0.5f);
-        float yPosition = transformingRect.getTop () + transformingRect.getHeight () * (j * 0.5f);
+        float xPosition = fuzzyRect.getLeft () + fuzzyRect.getWidth () * (i * 0.5f);
+        float yPosition = fuzzyRect.getTop () + fuzzyRect.getHeight () * (j * 0.5f);
         Point2D transformedPoint = new Point2D.Float ();
         finalTransform.transform (new Point2D.Float (xPosition, yPosition), transformedPoint);
         if (i != 1 || j != 1)
-          g2d.drawRect ((int) (transformedPoint.getX () - smallRectPixelSize * 0.5), (int) (transformedPoint.getY () - smallRectPixelSize * 0.5), smallRectPixelSize, smallRectPixelSize);
+          {
+            g2d.drawRect ((int) (Math.round (transformedPoint.getX ())) - halfSmallRectSize, (int) (Math.round (transformedPoint.getY ())) - halfSmallRectSize, smallRectPixelSize, smallRectPixelSize);
+          }
         else
           {
-            g2d.drawLine ((int) (transformedPoint.getX () - smallRectPixelSize * 0.5), (int) transformedPoint.getY (), (int) (transformedPoint.getX () + smallRectPixelSize * 0.5), (int) (transformedPoint.getY ()));
-            g2d.drawLine ((int) transformedPoint.getX (), (int) (transformedPoint.getY () - smallRectPixelSize * 0.5), (int) transformedPoint.getX (), (int) (transformedPoint.getY () + smallRectPixelSize * 0.5));
+            g2d.drawLine ((int) (transformedPoint.getX () - halfSmallRectSize), (int) transformedPoint.getY (), (int) (transformedPoint.getX () + halfSmallRectSize), (int) (transformedPoint.getY ()));
+            g2d.drawLine ((int) transformedPoint.getX (), (int) (transformedPoint.getY () - halfSmallRectSize), (int) transformedPoint.getX (), (int) (transformedPoint.getY () - 1));
+            g2d.drawLine ((int) transformedPoint.getX (), (int) (transformedPoint.getY () + halfSmallRectSize), (int) transformedPoint.getX (), (int) (transformedPoint.getY () + 1));
           }
       }
 }

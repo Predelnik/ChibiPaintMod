@@ -109,7 +109,7 @@ public CPBrushDab getDab (float x, float y, CPBrushInfo brushInfo)
   if (brushInfo.texture > 0.f && texture != null)
     {
       // we need a brush bitmap that can be modified everytime
-      // the one in "brush" can be kept in cache so if we are using it, make a copySelected
+      // the one in "tool_preferences" can be kept in cache so if we are using it, make a copySelected
       if (dab.brush == brush)
         {
           System.arraycopy (brush, 0, brushAA, 0, dab.width * dab.height);

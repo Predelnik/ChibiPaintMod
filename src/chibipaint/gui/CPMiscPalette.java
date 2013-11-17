@@ -24,7 +24,6 @@ package chibipaint.gui;
 
 import chibipaint.CPController;
 
-import javax.swing.*;
 import java.awt.*;
 
 class CPMiscPalette extends CPPalette
@@ -44,49 +43,19 @@ public CPMiscPalette (CPController controller)
   title = "Misc";
   setLayout (new FlowLayout ());
 
-  Image icons = controller.loadImage ("icons.png");
-
   Component spacer;
-
-  zoomInButton = new CPIconButton (icons, 32, 32, 13, 1);
-  add (zoomInButton);
-  zoomInButton.addCPActionListener (controller);
-  zoomInButton.setCPActionCommand ("CPZoomIn");
-
-  zoomOutButton = new CPIconButton (icons, 32, 32, 14, 1);
-  add (zoomOutButton);
-  zoomOutButton.addCPActionListener (controller);
-  zoomOutButton.setCPActionCommand ("CPZoomOut");
-
-  zoom100Button = new CPIconButton (icons, 32, 32, 15, 1);
-  add (zoom100Button);
-  zoom100Button.addCPActionListener (controller);
-  zoom100Button.setCPActionCommand ("CPZoom100");
-
-  spacer = new JPanel ();
-  spacer.setSize (16, 32);
-  add (spacer);
-
-  undoButton = new CPIconButton (icons, 32, 32, 10, 1);
-  add (undoButton);
-  undoButton.addCPActionListener (controller);
-  undoButton.setCPActionCommand ("CPUndo");
-
-  redoButton = new CPIconButton (icons, 32, 32, 11, 1);
-  add (redoButton);
-  redoButton.addCPActionListener (controller);
-  redoButton.setCPActionCommand ("CPRedo");
+  icons = controller.loadImage ("icons.png");
+  zoomInButton = addIconButton (13, "CPZoomIn");
+  zoomOutButton = addIconButton (14, "CPZoomOut");
+  zoom100Button = addIconButton (15, "CPZoom100");
+  addSpacer ();
+  undoButton = addIconButton (10, "CPUndo");
+  redoButton = addIconButton (11, "CPRedo");
 
   if (controller.isRunningAsApplet ())
     {
-      spacer = new JPanel ();
-      spacer.setSize (16, 32);
-      add (spacer);
-
-      sendButton = new CPIconButton (icons, 32, 32, 12, 1);
-      add (sendButton);
-      sendButton.addCPActionListener (controller);
-      sendButton.setCPActionCommand ("CPSend");
+      addSpacer ();
+      sendButton = addIconButton (12, "CPSend");
     }
 }
 
