@@ -21,6 +21,7 @@
 
 package chibipaint.engine;
 
+import chibipaint.CPController;
 import chibipaint.gui.CPCanvas;
 import chibipaint.util.CPRect;
 
@@ -31,11 +32,11 @@ import java.awt.image.MemoryImageSource;
 
 public class CPTransformHandler
 {
+private CPController controller;
 private boolean transformActive;
 
-public CPTransformHandler (int width, int height)
+public CPTransformHandler ()
 {
-
 }
 
 public void clearTransforms ()
@@ -265,7 +266,7 @@ class CPTransformAction
         return getCursorByAngle ((float) (getAbsoluteAngleByLine (getFullyTransformedSideByIndex (angleIndex)) + Math.signum (finalTransform.getScaleX ()) * Math.signum (finalTransform.getScaleY ()) * Math.PI * 0.25))
                 ;
       case ROTATE:
-        return Cursor.getPredefinedCursor (Cursor.HAND_CURSOR); // For now (placeholder)
+        return controller.getRotateCursor ();
       }
 
     return Cursor.getDefaultCursor ();
@@ -384,13 +385,14 @@ int shiftX;
 int shiftY;
 Image transformedPartImage;
 int artworkWidth, artworkHeight;
-static float controlDistance = 10.0f;
+static float controlDistance = 15.0f;
 
 
 // Initializes transformation mode
-public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg)
+public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg, CPController controllerArg)
 {
   currentSelection = currentSelectionArg;
+  controller = controllerArg;
   transformedPart = new CPColorBmp (0, 0);
   transformedPart.copyDataFromSelectedPart (activeLayerArg, currentSelection);
   activeAction.setToNothing ();
@@ -416,7 +418,7 @@ public void cursorPressed (Point2D p)
   getActionTypeByPosition (activeAction, p);
 }
 
-Line2D getSideByIndex (int index)
+Line2D.Float getSideByIndex (int index)
 {
   switch (index % 4)
     {
@@ -496,6 +498,13 @@ private Point2D.Float getAngleByIndex (int index)
   return null;
 }
 
+
+private Point2D.Float getSideCenterByIndex (int index)
+{
+  Line2D.Float line = getSideByIndex (index);
+  return new Point2D.Float ((float) (line.getP1 ().getX () + line.getP2 ().getX ()) * 0.5f, (float) (line.getP1 ().getY () + line.getP2 ().getY ()) * 0.5f);
+}
+
 public void getActionTypeByPosition (CPTransformAction action, Point2D p)
 {
   Point2D transformedP = new Point2D.Float ();
@@ -522,10 +531,11 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
 
   for (int i = 0; i < 4; i++)
     {
-      transform.transform (getAngleByIndex (i), pointOfInterest);
-      if (pointOfInterest.distance (p) < 2 * controlDistance && !transformingRect.isInside (transformedP))
+      //transform.transform (getAngleByIndex (i), pointOfInterest);
+      transform.transform (getSideCenterByIndex (i), pointOfInterest);
+      if (pointOfInterest.distance (p) < controlDistance)
         {
-          action.setToRotate ();
+          action.setToStretchToSide ((i + 2) % 4);
           return;
         }
     }
@@ -534,7 +544,7 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
     {
       if (getCanvasTransformedSideByIndex (i).ptSegDist (p) < controlDistance)
         {
-          action.setToStretchToSide ((i + 2) % 4);
+          action.setToRotate ();
           return;
         }
     }

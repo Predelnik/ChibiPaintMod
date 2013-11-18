@@ -97,11 +97,11 @@ public CPClip getClipboard ()
   return clipboard;
 }
 
-public void initializeTransform ()
+public void initializeTransform (CPController controllerArg)
 {
   undoManager.preserveActiveLayerData ();
   undoManager.preserveCurrentSelection ();
-  transformHandler.initialize (curSelection, getActiveLayer ());
+  transformHandler.initialize (curSelection, getActiveLayer (), controllerArg);
 }
 
 public CPTransformHandler getTransformHandler ()
@@ -309,7 +309,7 @@ public CPArtwork (int width, int height)
   this.width = width;
   this.height = height;
 
-  transformHandler = new CPTransformHandler (width, height);
+  transformHandler = new CPTransformHandler ();
   setLayers (new Vector<CPLayer> ());
 
   CPLayer defaultLayer = new CPLayer (width, height);

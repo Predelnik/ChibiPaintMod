@@ -941,7 +941,7 @@ public void initTransform ()
     return; // TODO: Message Box about selection being empty
 
   setActiveMode (freeTransformMode);
-  artwork.initializeTransform ();
+  artwork.initializeTransform (controller);
   artwork.invalidateFusion ();
   setEnabledForTransform (false);
   if (isRunningAsApplication ())

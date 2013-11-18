@@ -113,6 +113,7 @@ private boolean transformIsOn;
 
 private CPMainGUI mainGUI;
 private int activeMode;
+private Cursor rotateCursor;
 
 public boolean getTransformIsOn ()
 {
@@ -122,6 +123,11 @@ public boolean getTransformIsOn ()
 public CPBrushInfo[] getTools ()
 {
   return tools;
+}
+
+public Cursor getRotateCursor ()
+{
+  return rotateCursor;
 }
 
 public interface ICPColorListener
@@ -165,6 +171,9 @@ public static class CPViewInfo
 
 CPController ()
 {
+  Image img = loadImage ("cursor/rotate.png");
+  Point hotSpot = new Point (11, 11);
+  rotateCursor = Toolkit.getDefaultToolkit ().createCustomCursor (img, hotSpot, "Rotate");
   tools = new CPBrushInfo[T_MAX];
   tools[T_PENCIL] = new CPBrushInfo (T_PENCIL, 16, 255, true, false, .5f, .05f, false, true,
                                      CPBrushInfo.B_ROUND_AA, CPBrushInfo.M_PAINT, 1f, 0f);
