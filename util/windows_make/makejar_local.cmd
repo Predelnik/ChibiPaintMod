@@ -1,9 +1,7 @@
-delete chibipaintmod-devel.jar
 cd ../../bin
+delete ..\build\release\chibipaintmod-devel.jar
 jar -mcf ../main-class.txt ../build/release/chibipaintmod-devel.jar chibipaint/
-cd ..
 
-cd bin
 jar -uf ../build/release/chibipaintmod-devel.jar resource/*.*
 cd ..
 

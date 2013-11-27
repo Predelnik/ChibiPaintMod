@@ -21,7 +21,6 @@
 
 package chibipaint.effects;
 
-import chibipaint.effects.CPEffect;
 import chibipaint.engine.CPLayer;
 import chibipaint.engine.CPSelection;
 
@@ -35,7 +34,14 @@ public void doEffectOn (CPLayer layer, CPSelection selection)
 
 public int modify (int[] data, byte[] selData, int offset)
 {
-  return colorInOpaque (data[offset], selData[offset], data[offset] ^ 0xFFFFFF);
+  int selValue = selData[offset] & 0xFF;
+  int alphaValue = (data[offset] >>> 24) & 0xFF;
+  if (selValue >= alphaValue)
+    return data[offset] ^ 0xFFFFFF;
+  else
+    {
+      return colorInOpaque (((alphaValue - selValue) << 24) | 0xFFFFFF & data[offset], selData[offset], data[offset] ^ 0xFFFFFF);
+    }
 }
 
 public int modify (int[] data, int offset)
