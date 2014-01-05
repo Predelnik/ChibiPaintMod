@@ -1825,51 +1825,6 @@ public void doEffectAction (boolean applyToAllLayers, CPEffect effect)
   invalidateFusion ();
 }
 
-public void hFlip (boolean applyToAllLayers)
-{
-  if (!applyToAllLayers)
-    {
-      undoManager.preserveActiveLayerData ();
-
-      getActiveLayer ().copyRegionHFlip (getSize (), undoManager.getActiveLayerPreservedData ());
-      undoManager.activeLayerDataChange (getSize ());
-    }
-  else
-    {
-      undoManager.preserveAllLayersState ();
-      for (int i = 0; i < getLayersVector ().size (); i++)
-        {
-          getLayersVector ().elementAt (i).copyRegionHFlip (getSize (), undoManager.getPreservedAllLayers ().elementAt (i).getData ());
-
-        }
-      undoManager.allLayersChanged (getSize ());
-    }
-
-  invalidateFusion ();
-}
-
-public void vFlip (boolean applyToAllLayers)
-{
-
-  if (!applyToAllLayers)
-    {
-      undoManager.preserveActiveLayerData ();
-
-      getActiveLayer ().copyRegionVFlip (getSize (), undoManager.getActiveLayerPreservedData ());
-      undoManager.activeLayerDataChange (getSize ());
-    }
-  else
-    {
-      undoManager.preserveAllLayersState ();
-      for (int i = 0; i < getLayersVector ().size (); i++)
-        {
-          getLayersVector ().elementAt (i).copyRegionVFlip (getSize (), undoManager.getPreservedAllLayers ().elementAt (i).getData ());
-
-        }
-      undoManager.allLayersChanged (getSize ());
-    }
-  invalidateFusion ();
-}
 
 // ////
 // Copy/Paste

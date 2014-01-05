@@ -588,18 +588,6 @@ public void actionPerformed (ActionEvent e)
       canvas.repaint ();
     }
 
-  else if (e.getActionCommand ().equals ("CPHFlip"))
-    {
-      artwork.hFlip (canvas.getApplyToAllLayers ());
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPVFlip"))
-    {
-      artwork.vFlip (canvas.getApplyToAllLayers ());
-      artwork.finalizeUndo ();
-    }
-
   else if (e.getActionCommand ().equals ("CPMNoise"))
     {
       artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPGrayscaleNoiseEffect ());

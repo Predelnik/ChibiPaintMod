@@ -316,8 +316,6 @@ void createMainMenu ()
   // Effects
   addMenu ("Effects", KeyEvent.VK_E);
   addMenuItem ("Free Transform Selected", KeyEvent.VK_T, "CPFreeTransform", "Transform selected part of the current layer", KeyStroke.getKeyStroke (KeyEvent.VK_T, InputEvent.CTRL_MASK));
-  addMenuItem ("Flip Horizontal", KeyEvent.VK_H, "CPHFlip", "Flips the current selected area horizontally");
-  addMenuItem ("Flip Vertical", KeyEvent.VK_V, "CPVFlip", "Flips the current selected area vertically");
   addSeparator ();
   addMenuItem ("Clear", KeyEvent.VK_C, "CPClear", "Clears the selected area", KeyStroke.getKeyStroke (KeyEvent.VK_DELETE, 0));
   addMenuItem ("Fill", KeyEvent.VK_F, "CPFill", "Fills the selected area with the current color", KeyStroke.getKeyStroke (KeyEvent.VK_F, InputEvent.CTRL_MASK));
