@@ -22,7 +22,7 @@
 
 package chibipaint.gui;
 
-import chibipaint.CPController;
+import chibipaint.controller.CPController;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;

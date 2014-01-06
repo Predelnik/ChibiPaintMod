@@ -21,7 +21,7 @@
 
 package chibipaint.engine;
 
-import chibipaint.CPController;
+import chibipaint.controller.CPController;
 import chibipaint.gui.CPCanvas;
 import chibipaint.util.CPRect;
 

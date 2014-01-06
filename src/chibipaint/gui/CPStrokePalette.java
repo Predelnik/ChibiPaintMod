@@ -22,7 +22,7 @@
 
 package chibipaint.gui;
 
-import chibipaint.CPController;
+import chibipaint.controller.CPController;
 import chibipaint.engine.CPBrushInfo;
 
 import java.awt.*;

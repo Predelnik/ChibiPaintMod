@@ -22,8 +22,8 @@
 
 package chibipaint.gui;
 
-import chibipaint.CPController;
-import chibipaint.CPControllerApplication;
+import chibipaint.controller.CPController;
+import chibipaint.controller.CPControllerApplication;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPBrushInfo;
 import chibipaint.engine.CPSelection;

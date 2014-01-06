@@ -21,7 +21,7 @@
 
  */
 
-package chibipaint;
+package chibipaint.controller;
 
 import cello.jtablet.installer.BrowserLauncher;
 import chibipaint.effects.*;

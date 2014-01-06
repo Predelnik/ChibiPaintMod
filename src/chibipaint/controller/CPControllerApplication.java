@@ -20,9 +20,11 @@
 
  */
 
-package chibipaint;
+package chibipaint.controller;
 
+import chibipaint.ChibiApp;
 import chibipaint.ChibiApp.appState;
+import chibipaint.controller.CPController;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPUndo;
 import chibipaint.file.CPAbstractFile;
@@ -43,7 +45,7 @@ private File currentFile;
 private CPUndo latestRedoAction = null;
 private CPUndo latestUndoAction = null;
 private boolean redoActionMayChange = false;
-boolean changed;
+public boolean changed;
 
 @Override
 public void actionPerformed (ActionEvent e)
@@ -284,7 +286,7 @@ private boolean saveLoadImageFile (
   if (file_name.equals (""))
     {
 
-      FileNameExtensionFilter filter = null;
+      FileNameExtensionFilter filter;
       filter = file.fileFilter ();
       if (!file.isNative () && currentFile != null)
         {
@@ -493,7 +495,7 @@ public void setTransformStateImpl (boolean transformIsOn)
     ((ChibiApp) mainFrame).setAppState (appState.FREE);
 }
 
-void saveControllerSettings ()
+public void saveControllerSettings ()
 {
   Preferences userRoot = Preferences.userRoot ();
   Preferences preferences = userRoot.node ("chibipaintmod");
@@ -531,7 +533,7 @@ void saveControllerSettings ()
   preferences.putBoolean ("Sample All Layers", artwork.isSampleAllLayers ());
 }
 
-void loadUrgentSettings ()
+public void loadUrgentSettings ()
 {
   // Settings that should be loaded before gui to avoid rewriting a lots of code
   Preferences userRoot = Preferences.userRoot ();
@@ -544,7 +546,7 @@ void loadUrgentSettings ()
   artwork.setSampleAllLayers ((preferences.getBoolean ("Sample All Layers", artwork.isSampleAllLayers ())));
 }
 
-void loadControllerSettings ()
+public void loadControllerSettings ()
 {
   Preferences userRoot = Preferences.userRoot ();
   Preferences preferences = userRoot.node ("chibipaintmod");

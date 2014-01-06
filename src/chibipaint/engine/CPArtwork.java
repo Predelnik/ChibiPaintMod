@@ -22,7 +22,7 @@
 
 package chibipaint.engine;
 
-import chibipaint.CPController;
+import chibipaint.controller.CPController;
 import chibipaint.effects.CPEffect;
 import chibipaint.engine.CPBrushManager.CPBrushDab;
 import chibipaint.util.CPColorFloat;

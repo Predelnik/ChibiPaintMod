@@ -20,8 +20,10 @@
 
  */
 
-package chibipaint;
+package chibipaint.controller;
 
+import chibipaint.ChibiPaint;
+import chibipaint.controller.CPController;
 import chibipaint.file.CPChibiFile;
 
 import javax.swing.*;

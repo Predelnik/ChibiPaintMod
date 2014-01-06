@@ -22,6 +22,8 @@
 
 package chibipaint;
 
+import chibipaint.controller.CPController;
+import chibipaint.controller.CPControllerApplet;
 import chibipaint.engine.CPArtwork;
 import chibipaint.file.CPChibiFile;
 import chibipaint.gui.CPMainGUI;
@@ -202,7 +204,7 @@ void createFloatingPlaceholder ()
   floatingPlaceholder.add (label);
 }
 
-void floatingMode ()
+public void floatingMode ()
 {
   if (!floatingMode)
     {

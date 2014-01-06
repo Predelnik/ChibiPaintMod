@@ -22,6 +22,7 @@
 
 package chibipaint;
 
+import chibipaint.controller.CPControllerApplication;
 import chibipaint.engine.CPArtwork;
 import chibipaint.gui.CPLayersPalette;
 import chibipaint.gui.CPMainGUI;
@@ -57,7 +58,7 @@ void transformIsInProgressMsgBox ()
 }
 
 // Returns true if it is ok to continue operation
-boolean confirmDialog ()
+public boolean confirmDialog ()
 {
   if (this.controller.changed)
     {
