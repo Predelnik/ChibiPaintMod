@@ -76,7 +76,7 @@ private int offsetY;
 private float canvasRotation = 0.f;
 private final AffineTransform transform = new AffineTransform ();
 private boolean applyToAllLayers = false;
-private boolean interpolation = false;
+private boolean interpolation = true;
 
 private int cursorX;
 
@@ -93,6 +93,7 @@ private Cursor moveCursor;
 private Cursor crossCursor;
 private CPMode prevMode = null;
 private boolean drawPrevMode = false;
+private boolean showSelection = true;
 
 public boolean isCursorIn ()
 {
@@ -495,7 +496,8 @@ public void paint (Graphics g)
 		 */
 
   // Drawing Selection
-  artwork.getCurSelection ().drawItself (g2d, this);
+  if (showSelection)
+    artwork.getCurSelection ().drawItself (g2d, this);
 
   // Draw grid
   if (showGrid)
@@ -1183,6 +1185,7 @@ public void saveCanvasSettings ()
   preferences.putBoolean ("Lock Alpha", artwork.isLockAlpha ());
   preferences.putBoolean ("Interpolation", interpolation);
   preferences.putBoolean ("Show Grid", showGrid);
+  preferences.putBoolean ("Show Selection", showSelection);
   preferences.putInt ("Grid size", gridSize);
 }
 
@@ -1201,11 +1204,13 @@ public void loadCanvasSettings ()
   Preferences preferences = userRoot.node ("chibipaintmod");
   setInterpolation (preferences.getBoolean ("Interpolation", interpolation));
   setApplyToAllLayers (preferences.getBoolean ("Apply to All Layers", applyToAllLayers));
+  setShowSelection (preferences.getBoolean ("Show Selection", showSelection));
   showGrid (preferences.getBoolean ("Show Grid", showGrid));
   artwork.setLockAlpha (preferences.getBoolean ("Lock Alpha", artwork.isLockAlpha ()));
-  controller.getMainGUI ().setPaletteMenuItem ("Use Linear Interpolation", interpolation);
-  controller.getMainGUI ().setPaletteMenuItem ("Apply to All Layers", applyToAllLayers);
-  controller.getMainGUI ().setPaletteMenuItem ("Show Grid", showGrid);
+  controller.getMainGUI ().setSelectedByCmdId (CPCommandId.LinearInterpolation, interpolation);
+  controller.getMainGUI ().setSelectedByCmdId (CPCommandId.ApplyToAllLayers, applyToAllLayers);
+  controller.getMainGUI ().setSelectedByCmdId (CPCommandId.ShowGrid, showGrid);
+  controller.getMainGUI ().setSelectedByCmdId (CPCommandId.ShowSelection, showSelection);
   gridSize = preferences.getInt ("Grid size", gridSize);
 }
 
@@ -1297,6 +1302,11 @@ public boolean getInterpolation ()
 public boolean getShowGrid ()
 {
   return showGrid;
+}
+
+public void setShowSelection (boolean showSelection)
+{
+  this.showSelection = showSelection;
 }
 
 
@@ -1450,10 +1460,8 @@ class CPDefaultMode extends CPMode
 
 void setUndoRedoEnabled (boolean isEnabled)
 {
-  for (JMenuItem item : controller.getMainGUI ().getMenuItemByCmdId (CPCommandId.Undo))
-    item.setEnabled (isEnabled);
-  for (JMenuItem item : controller.getMainGUI ().getMenuItemByCmdId (CPCommandId.Redo))
-    item.setEnabled (isEnabled);
+  controller.getMainGUI ().setEnabledByCmdId (CPCommandId.Undo, isEnabled);
+  controller.getMainGUI ().setEnabledByCmdId (CPCommandId.Redo, isEnabled);
 }
 
 class CPFreehandMode extends CPMode
@@ -1963,13 +1971,11 @@ class CPRectSelectionMode extends CPMode
 void setEnabledForTransform (boolean enabled)
 {
   controller.getMainGUI ().setEnabledForTransform (enabled);
-  CPCommandId viewItems[] = {CPCommandId.ZoomIn, CPCommandId.ZoomOut, CPCommandId.Zoom100, CPCommandId.About, CPCommandId.LinearInterpolation, CPCommandId.ToggleGrid,
+  CPCommandId viewItems[] = {CPCommandId.ZoomIn, CPCommandId.ZoomOut, CPCommandId.Zoom100, CPCommandId.About, CPCommandId.LinearInterpolation, CPCommandId.ShowGrid,
           CPCommandId.GridOptions, CPCommandId.TogglePalettes, CPCommandId.PalBrush, CPCommandId.PalColor, CPCommandId.PalLayers, CPCommandId.PalMisc, CPCommandId.PalStroke,
           CPCommandId.PalSwatches, CPCommandId.PalTextures, CPCommandId.PalTool, CPCommandId.LayerToggleAll};
   for (CPCommandId item : viewItems)
-    for (JMenuItem menuItem : controller.getMainGUI ().getMenuItemByCmdId (item))
-      menuItem.setEnabled (true);
-
+    controller.getMainGUI ().setEnabledByCmdId (item, true);
 }
 
 public void applyTransform ()

@@ -166,9 +166,21 @@ private void addMenuItemInternal (String title, int mnemonic, final CPCommandId 
   lastItem = menuItem;
 }
 
-ArrayList<JMenuItem> getMenuItemByCmdId (CPCommandId cmdId)
+ArrayList<JMenuItem> getMenuItemListByCmdId (CPCommandId cmdId)
 {
   return menuItems.get (cmdId);
+}
+
+void setEnabledByCmdId (CPCommandId cmdId, boolean value)
+{
+  for (JMenuItem item : controller.getMainGUI ().getMenuItemListByCmdId (cmdId))
+    item.setEnabled (value);
+}
+
+void setSelectedByCmdId (CPCommandId cmdId, boolean value)
+{
+  for (JMenuItem item : controller.getMainGUI ().getMenuItemListByCmdId (cmdId))
+    item.setSelected (value);
 }
 
 void setEnabledForTransform (boolean enabled)
@@ -358,7 +370,6 @@ void createMainMenu ()
   endSubMenu ();
   addSeparator ();
   addCheckBoxMenuItem ("Apply to All Layers", KeyEvent.VK_T, CPCommandId.ApplyToAllLayers, "Apply all listed above effects to all layers instead of just current", false);
-  paletteItems.put ("Apply to All Layers", (JCheckBoxMenuItem) lastItem);
 
   // View
 
@@ -375,10 +386,9 @@ void createMainMenu ()
   addMenuItem ("Zoom 100%", KeyEvent.VK_O, CPCommandId.Zoom100, "Resets the zoom factor to 100%", KeyStroke.getKeyStroke (KeyEvent.VK_NUMPAD0, InputEvent.CTRL_MASK));
   addSeparator ();
   addCheckBoxMenuItem ("Use Linear Interpolation", KeyEvent.VK_L, CPCommandId.LinearInterpolation, "Linear interpolation is used to give a smoothed looked to the picture when zoomed in", false);
-  paletteItems.put ("Use Linear Interpolation", (JCheckBoxMenuItem) lastItem);
+  addCheckBoxMenuItem ("Show Selection", KeyEvent.VK_L, CPCommandId.ShowSelection, "Show animated selection borders to better see it and operate with it", true);
   addSeparator ();
-  addCheckBoxMenuItem ("Show Grid", KeyEvent.VK_G, CPCommandId.ToggleGrid, "Displays a grid over the image", KeyStroke.getKeyStroke (KeyEvent.VK_G, InputEvent.CTRL_MASK), false);
-  paletteItems.put ("Show Grid", (JCheckBoxMenuItem) lastItem);
+  addCheckBoxMenuItem ("Show Grid", KeyEvent.VK_G, CPCommandId.ShowGrid, "Displays a grid over the image", KeyStroke.getKeyStroke (KeyEvent.VK_G, InputEvent.CTRL_MASK), false);
   addMenuItem ("Grid options...", KeyEvent.VK_D, CPCommandId.GridOptions, "Shows the grid options dialog box");
   addSeparator ();
 

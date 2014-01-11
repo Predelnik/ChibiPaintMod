@@ -275,7 +275,10 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
     case LinearInterpolation:
       canvas.setInterpolation (((CPCommandSettings.checkBoxState) commandSettings).checked);
       break;
-    case ToggleGrid:
+    case ShowSelection:
+      canvas.setShowSelection (((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case ShowGrid:
       canvas.showGrid (((CPCommandSettings.checkBoxState) commandSettings).checked);
       break;
     case GridOptions:
