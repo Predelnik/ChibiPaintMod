@@ -30,6 +30,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,7 +40,24 @@ public class CPMainGUI
 {
 
 private final CPCommonController controller;
-private final HashMap<CPCommandId, JMenuItem> menuItems = new HashMap<CPCommandId, JMenuItem> ();
+
+class MenuItemHashMap extends HashMap<CPCommandId, ArrayList<JMenuItem>>
+{
+  public void put (CPCommandId key, JMenuItem value)
+  {
+    ArrayList<JMenuItem> list = this.get (key);
+    if (list == null)
+      {
+        list = new ArrayList<JMenuItem> ();
+        list.add (value);
+        super.put (key, list);
+      }
+    else
+      list.add (value);
+  }
+}
+
+private final MenuItemHashMap menuItems = new MenuItemHashMap ();
 private CPPaletteManager paletteManager;
 
 private JMenuBar menuBar;
@@ -139,6 +157,7 @@ private void addMenuItemInternal (String title, int mnemonic, final CPCommandId 
       controller.performCommand (commandId, isCheckable ? new CPCommandSettings.checkBoxState (((JCheckBoxMenuItem) e.getSource ()).isSelected ()) : commandSettings);
     }
   });
+  ArrayList<JMenuItem> list = menuItems.get (commandId);
   menuItems.put (commandId, menuItem);
   if (lastSubMenu != null)
     lastSubMenu.add (menuItem);
@@ -147,7 +166,7 @@ private void addMenuItemInternal (String title, int mnemonic, final CPCommandId 
   lastItem = menuItem;
 }
 
-JMenuItem getMenuItemByCmdId (CPCommandId cmdId)
+ArrayList<JMenuItem> getMenuItemByCmdId (CPCommandId cmdId)
 {
   return menuItems.get (cmdId);
 }
@@ -158,8 +177,9 @@ void setEnabledForTransform (boolean enabled)
   while (it.hasNext ())
     {
       Map.Entry pairs = (Map.Entry) it.next ();
-      JMenuItem item = (JMenuItem) pairs.getValue ();
-      item.setEnabled (enabled);
+      ArrayList<JMenuItem> item = (ArrayList<JMenuItem>) pairs.getValue ();
+      for (JMenuItem menuItem : item)
+        menuItem.setEnabled (enabled);
     }
   ((CPLayersPalette) getPaletteManager ().getPalettes ().get ("layers")).setEnabledForTransform (enabled);
   ((CPMiscPalette) getPaletteManager ().getPalettes ().get ("misc")).setEnabledForTransform (enabled);

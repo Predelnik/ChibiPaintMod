@@ -1450,8 +1450,10 @@ class CPDefaultMode extends CPMode
 
 void setUndoRedoEnabled (boolean isEnabled)
 {
-  controller.getMainGUI ().getMenuItemByCmdId (CPCommandId.Undo).setEnabled (isEnabled);
-  controller.getMainGUI ().getMenuItemByCmdId (CPCommandId.Redo).setEnabled (isEnabled);
+  for (JMenuItem item : controller.getMainGUI ().getMenuItemByCmdId (CPCommandId.Undo))
+    item.setEnabled (isEnabled);
+  for (JMenuItem item : controller.getMainGUI ().getMenuItemByCmdId (CPCommandId.Redo))
+    item.setEnabled (isEnabled);
 }
 
 class CPFreehandMode extends CPMode
@@ -1965,7 +1967,8 @@ void setEnabledForTransform (boolean enabled)
           CPCommandId.GridOptions, CPCommandId.TogglePalettes, CPCommandId.PalBrush, CPCommandId.PalColor, CPCommandId.PalLayers, CPCommandId.PalMisc, CPCommandId.PalStroke,
           CPCommandId.PalSwatches, CPCommandId.PalTextures, CPCommandId.PalTool, CPCommandId.LayerToggleAll};
   for (CPCommandId item : viewItems)
-    controller.getMainGUI ().getMenuItemByCmdId (item).setEnabled (true);
+    for (JMenuItem menuItem : controller.getMainGUI ().getMenuItemByCmdId (item))
+      menuItem.setEnabled (true);
 
 }
 
