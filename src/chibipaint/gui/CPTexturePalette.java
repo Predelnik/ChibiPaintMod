@@ -22,7 +22,7 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommonController;
 import chibipaint.engine.CPGreyBmp;
 import chibipaint.engine.CPLookUpTable;
 
@@ -46,7 +46,7 @@ private boolean inverse = false;
 private float brightness = 0f;
 private float contrast = 0f;
 
-public CPTexturePalette (CPController controller)
+public CPTexturePalette (CPCommonController controller)
 {
   super (controller);
   title = "Textures";

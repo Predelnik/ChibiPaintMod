@@ -22,7 +22,10 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommandSettings;
+import chibipaint.controller.CPCommonController;
+import chibipaint.controller.ICPController;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPLayer;
 import chibipaint.util.CPRect;
@@ -31,7 +34,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkListener, ActionListener, ItemListener
+public class CPLayersPalette extends CPPalette implements CPArtwork.ICPArtworkListener, ICPController, ActionListener, ItemListener
 {
 
 private final int layerH = 32;
@@ -53,7 +56,7 @@ private final String[] modeNames = {"Normal", "Multiply", "Add", "Screen", "Ligh
 private final CPIconButton addButton;
 private final CPIconButton removeButton;
 
-public CPLayersPalette (CPController controller)
+public CPLayersPalette (CPCommonController controller)
 {
   super (controller);
 
@@ -64,12 +67,12 @@ public CPLayersPalette (CPController controller)
   Image icons = controller.loadImage ("smallicons.png");
 
   addButton = new CPIconButton (icons, 16, 16, 0, 1);
-  addButton.addCPActionListener (this);
-  addButton.setCPActionCommand ("CPAddLayer");
+  addButton.addController (this);
+  addButton.setCPActionCommand (CPCommandId.AddLayer);
 
   removeButton = new CPIconButton (icons, 16, 16, 1, 1);
-  removeButton.addCPActionListener (this);
-  removeButton.setCPActionCommand ("CPRemoveLayer");
+  removeButton.addController (this);
+  removeButton.setCPActionCommand (CPCommandId.RemoveLayer);
 
   alphaSlider = new CPAlphaSlider ();
 
@@ -168,21 +171,8 @@ public void removeListener ()
 public void actionPerformed (ActionEvent e)
 {
   CPArtwork artwork = controller.getArtwork ();
-  if (e.getActionCommand ().equals ("CPAddLayer"))
-    {
-      artwork.addLayer ();
-      artwork.finalizeUndo ();
-    }
-  else if (e.getActionCommand ().equals ("CPRemoveLayer"))
-    {
-      artwork.removeLayer ();
-      artwork.finalizeUndo ();
-    }
-  else if (e.getSource () == blendCombo)
-    {
-      artwork.setBlendMode (artwork.getActiveLayerNb (), blendCombo.getSelectedIndex ());
-      artwork.finalizeUndo ();
-    }
+  artwork.setBlendMode (artwork.getActiveLayerNb (), blendCombo.getSelectedIndex ());
+  artwork.finalizeUndo ();
 }
 
 @Override
@@ -238,6 +228,25 @@ public void layerChange (CPArtwork artwork)
 
   lw.repaint ();
   lw.revalidate ();
+}
+
+@Override
+public void performCommand (CPCommandId commandId, CPCommandSettings commandSettings)
+{
+  CPArtwork artwork = controller.getArtwork ();
+  switch (commandId)
+    {
+    case AddLayer:
+      artwork.addLayer ();
+      artwork.finalizeUndo ();
+      break;
+    case RemoveLayer:
+      artwork.removeLayer ();
+      artwork.finalizeUndo ();
+      break;
+    default:
+      break;
+    }
 }
 
 class CPLayerWidget extends JComponent implements MouseListener, MouseMotionListener

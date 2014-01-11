@@ -22,16 +22,17 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommandSettings;
+import chibipaint.controller.CPCommonController;
+import chibipaint.controller.ICPController;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-class CPToolsPalette extends CPPalette implements ActionListener
+class CPToolsPalette extends CPPalette implements ICPController
 {
 
-public CPToolsPalette (CPController controller)
+public CPToolsPalette (CPCommonController controller)
 {
   super (controller);
 
@@ -40,35 +41,35 @@ public CPToolsPalette (CPController controller)
 
   CPIconButton button;
   icons = controller.loadImage ("icons.png");
-  addIconButton (0, "CPRectSelection", CPController.M_RECT_SELECTION);
-  addIconButton (30, "CPFreeSelection", CPController.M_FREE_SELECTION);
-  addIconButton (2, "CPFloodFill", CPController.M_FLOODFILL);
-  addIconButton (29, "CPRotateCanvas", CPController.M_ROTATE_CANVAS, "CPResetCanvasRotation");
-  addIconButton (5, "CPPencil", CPController.M_DRAW, null, CPController.T_PENCIL);
-  addIconButton (6, "CPPen", CPController.M_DRAW, null, CPController.T_PEN);
-  addIconButton (7, "CPAirbrush", CPController.M_DRAW, null, CPController.T_AIRBRUSH);
-  addIconButton (18, "CPWater", CPController.M_DRAW, null, CPController.T_WATER);
-  addIconButton (8, "CPEraser", CPController.M_DRAW, null, CPController.T_ERASER);
-  addIconButton (9, "CPSoftEraser", CPController.M_DRAW, null, CPController.T_SOFTERASER);
-  addIconButton (24, "CPSmudge", CPController.M_DRAW, null, CPController.T_SMUDGE);
-  addIconButton (28, "CPBlender", CPController.M_DRAW, null, CPController.T_BLENDER);
-  addIconButton (16, "CPDodge", CPController.M_DRAW, null, CPController.T_DODGE);
-  addIconButton (17, "CPBurn", CPController.M_DRAW, null, CPController.T_BURN);
-  addIconButton (23, "CPBlur", CPController.M_DRAW, null, CPController.T_BLUR);
+  addIconButton (0, CPCommandId.RectSelection, CPCommonController.M_RECT_SELECTION);
+  addIconButton (30, CPCommandId.FreeSelection, CPCommonController.M_FREE_SELECTION);
+  addIconButton (2, CPCommandId.FloodFill, CPCommonController.M_FLOODFILL);
+  addIconButton (29, CPCommandId.RotateCanvas, CPCommonController.M_ROTATE_CANVAS, "CPResetCanvasRotation");
+  addIconButton (5, CPCommandId.Pencil, CPCommonController.M_DRAW, null, CPCommonController.T_PENCIL);
+  addIconButton (6, CPCommandId.Pen, CPCommonController.M_DRAW, null, CPCommonController.T_PEN);
+  addIconButton (7, CPCommandId.AirBrush, CPCommonController.M_DRAW, null, CPCommonController.T_AIRBRUSH);
+  addIconButton (18, CPCommandId.Water, CPCommonController.M_DRAW, null, CPCommonController.T_WATER);
+  addIconButton (8, CPCommandId.Eraser, CPCommonController.M_DRAW, null, CPCommonController.T_ERASER);
+  addIconButton (9, CPCommandId.SoftEraser, CPCommonController.M_DRAW, null, CPCommonController.T_SOFTERASER);
+  addIconButton (24, CPCommandId.Smudge, CPCommonController.M_DRAW, null, CPCommonController.T_SMUDGE);
+  addIconButton (28, CPCommandId.Blender, CPCommonController.M_DRAW, null, CPCommonController.T_BLENDER);
+  addIconButton (16, CPCommandId.Dodge, CPCommonController.M_DRAW, null, CPCommonController.T_DODGE);
+  addIconButton (17, CPCommandId.Burn, CPCommonController.M_DRAW, null, CPCommonController.T_BURN);
+  addIconButton (23, CPCommandId.Blur, CPCommonController.M_DRAW, null, CPCommonController.T_BLUR);
 }
 
 @Override
-public void actionPerformed (ActionEvent e)
+public void performCommand (CPCommandId commandId, CPCommandSettings commandSettings)
 {
   Component[] components = getComponents ();
+  CPIconButton sourceButton = ((CPCommandSettings.sourceIconButton) commandSettings).button;
   for (Component c : components)
     {
-      if (c != e.getSource ())
+      if (c != sourceButton)
         {
           ((CPIconButton) c).setSelected (false);
         }
     }
-
-  ((CPIconButton) e.getSource ()).setSelected (true);
+  sourceButton.setSelected (true);
 }
 }

@@ -22,7 +22,7 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommonController;
 import chibipaint.util.CPColor;
 
 import javax.swing.*;
@@ -32,7 +32,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.MemoryImageSource;
 
-public class CPColorPalette extends CPPalette implements CPController.ICPColorListener
+public class CPColorPalette extends CPPalette implements CPCommonController.ICPColorListener
 {
 
 private final CPColor curColor = new CPColor ();
@@ -40,7 +40,7 @@ private final CPColorSelect colorSelect;
 private final CPColorSlider colorSlider;
 private final CPColorShow colorShow;
 
-public CPColorPalette (CPController controller)
+public CPColorPalette (CPCommonController controller)
 {
   super (controller);
 

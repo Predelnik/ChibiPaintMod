@@ -38,8 +38,6 @@ import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -51,7 +49,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public abstract class CPController implements ActionListener
+public abstract class CPCommonController implements ICPController
 {
 
 private final static String VERSION_STRING = "0.0.5 (alpha)";
@@ -130,6 +128,292 @@ public Cursor getRotateCursor ()
   return rotateCursor;
 }
 
+public void performCommand (CPCommandId commandId, CPCommandSettings commandSettings)
+{
+  if (commandId.isSpecificToType ())
+    return;
+
+  switch (commandId)
+    {
+    case ZoomIn:
+      canvas.zoomIn ();
+      break;
+    case ZoomOut:
+      canvas.zoomOut ();
+      break;
+    case Zoom100:
+      canvas.zoom100 ();
+      break;
+    case Undo:
+      artwork.undo ();
+      break;
+    case Redo:
+      artwork.redo ();
+      break;
+    case ClearHistory:
+      clearHistory ();
+      break;
+    case Pencil:
+      setTool (T_PENCIL);
+      break;
+    case Pen:
+      setTool (T_PEN);
+      break;
+    case Eraser:
+      setTool (T_ERASER);
+      break;
+    case SoftEraser:
+      setTool (T_SOFTERASER);
+      break;
+    case AirBrush:
+      setTool (T_AIRBRUSH);
+      break;
+    case Dodge:
+      setTool (T_DODGE);
+      break;
+    case Burn:
+      setTool (T_BURN);
+      break;
+    case Water:
+      setTool (T_WATER);
+      break;
+    case Blur:
+      setTool (T_BLUR);
+      break;
+    case Smudge:
+      setTool (T_SMUDGE);
+      break;
+    case Blender:
+      setTool (T_BLENDER);
+      break;
+    case FloodFill:
+      setMode (M_FLOODFILL);
+      break;
+    case FreeSelection:
+      setMode (M_FREE_SELECTION);
+      break;
+    case FreeTransform:
+      canvas.initTransform ();
+      callToolListeners ();
+      break;
+    case RectSelection:
+      setMode (M_RECT_SELECTION);
+      break;
+    case RotateCanvas:
+      setMode (M_ROTATE_CANVAS);
+      break;
+    case FreeHand:
+      tools[getCurBrush ()].strokeMode = CPBrushInfo.SM_FREEHAND;
+      callToolListeners ();
+      break;
+    case Line:
+      tools[getCurBrush ()].strokeMode = CPBrushInfo.SM_LINE;
+      callToolListeners ();
+      break;
+    case Bezier:
+      tools[getCurBrush ()].strokeMode = CPBrushInfo.SM_BEZIER;
+      callToolListeners ();
+      break;
+    case About:
+      launchAboutDialog ();
+      break;
+    case Test:
+      // CPTest is disabled for now
+      break;
+    case LayerToggleAll:
+      artwork.toggleLayers ();
+      artwork.finalizeUndo ();
+      break;
+    case LayerDuplicate:
+      artwork.duplicateLayer ();
+      artwork.finalizeUndo ();
+      break;
+    case LayerMergeDown:
+      artwork.mergeDown ();
+      artwork.finalizeUndo ();
+      break;
+    case LayerMergeAll:
+      artwork.mergeAllLayers ();
+      artwork.finalizeUndo ();
+      break;
+    case Fill:
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPFillEffect (getCurColorRgb () | 0xff000000));
+      artwork.finalizeUndo ();
+      break;
+    case Clear:
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPClearEffect ());
+      artwork.finalizeUndo ();
+      break;
+    case SelectAll:
+      artwork.selectAll ();
+      canvas.repaint ();
+      break;
+    case DeselectAll:
+      artwork.deselectAll ();
+      canvas.repaint ();
+      break;
+    case MNoise:
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPGrayscaleNoiseEffect ());
+      artwork.finalizeUndo ();
+      break;
+    case CNoise:
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPColorNoiseEffect ());
+      artwork.finalizeUndo ();
+      break;
+    case FXBoxBlur:
+      showBoxBlurDialog ();
+      break;
+    case FXInvert:
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPInverseEffect ());
+      artwork.finalizeUndo ();
+      break;
+    case FXMakeGrayscaleByLuma:
+      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPMakeGrayscaleEffect ());
+      artwork.finalizeUndo ();
+      break;
+    case ApplyToAllLayers:
+      canvas.setApplyToAllLayers (((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case LinearInterpolation:
+      canvas.setInterpolation (((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case ToggleGrid:
+      canvas.showGrid (((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case GridOptions:
+      showGridOptionsDialog ();
+      break;
+    case ResetCanvasRotation:
+      canvas.resetRotation ();
+      break;
+    case PalColor:
+      mainGUI.showPalette ("color", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case PalBrush:
+      mainGUI.showPalette ("tool_preferences", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case PalLayers:
+      mainGUI.showPalette ("layers", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case PalStroke:
+      mainGUI.showPalette ("stroke", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case PalSwatches:
+      mainGUI.showPalette ("swatches", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case PalTool:
+      mainGUI.showPalette ("tool", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case PalMisc:
+      mainGUI.showPalette ("misc", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case PalTextures:
+      mainGUI.showPalette ("textures", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      break;
+    case TogglePalettes:
+      mainGUI.togglePalettes ();
+      break;
+    case Copy:
+      canvas.copy ();
+      break;
+    case CopyMerged:
+      canvas.copyMerged ();
+      break;
+    case Paste:
+      canvas.paste ();
+      break;
+    case Cut:
+      canvas.cut ();
+      break;
+    case ApplyTransform:
+      canvas.applyTransform ();
+      break;
+    case CancelTransform:
+      canvas.cancelTransform ();
+      break;
+    case FlipHorizontally:
+      artwork.doTransformAction (CPArtwork.transformType.FLIP_H);
+      canvas.repaint ();
+      break;
+    case FlipVertically:
+      artwork.doTransformAction (CPArtwork.transformType.FLIP_V);
+      canvas.repaint ();
+      break;
+    case Rotate90CCW:
+      artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CCW);
+      canvas.repaint ();
+      break;
+    case Rotate90CW:
+      artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CW);
+      canvas.repaint ();
+      break;
+    }
+  callCPEventListeners ();
+}
+
+private void launchAboutDialog ()
+{
+// for copying style
+  JLabel label = new JLabel ();
+  Font font = label.getFont ();
+
+  // create some css from the label's font
+  StringBuffer style = new StringBuffer ("font-family:" + font.getFamily () + ";");
+  style.append ("font-weight:" + (font.isBold () ? "bold" : "normal") + ";");
+  style.append ("font-size:" + font.getSize () + "pt;");
+
+
+  JEditorPane ep = new JEditorPane ("text/html", "<html><body style=\"" + style + "\"><pre>ChibiPaintMod\n" + "Version "
+          + VERSION_STRING + "\n\n" + "Copyright (c) 2012-2013 Sergey Semushin.\n"
+          + "Copyright (c) 2006-2008 Marc Schefer. All Rights Reserved.\n\n"
+          + "ChibiPaintMod is free software: you can redistribute it and/or modify\n"
+          + "it under the terms of the GNU General Public License as published by\n"
+          + "the Free Software Foundation, either version 3 of the License, or\n"
+          + "(at your option) any later version.\n\n"
+          + "ChibiPaintMod is distributed in the hope that it will be useful,\n"
+          + "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+          + "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+          + "GNU General Public License for more details.\n\n"
+
+          + "You should have received a copySelected of the GNU General Public License\n"
+          + "along with ChibiPaintMod. If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>.\n" +
+          "</pre></html>");
+  ep.setEditable (false);
+  ep.setBackground (label.getBackground ());
+  // handle link events
+  ep.addHyperlinkListener (new HyperlinkListener ()
+  {
+    @Override
+    public void hyperlinkUpdate (HyperlinkEvent e)
+    {
+      if (e.getEventType ().equals (HyperlinkEvent.EventType.ACTIVATED))
+        try
+          {
+            BrowserLauncher.browse (e.getURL ().toURI ()); // roll your own link launcher or use Desktop if J6+
+          }
+        catch (URISyntaxException e1)
+          {
+            return;
+          }
+    }
+  });
+  JOptionPane.showMessageDialog (getDialogParent (), ep, "About ChibiPaint...", JOptionPane.PLAIN_MESSAGE);
+}
+
+private void clearHistory ()
+{
+  int choice = JOptionPane
+          .showConfirmDialog (
+                  getDialogParent (),
+                  "You're about to clear the current Undo/Redo history.\nThis operation cannot be undone, are you sure you want to do that?",
+                  "Clear History", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+
+  if (choice == JOptionPane.OK_OPTION)
+    {
+      artwork.clearHistory ();
+    }
+}
+
 public interface ICPColorListener
 {
 
@@ -169,7 +453,7 @@ public static class CPViewInfo
   public int height;
 }
 
-CPController ()
+CPCommonController ()
 {
   Image img = loadImage ("cursor/rotate.png");
   Point hotSpot = new Point (11, 11);
@@ -342,392 +626,6 @@ void setMode (int mode)
   setCurMode (mode);
   callModeListeners ();
   callToolListeners (); // For updating mode settings if they exist
-}
-
-	/*
-   * public CPToolInfo getModeInfo() { return modes[curMode]; }
-	 */
-
-@Override
-public void actionPerformed (ActionEvent e)
-{
-  if (artwork == null || canvas == null)
-    {
-      return; // this shouldn't happen but just in case
-    }
-
-  String command = e.getActionCommand ();
-
-  if (e.getActionCommand ().equals ("CPZoomIn"))
-    {
-      canvas.zoomIn ();
-    }
-  else if (e.getActionCommand ().equals ("CPZoomOut"))
-    {
-      canvas.zoomOut ();
-    }
-  else if (e.getActionCommand ().equals ("CPZoom100"))
-    {
-      canvas.zoom100 ();
-    }
-  else if (e.getActionCommand ().equals ("CPUndo"))
-    {
-      artwork.undo ();
-    }
-  else if (e.getActionCommand ().equals ("CPRedo"))
-    {
-      artwork.redo ();
-    }
-  else if (e.getActionCommand ().equals ("CPClearHistory"))
-    {
-      int choice = JOptionPane
-              .showConfirmDialog (
-                      getDialogParent (),
-                      "You're about to clear the current Undo/Redo history.\nThis operation cannot be undone, are you sure you want to do that?",
-                      "Clear History", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
-
-      if (choice == JOptionPane.OK_OPTION)
-        {
-          artwork.clearHistory ();
-        }
-    }
-  else if (e.getActionCommand ().equals ("CPPencil"))
-    {
-      setTool (T_PENCIL);
-    }
-  else if (e.getActionCommand ().equals ("CPPen"))
-    {
-      setTool (T_PEN);
-    }
-  else if (e.getActionCommand ().equals ("CPEraser"))
-    {
-      setTool (T_ERASER);
-    }
-  else if (e.getActionCommand ().equals ("CPSoftEraser"))
-    {
-      setTool (T_SOFTERASER);
-    }
-  else if (e.getActionCommand ().equals ("CPAirbrush"))
-    {
-      setTool (T_AIRBRUSH);
-    }
-  else if (e.getActionCommand ().equals ("CPDodge"))
-    {
-      setTool (T_DODGE);
-    }
-  else if (e.getActionCommand ().equals ("CPBurn"))
-    {
-      setTool (T_BURN);
-    }
-  else if (e.getActionCommand ().equals ("CPWater"))
-    {
-      setTool (T_WATER);
-    }
-  else if (e.getActionCommand ().equals ("CPBlur"))
-    {
-      setTool (T_BLUR);
-    }
-  else if (e.getActionCommand ().equals ("CPSmudge"))
-    {
-      setTool (T_SMUDGE);
-    }
-  else if (e.getActionCommand ().equals ("CPBlender"))
-    {
-      setTool (T_BLENDER);
-    }
-
-  // Modes
-
-  else if (e.getActionCommand ().equals ("CPFloodFill"))
-    {
-      setMode (M_FLOODFILL);
-    }
-
-  else if (e.getActionCommand ().equals ("CPFreeSelection"))
-    {
-      setMode (M_FREE_SELECTION);
-    }
-
-  else if (e.getActionCommand ().equals ("CPFreeTransform"))
-    {
-      canvas.initTransform ();
-      callToolListeners ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPRectSelection"))
-    {
-      setMode (M_RECT_SELECTION);
-    }
-
-  else if (e.getActionCommand ().equals ("CPRotateCanvas"))
-    {
-      setMode (M_ROTATE_CANVAS);
-    }
-
-  // Stroke modes
-
-  else if (e.getActionCommand ().equals ("CPFreeHand"))
-    {
-      tools[getCurBrush ()].strokeMode = CPBrushInfo.SM_FREEHAND;
-      callToolListeners ();
-    }
-  else if (e.getActionCommand ().equals ("CPLine"))
-    {
-      tools[getCurBrush ()].strokeMode = CPBrushInfo.SM_LINE;
-      callToolListeners ();
-    }
-  else if (e.getActionCommand ().equals ("CPBezier"))
-    {
-      tools[getCurBrush ()].strokeMode = CPBrushInfo.SM_BEZIER;
-      callToolListeners ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPAbout"))
-    {
-
-      // for copying style
-      JLabel label = new JLabel ();
-      Font font = label.getFont ();
-
-      // create some css from the label's font
-      StringBuffer style = new StringBuffer ("font-family:" + font.getFamily () + ";");
-      style.append ("font-weight:" + (font.isBold () ? "bold" : "normal") + ";");
-      style.append ("font-size:" + font.getSize () + "pt;");
-
-
-      JEditorPane ep = new JEditorPane ("text/html", "<html><body style=\"" + style + "\"><pre>ChibiPaintMod\n" + "Version "
-              + VERSION_STRING + "\n\n" + "Copyright (c) 2012-2013 Sergey Semushin.\n"
-              + "Copyright (c) 2006-2008 Marc Schefer. All Rights Reserved.\n\n"
-              + "ChibiPaintMod is free software: you can redistribute it and/or modify\n"
-              + "it under the terms of the GNU General Public License as published by\n"
-              + "the Free Software Foundation, either version 3 of the License, or\n"
-              + "(at your option) any later version.\n\n"
-              + "ChibiPaintMod is distributed in the hope that it will be useful,\n"
-              + "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-              + "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-              + "GNU General Public License for more details.\n\n"
-
-              + "You should have received a copySelected of the GNU General Public License\n"
-              + "along with ChibiPaintMod. If not, see <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a>.\n" +
-              "</pre></html>");
-      ep.setEditable (false);
-      ep.setBackground (label.getBackground ());
-      // handle link events
-      ep.addHyperlinkListener (new HyperlinkListener ()
-      {
-        @Override
-        public void hyperlinkUpdate (HyperlinkEvent e)
-        {
-          if (e.getEventType ().equals (HyperlinkEvent.EventType.ACTIVATED))
-            try
-              {
-                BrowserLauncher.browse (e.getURL ().toURI ()); // roll your own link launcher or use Desktop if J6+
-              }
-            catch (URISyntaxException e1)
-              {
-                return;
-              }
-        }
-      });
-      JOptionPane.showMessageDialog (getDialogParent (), ep, "About ChibiPaint...", JOptionPane.PLAIN_MESSAGE);
-    }
-
-  else if (e.getActionCommand ().equals ("CPTest"))
-    {
-      // CPTest is disabled for now
-    }
-
-  // Layers actions
-
-
-  else if (e.getActionCommand ().equals ("CPLayerToggleAll"))
-    {
-      artwork.toggleLayers ();
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPLayerDuplicate"))
-    {
-      artwork.duplicateLayer ();
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPLayerMergeDown"))
-    {
-      artwork.mergeDown ();
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPLayerMergeAll"))
-    {
-      artwork.mergeAllLayers ();
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPFill"))
-    {
-      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPFillEffect (getCurColorRgb () | 0xff000000));
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPClear"))
-    {
-      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPClearEffect ());
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPSelectAll"))
-    {
-      artwork.selectAll ();
-      canvas.repaint ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPDeselectAll"))
-    {
-      artwork.deselectAll ();
-      canvas.repaint ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPMNoise"))
-    {
-      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPGrayscaleNoiseEffect ());
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPCNoise"))
-    {
-      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPColorNoiseEffect ());
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPFXBoxBlur"))
-    {
-      showBoxBlurDialog ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPFXInvert"))
-    {
-      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPInverseEffect ());
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPFXMakeMonochromeByLuma"))
-    {
-      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPMakeGrayscaleEffect ());
-      artwork.finalizeUndo ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPApplyToAllLayers"))
-    {
-      canvas.setApplyToAllLayers (((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPLinearInterpolation"))
-    {
-      canvas.setInterpolation (((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPToggleGrid"))
-    {
-      canvas.showGrid (((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPGridOptions"))
-    {
-      showGridOptionsDialog ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPResetCanvasRotation"))
-    {
-      canvas.resetRotation ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPPalColor"))
-    {
-      mainGUI.showPalette ("color", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPPalBrush"))
-    {
-      mainGUI.showPalette ("tool_preferences", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPPalLayers"))
-    {
-      mainGUI.showPalette ("layers", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPPalStroke"))
-    {
-      mainGUI.showPalette ("stroke", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPPalSwatches"))
-    {
-      mainGUI.showPalette ("swatches", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPPalTool"))
-    {
-      mainGUI.showPalette ("tool", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPPalMisc"))
-    {
-      mainGUI.showPalette ("misc", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPPalTextures"))
-    {
-      mainGUI.showPalette ("textures", ((JCheckBoxMenuItem) e.getSource ()).isSelected ());
-    }
-
-  else if (e.getActionCommand ().equals ("CPTogglePalettes"))
-    {
-      mainGUI.togglePalettes ();
-    }
-
-  else if (e.getActionCommand ().equals ("CPCopy"))
-    {
-      canvas.copy ();
-    }
-  else if (e.getActionCommand ().equals ("CPPaste"))
-    {
-      canvas.paste ();
-    }
-  else if (e.getActionCommand ().equals ("CPCut"))
-    {
-      canvas.cut ();
-    }
-  else if (e.getActionCommand ().equals ("CPApplyTransform"))
-    {
-      canvas.applyTransform ();
-    }
-  else if (e.getActionCommand ().equals ("CPCancelTransform"))
-    {
-      canvas.cancelTransform ();
-    }
-  else if (e.getActionCommand ().equals ("CPFlipHorizontally"))
-    {
-      artwork.doTransformAction (CPArtwork.transformType.FLIP_H);
-      canvas.repaint ();
-    }
-  else if (e.getActionCommand ().equals ("CPFlipVertically"))
-    {
-      artwork.doTransformAction (CPArtwork.transformType.FLIP_V);
-      canvas.repaint ();
-    }
-  else if (e.getActionCommand ().equals ("CPRotate90CCW"))
-    {
-      artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CCW);
-      canvas.repaint ();
-    }
-  else if (e.getActionCommand ().equals ("CPRotate90CW"))
-    {
-      artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CW);
-      canvas.repaint ();
-    }
-  callCPEventListeners ();
 }
 
 protected void initTransform ()

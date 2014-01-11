@@ -23,18 +23,16 @@
 package chibipaint.controller;
 
 import chibipaint.ChibiPaint;
-import chibipaint.controller.CPController;
 import chibipaint.file.CPChibiFile;
 
 import javax.swing.*;
 import java.applet.Applet;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.io.*;
 import java.net.Socket;
 import java.net.URL;
 
-public class CPControllerApplet extends CPController
+public class CPControllerApplet extends CPCommonController
 {
 
 private final ChibiPaint applet;
@@ -79,25 +77,6 @@ void getAppletParams ()
   postUrl = applet.getParameter ("postUrl");
   exitUrl = applet.getParameter ("exitUrl");
   exitUrlTarget = applet.getParameter ("exitUrlTarget");
-}
-
-@Override
-public void actionPerformed (ActionEvent e)
-{
-  if (e.getActionCommand ().equals ("CPFloat"))
-    {
-      applet.floatingMode ();
-    }
-
-  if (e.getActionCommand ().equals ("CPSend"))
-    {
-      if (sendPng ())
-        {
-          goToExitUrl ();
-        }
-    }
-
-  super.actionPerformed (e);
 }
 
 boolean sendPng ()
@@ -247,5 +226,24 @@ void goToExitUrl ()
                                      JOptionPane.INFORMATION_MESSAGE);
       // new CPMessageBox(this, CPMessageBox.CP_OK_MSGBOX, "The oekaki was successfully sent", "Send Oekaki");
     }
+}
+
+public void performCommand (CPCommandId commandId, CPCommandSettings commandSettings)
+{
+  if (commandId.isForAppletOnly ())
+    {
+      switch (commandId)
+        {
+        case Float:
+          applet.floatingMode ();
+          break;
+        case Send:
+          if (sendPng ())
+            goToExitUrl ();
+          break;
+        }
+    }
+  else
+    super.performCommand (commandId, commandSettings);
 }
 }

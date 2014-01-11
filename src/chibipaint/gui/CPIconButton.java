@@ -22,15 +22,17 @@
 
 package chibipaint.gui;
 
+import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommandSettings;
+import chibipaint.controller.ICPController;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.LinkedList;
+import java.util.ArrayList;
 
-class CPIconButton extends JComponent implements MouseListener
+public class CPIconButton extends JComponent implements MouseListener
 {
 
 private final Image icons;
@@ -38,9 +40,9 @@ private final int iconW;
 private final int iconH;
 private final int iconIndex;
 private final int border;
-private String actionCommand;
-private String actionCommandDoubleClick = null;
-private final LinkedList<ActionListener> actionListeners = new LinkedList<ActionListener> ();
+private CPCommandId commandId;
+private CPCommandId doubleClickCommandId;
+private final ArrayList<ICPController> controllers = new ArrayList<ICPController> ();
 
 private boolean mouseOver = false;
 private boolean mousePressed = false;
@@ -107,9 +109,10 @@ public void paint (Graphics g)
 @Override
 public void mouseClicked (MouseEvent e)
 {
-  if (e.getClickCount () == 2 && actionCommandDoubleClick != null)
+  if (e.getClickCount () == 2 && doubleClickCommandId != null)
     {
-      callActionListenersDouble ();
+      for (ICPController controller : controllers)
+        controller.performCommand (doubleClickCommandId, new CPCommandSettings.sourceIconButton (this));
     }
 }
 
@@ -139,7 +142,8 @@ public void mousePressed (MouseEvent e)
   repaint ();
   if (onClickDown)
     {
-      callActionListeners ();
+      for (ICPController controller : controllers)
+        controller.performCommand (commandId, new CPCommandSettings.sourceIconButton (this));
     }
 }
 
@@ -151,43 +155,26 @@ public void mouseReleased (MouseEvent e)
 
   if (mouseOver)
     {
-      callActionListeners ();
+      for (ICPController controller : controllers)
+        controller.performCommand (commandId, new CPCommandSettings.sourceIconButton (this));
     }
   mousePressed = false;
   repaint ();
 }
 
-void addCPActionListener (ActionListener l)
+void addController (ICPController l)
 {
-  actionListeners.addLast (l);
+  controllers.add (l);
 }
 
-void setCPActionCommand (String command)
+void setCPActionCommand (CPCommandId command)
 {
-  actionCommand = command;
+  commandId = command;
 }
 
-public void setCPActionCommandDouble (String action)
+public void setCPActionCommandDouble (CPCommandId command)
 {
-  actionCommandDoubleClick = action;
-}
-
-void callActionListeners ()
-{
-  for (Object l : actionListeners)
-    {
-      ActionEvent e = new ActionEvent (this, ActionEvent.ACTION_PERFORMED, actionCommand);
-      ((ActionListener) l).actionPerformed (e);
-    }
-}
-
-void callActionListenersDouble ()
-{
-  for (Object l : actionListeners)
-    {
-      ActionEvent e = new ActionEvent (this, ActionEvent.ACTION_PERFORMED, actionCommandDoubleClick);
-      ((ActionListener) l).actionPerformed (e);
-    }
+  doubleClickCommandId = command;
 }
 
 @Override

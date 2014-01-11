@@ -22,23 +22,26 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommonController;
+import chibipaint.controller.ICPController;
 import chibipaint.gui.CPPaletteManager.ICPPaletteContainer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 class CPPalette extends JComponent
 {
 
 protected Image icons = null;
-final CPController controller;
+final CPCommonController controller;
 private ICPPaletteContainer container;
 
 String title = "";
 
-CPPalette (CPController controller)
+CPPalette (CPCommonController controller)
 {
   this.controller = controller;
 }
@@ -64,54 +67,59 @@ protected JLabel addLabel (int x, int y, String text)
   return label;
 }
 
-protected JButton addTextButton (int x, int y, int width, int height, String text, String action)
+protected JButton addTextButton (int x, int y, int width, int height, String text, final CPCommandId commandId)
 {
   // transform controls
   CPTextButton button = new CPTextButton ();
   button.setLocation (x, y);
   button.setSize (width, height);
   button.setText (text);
-  button.addCPActionListener (controller);
-  button.setCPActionCommand (action);
+  button.addCPActionListener (new ActionListener ()
+  {
+    @Override
+    public void actionPerformed (ActionEvent e)
+    {
+      controller.performCommand (commandId, null);
+    }
+  });
   add (button);
   return button;
 }
 
-protected CPIconButton addIconButton (int iconIndex, String action, int mode, String actionDouble, int brushType)
+protected CPIconButton addIconButton (int iconIndex, final CPCommandId commandId, int mode, CPCommandId commandDoubleId, int brushType)
 {
   CPIconButton button;
   int buttonSize = 32;
   button = new CPIconButton (icons, buttonSize, buttonSize, iconIndex, 1);
   add (button);
 
-  button.addCPActionListener (controller);
+  button.addController (controller);
   // If inherited class isn't listener itself than we're supposing that controller is actual listener
-  if (ActionListener.class.isAssignableFrom (getClass ()))
-    button.addCPActionListener ((ActionListener) this);
+  if (ICPController.class.isAssignableFrom (getClass ()))
+    button.addController ((ICPController) this);
 
-  button.setCPActionCommand (action);
-  if (actionDouble != null)
-    button.setCPActionCommandDouble (actionDouble);
+  button.setCPActionCommand (commandId);
+  button.setCPActionCommandDouble (commandDoubleId);
 
-  if (mode != CPController.M_INVALID && controller.getCurMode () == mode &&
-          (brushType == CPController.T_INVALID || controller.getCurBrush () == brushType))
+  if (mode != CPCommonController.M_INVALID && controller.getCurMode () == mode &&
+          (brushType == CPCommonController.T_INVALID || controller.getCurBrush () == brushType))
     button.setSelected (true);
   return button;
 }
 
-protected CPIconButton addIconButton (int iconIndex, String action, int mode, String actionDouble)
+protected CPIconButton addIconButton (int iconIndex, CPCommandId id, int mode, String actionDouble)
 {
-  return addIconButton (iconIndex, action, mode, null, CPController.T_INVALID);
+  return addIconButton (iconIndex, id, mode, null, CPCommonController.T_INVALID);
 }
 
-protected CPIconButton addIconButton (int iconIndex, String action, int mode)
+protected CPIconButton addIconButton (int iconIndex, CPCommandId id, int mode)
 {
-  return addIconButton (iconIndex, action, mode, null);
+  return addIconButton (iconIndex, id, mode, null);
 }
 
-protected CPIconButton addIconButton (int iconIndex, String action)
+protected CPIconButton addIconButton (int iconIndex, CPCommandId id)
 {
-  return addIconButton (iconIndex, action, CPController.M_INVALID);
+  return addIconButton (iconIndex, id, CPCommonController.M_INVALID);
 }
 
 protected void addSpacer ()

@@ -70,11 +70,6 @@ void addCPActionListener (ActionListener l)
   actionListeners.addLast (l);
 }
 
-void setCPActionCommand (String command)
-{
-  actionCommand = command;
-}
-
 void callActionListeners ()
 {
   for (Object l : actionListeners)

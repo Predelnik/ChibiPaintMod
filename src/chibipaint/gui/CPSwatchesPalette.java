@@ -22,7 +22,7 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommonController;
 import chibipaint.util.CPColor;
 
 import javax.swing.*;
@@ -36,7 +36,7 @@ class CPSwatchesPalette extends CPPalette
 
 private final int[] initColors = {0xffffff, 0x000000, 0xff0000, 0x00ff00, 0x0000ff};
 
-public CPSwatchesPalette (CPController controller)
+public CPSwatchesPalette (CPCommonController controller)
 {
   super (controller);
 

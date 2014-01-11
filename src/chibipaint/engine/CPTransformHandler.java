@@ -21,7 +21,7 @@
 
 package chibipaint.engine;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommonController;
 import chibipaint.gui.CPCanvas;
 import chibipaint.util.CPRect;
 
@@ -32,7 +32,7 @@ import java.awt.image.MemoryImageSource;
 
 public class CPTransformHandler
 {
-private CPController controller;
+private CPCommonController controller;
 private boolean transformActive;
 
 public CPTransformHandler ()
@@ -389,7 +389,7 @@ static float controlDistance = 15.0f;
 
 
 // Initializes transformation mode
-public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg, CPController controllerArg)
+public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg, CPCommonController controllerArg)
 {
   currentSelection = currentSelectionArg;
   controller = controllerArg;

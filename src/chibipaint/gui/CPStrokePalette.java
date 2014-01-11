@@ -22,21 +22,22 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommandSettings;
+import chibipaint.controller.CPCommonController;
+import chibipaint.controller.ICPController;
 import chibipaint.engine.CPBrushInfo;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class CPStrokePalette extends CPPalette implements ActionListener, CPController.ICPToolListener
+public class CPStrokePalette extends CPPalette implements ICPController, CPCommonController.ICPToolListener
 {
 
 private final CPIconButton freeHandButton;
 private final CPIconButton lineButton;
 private final CPIconButton bezierButton;
 
-public CPStrokePalette (CPController controller)
+public CPStrokePalette (CPCommonController controller)
 {
   super (controller);
 
@@ -48,41 +49,26 @@ public CPStrokePalette (CPController controller)
   freeHandButton = new CPIconButton (icons, 32, 32, 19, 1);
   add (freeHandButton);
 
-  freeHandButton.addCPActionListener (controller);
-  freeHandButton.addCPActionListener (this);
-  freeHandButton.setCPActionCommand ("CPFreeHand");
+  freeHandButton.addController (controller);
+  freeHandButton.addController (this);
+  freeHandButton.setCPActionCommand (CPCommandId.FreeHand);
   freeHandButton.setSelected (true);
 
   lineButton = new CPIconButton (icons, 32, 32, 20, 1);
   add (lineButton);
 
-  lineButton.addCPActionListener (controller);
-  lineButton.addCPActionListener (this);
-  lineButton.setCPActionCommand ("CPLine");
+  lineButton.addController (controller);
+  lineButton.addController (this);
+  lineButton.setCPActionCommand (CPCommandId.Line);
 
   bezierButton = new CPIconButton (icons, 32, 32, 22, 1);
   add (bezierButton);
 
-  bezierButton.addCPActionListener (controller);
-  bezierButton.addCPActionListener (this);
-  bezierButton.setCPActionCommand ("CPBezier");
+  bezierButton.addController (controller);
+  bezierButton.addController (this);
+  bezierButton.setCPActionCommand (CPCommandId.Bezier);
 
   controller.addToolListener (this);
-}
-
-@Override
-public void actionPerformed (ActionEvent e)
-{
-  Component[] components = getComponents ();
-  for (Component c : components)
-    {
-      if (c != e.getSource ())
-        {
-          ((CPIconButton) c).setSelected (false);
-        }
-    }
-
-  ((CPIconButton) e.getSource ()).setSelected (true);
 }
 
 @Override
@@ -91,5 +77,20 @@ public void newTool (int tool, CPBrushInfo toolInfo)
   freeHandButton.setSelected (toolInfo.strokeMode == CPBrushInfo.SM_FREEHAND);
   lineButton.setSelected (toolInfo.strokeMode == CPBrushInfo.SM_LINE);
   bezierButton.setSelected (toolInfo.strokeMode == CPBrushInfo.SM_BEZIER);
+}
+
+@Override
+public void performCommand (CPCommandId commandId, CPCommandSettings commandSettings)
+{
+  Component[] components = getComponents ();
+  CPIconButton sourceButton = ((CPCommandSettings.sourceIconButton) commandSettings).button;
+  for (Component c : components)
+    {
+      if (c != sourceButton)
+        {
+          ((CPIconButton) c).setSelected (false);
+        }
+    }
+  sourceButton.setSelected (true);
 }
 }

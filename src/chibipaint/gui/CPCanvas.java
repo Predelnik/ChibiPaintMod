@@ -22,7 +22,8 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommonController;
 import chibipaint.controller.CPControllerApplication;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPBrushInfo;
@@ -44,7 +45,7 @@ import java.util.prefs.Preferences;
 import static chibipaint.engine.CPArtwork.SelectionTypeOfAppliance;
 
 public class CPCanvas extends JComponent implements MouseListener, MouseMotionListener, MouseWheelListener,
-                                                    ComponentListener, KeyListener, CPController.ICPToolListener, CPController.ICPModeListener,
+                                                    ComponentListener, KeyListener, CPCommonController.ICPToolListener, CPCommonController.ICPModeListener,
                                                     CPArtwork.ICPArtworkListener
 {
 
@@ -53,7 +54,7 @@ public class CPCanvas extends JComponent implements MouseListener, MouseMotionLi
  */
 private static final long serialVersionUID = 1L;
 
-private CPController controller;
+private CPCommonController controller;
 
 // FIXME: this should not be public
 public Image img;
@@ -189,11 +190,11 @@ public void reinitCanvas ()
     {
       controller.setTool (controller.getCurBrush ());
     }
-
   repaint ();
+
 }
 
-void initCanvas (CPController ctrl)
+void initCanvas (CPCommonController ctrl)
 {
   this.controller = ctrl;
   setArtwork (ctrl.getArtwork ());
@@ -285,7 +286,7 @@ CPCanvas getThis ()
   return this;
 }
 
-public CPCanvas (CPController ctrl)
+public CPCanvas (CPCommonController ctrl)
 {
   initCanvas (ctrl);
 }
@@ -742,7 +743,7 @@ void zoomOnPoint (float zoomArg, int centerX, int centerY)
               + (int) ((centerY - offset.y) * (1 - zoom_ / getZoom ())));
       setZoom (zoom_);
 
-      CPController.CPViewInfo viewInfo = new CPController.CPViewInfo ();
+      CPCommonController.CPViewInfo viewInfo = new CPCommonController.CPViewInfo ();
       viewInfo.zoom = zoom_;
       viewInfo.offsetX = offsetX;
       viewInfo.offsetY = offsetY;
@@ -955,23 +956,23 @@ public void modeChange (int mode)
 {
   switch (mode)
     {
-    case CPController.M_DRAW:
+    case CPCommonController.M_DRAW:
       curSelectedMode = curDrawMode;
       break;
 
-    case CPController.M_FLOODFILL:
+    case CPCommonController.M_FLOODFILL:
       curSelectedMode = floodFillMode;
       break;
 
-    case CPController.M_FREE_SELECTION:
+    case CPCommonController.M_FREE_SELECTION:
       curSelectedMode = freeSelectionMode;
       break;
 
-    case CPController.M_RECT_SELECTION:
+    case CPCommonController.M_RECT_SELECTION:
       curSelectedMode = rectMode;
       break;
 
-    case CPController.M_ROTATE_CANVAS:
+    case CPCommonController.M_ROTATE_CANVAS:
       curSelectedMode = rotateCanvasMode;
       break;
     }
@@ -997,6 +998,11 @@ public void componentResized (ComponentEvent e)
 public void copy ()
 {
   artwork.copySelected (!isRunningAsApplication ());
+}
+
+public void copyMerged ()
+{
+  artwork.copySelectedMerged (!isRunningAsApplication ());
 }
 
 public void cut ()
@@ -1284,6 +1290,16 @@ public void setCursorIn (boolean cursorIn)
   this.cursorIn = cursorIn;
 }
 
+public boolean getInterpolation ()
+{
+  return interpolation;
+}
+
+public boolean getShowGrid ()
+{
+  return showGrid;
+}
+
 
 public abstract class CPMode
 {
@@ -1435,8 +1451,8 @@ class CPDefaultMode extends CPMode
 
 void setUndoRedoEnabled (boolean isEnabled)
 {
-  controller.getMainGUI ().getMenuItemByCmd ("CPUndo").setEnabled (isEnabled);
-  controller.getMainGUI ().getMenuItemByCmd ("CPRedo").setEnabled (isEnabled);
+  controller.getMainGUI ().getMenuItemByCmdId (CPCommandId.Undo).setEnabled (isEnabled);
+  controller.getMainGUI ().getMenuItemByCmdId (CPCommandId.Redo).setEnabled (isEnabled);
 }
 
 class CPFreehandMode extends CPMode
@@ -1946,11 +1962,11 @@ class CPRectSelectionMode extends CPMode
 void setEnabledForTransform (boolean enabled)
 {
   controller.getMainGUI ().setEnabledForTransform (enabled);
-  String viewItems[] = {"CPZoomIn", "CPZoomOut", "CPZoom100", "CPAbout", "CPLinearInterpolation", "CPToggleGrid",
-          "CPGridOptions", "CPTogglePalettes", "CPPalBrush", "CPPalColor", "CPPalLayers", "CPPalMisc", "CPPalStroke",
-          "CPPalSwatches", "CPPalTextures", "CPPalTool", "CPLayerToggleAll"};
-  for (String item : viewItems)
-    controller.getMainGUI ().getMenuItemByCmd (item).setEnabled (true);
+  CPCommandId viewItems[] = {CPCommandId.ZoomIn, CPCommandId.ZoomOut, CPCommandId.Zoom100, CPCommandId.About, CPCommandId.LinearInterpolation, CPCommandId.ToggleGrid,
+          CPCommandId.GridOptions, CPCommandId.TogglePalettes, CPCommandId.PalBrush, CPCommandId.PalColor, CPCommandId.PalLayers, CPCommandId.PalMisc, CPCommandId.PalStroke,
+          CPCommandId.PalSwatches, CPCommandId.PalTextures, CPCommandId.PalTool, CPCommandId.LayerToggleAll};
+  for (CPCommandId item : viewItems)
+    controller.getMainGUI ().getMenuItemByCmdId (item).setEnabled (true);
 
 }
 
@@ -2053,10 +2069,10 @@ class CPFreeTransformMode extends CPMode
     switch (e.getKeyCode ())
       {
       case KeyEvent.VK_ENTER:
-        controller.actionPerformed (new ActionEvent (this, ActionEvent.ACTION_PERFORMED, "CPApplyTransform"));
+        controller.performCommand (CPCommandId.ApplyTransform, null);
         break;
       case KeyEvent.VK_ESCAPE:
-        controller.actionPerformed (new ActionEvent (this, ActionEvent.ACTION_PERFORMED, "CPCancelTransform"));
+        controller.performCommand (CPCommandId.CancelTransform, null);
         break;
       }
   }

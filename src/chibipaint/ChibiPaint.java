@@ -22,7 +22,7 @@
 
 package chibipaint;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommonController;
 import chibipaint.controller.CPControllerApplet;
 import chibipaint.engine.CPArtwork;
 import chibipaint.file.CPChibiFile;
@@ -98,7 +98,7 @@ void createApplet ()
   controller.setArtwork (createArtwork ());
 
   // FIXME: set a default tool so that we can start drawing
-  controller.setTool (CPController.T_PEN);
+  controller.setTool (CPCommonController.T_PEN);
 
   createFloatingPlaceholder ();
 

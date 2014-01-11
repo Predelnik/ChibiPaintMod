@@ -22,7 +22,7 @@
 
 package chibipaint.engine;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommonController;
 import chibipaint.effects.CPEffect;
 import chibipaint.engine.CPBrushManager.CPBrushDab;
 import chibipaint.util.CPColorFloat;
@@ -97,7 +97,7 @@ public CPClip getClipboard ()
   return clipboard;
 }
 
-public void initializeTransform (CPController controllerArg)
+public void initializeTransform (CPCommonController controllerArg)
 {
   undoManager.preserveActiveLayerData ();
   undoManager.preserveCurrentSelection ();
@@ -127,6 +127,18 @@ public void copySelected (boolean limited)
 {
   CPColorBmp copy = new CPColorBmp (width, height);
   copy.copyDataFrom (activeLayer);
+  copy.cutBySelection (curSelection);
+  CPRect rect = curSelection.getBoundingRect ();
+  CPCopyPasteImage img = new CPCopyPasteImage (rect.getWidth (), rect.getHeight (), rect.getLeft (), rect.getTop ());
+  img.setData (copy.copyRectToIntArray (rect));
+  CPClipboardHelper.SetClipboardImage (img, limited);
+  return;
+}
+
+public void copySelectedMerged (boolean limited)
+{
+  CPColorBmp copy = new CPColorBmp (width, height);
+  copy.copyDataFrom (fusion);
   copy.cutBySelection (curSelection);
   CPRect rect = curSelection.getBoundingRect ();
   CPCopyPasteImage img = new CPCopyPasteImage (rect.getWidth (), rect.getHeight (), rect.getLeft (), rect.getTop ());
@@ -635,7 +647,7 @@ class CPBrushToolSimpleBrush extends CPBrushToolBase
       {
         paintFlow (srcRect, dstRect, dab.brush, dab.width, Math.max (1, dab.alpha / 8));
       }
-    else if (curBrush.toolNb == CPController.T_PEN)
+    else if (curBrush.toolNb == CPCommonController.T_PEN)
       {
         paintFlow (srcRect, dstRect, dab.brush, dab.width, Math.max (1, dab.alpha / 2));
       }

@@ -22,7 +22,7 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommonController;
 import chibipaint.engine.CPArtwork;
 
 import javax.swing.*;
@@ -33,14 +33,14 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 
-public class CPStatusBar extends JPanel implements CPController.ICPViewListener, CPController.ICPEventListener
+public class CPStatusBar extends JPanel implements CPCommonController.ICPViewListener, CPCommonController.ICPEventListener
 {
 
-private final CPController controller;
+private final CPCommonController controller;
 private final JLabel memory;
 private final JLabel viewport;
 
-public CPStatusBar (CPController controller)
+public CPStatusBar (CPCommonController controller)
 {
   super (new BorderLayout ());
   this.controller = controller;
@@ -86,7 +86,7 @@ public CPStatusBar (CPController controller)
 }
 
 @Override
-public void viewChange (CPController.CPViewInfo viewInfo)
+public void viewChange (CPCommonController.CPViewInfo viewInfo)
 {
   DecimalFormat format = new DecimalFormat ("0.0%");
   viewport.setText (" Picture Size: " + viewInfo.width + " x " + viewInfo.height + ", Zoom: " + format.format (viewInfo.zoom));

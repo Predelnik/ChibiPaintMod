@@ -24,7 +24,6 @@ package chibipaint.controller;
 
 import chibipaint.ChibiApp;
 import chibipaint.ChibiApp.appState;
-import chibipaint.controller.CPController;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPUndo;
 import chibipaint.file.CPAbstractFile;
@@ -32,12 +31,11 @@ import chibipaint.file.CPAbstractFile;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.io.*;
 import java.util.prefs.Preferences;
 
-public class CPControllerApplication extends CPController
+public class CPControllerApplication extends CPCommonController
 {
 
 private final JFrame mainFrame;
@@ -46,41 +44,6 @@ private CPUndo latestRedoAction = null;
 private CPUndo latestUndoAction = null;
 private boolean redoActionMayChange = false;
 public boolean changed;
-
-@Override
-public void actionPerformed (ActionEvent e)
-{
-  // Let's generate appropriate command reaction for everything
-  String[] supportedExts = CPAbstractFile.getSupportedExtensions ();
-  for (String supportedExt : supportedExts)
-    {
-      if (e.getActionCommand ().equals ("CPSave" + supportedExt.toUpperCase ()))
-        saveLoadImageFile (supportedExt, action_save_load.ACTION_SAVE, "");
-
-      if (e.getActionCommand ().equals ("CPLoad" + supportedExt.toUpperCase ()))
-        saveLoadImageFile (supportedExt, action_save_load.ACTION_LOAD, "");
-    }
-
-  if (e.getActionCommand ().equals ("CPExit"))
-    mainFrame.getToolkit ().getSystemEventQueue ().postEvent (new WindowEvent ((mainFrame), WindowEvent.WINDOW_CLOSING));
-
-    // Here we explicitly point that chi extension is native though, it's a little bit bad
-  else if (e.getActionCommand ().equals ("CPSave"))
-    save ();
-
-  else if (e.getActionCommand ().equals ("CPNew"))
-    {
-      newDialog ();
-    }
-
-  else if (e.getActionCommand ().startsWith ("CPOpenRecent"))
-    {
-      String command = e.getActionCommand ();
-      int num = command.charAt (command.length () - 1) - '0';
-      openRecent (num);
-    }
-  super.actionPerformed (e);
-}
 
 public boolean save ()
 {
@@ -214,6 +177,38 @@ void newDialog ()
                           "Sorry, not Enough Memory. Please restart the application or try to use lesser image size.");
         }
     }
+}
+
+public void performCommand (CPCommandId commandId, CPCommandSettings commandSettings)
+{
+  if (commandId.isForAppOnly ())
+    {
+      switch (commandId)
+        {
+        case Export:
+          saveLoadImageFile (((CPCommandSettings.fileExtension) commandSettings).extension, action_save_load.ACTION_SAVE, "");
+          break;
+        case Import:
+          saveLoadImageFile (((CPCommandSettings.fileExtension) commandSettings).extension, action_save_load.ACTION_LOAD, "");
+          break;
+        case Exit:
+          mainFrame.getToolkit ().getSystemEventQueue ().postEvent (new WindowEvent ((mainFrame), WindowEvent.WINDOW_CLOSING));
+          break;
+        case Save:
+          save ();
+          break;
+        case New:
+          newDialog ();
+          break;
+        case OpenRecent:
+          openRecent (((CPCommandSettings.recentFileNumber) commandSettings).number);
+          break;
+        default:
+          break;
+        }
+    }
+  else
+    super.performCommand (commandId, commandSettings);
 }
 
 public enum action_save_load

@@ -22,15 +22,14 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommandSettings;
+import chibipaint.controller.CPCommonController;
 import chibipaint.file.CPAbstractFile;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,13 +39,14 @@ import java.util.prefs.Preferences;
 public class CPMainGUI
 {
 
-private final CPController controller;
-private final HashMap<String, JMenuItem> menuItems = new HashMap<String, JMenuItem> ();
+private final CPCommonController controller;
+private final HashMap<CPCommandId, JMenuItem> menuItems = new HashMap<CPCommandId, JMenuItem> ();
 private CPPaletteManager paletteManager;
 
 private JMenuBar menuBar;
-private JMenuBar menuBarTemporary; // Tempoarary menu bar for safe replacement with actual one
+private JMenuBar menuBarTemporary; // Temporary menu bar for safe replacement with actual one
 private JMenu lastMenu, lastSubMenu;
+private JMenu recentFilesMenuItem;
 private JMenuItem lastItem;
 private JPanel mainPanel;
 private JDesktopPane jdp;
@@ -55,7 +55,7 @@ private JPanel bg;
 // FIXME: replace this hack by something better
 private final Map<String, JCheckBoxMenuItem> paletteItems = new HashMap<String, JCheckBoxMenuItem> ();
 
-public CPMainGUI (CPController controller)
+public CPMainGUI (CPCommonController controller)
 {
   this.controller = controller;
   controller.setMainGUI (this);
@@ -113,9 +113,15 @@ void createCanvasGUI (JComponent c)
 }
 
 // it's internal so boolean argument is ok
-private void addMenuItemInternal (String title, int mnemonic, String command, String description, boolean isCheckable, boolean checked)
+private void addMenuItemInternal (String title, int mnemonic, final CPCommandId commandId, String description, final boolean isCheckable, boolean checked, final CPCommandSettings commandSettings)
 {
   JMenuItem menuItem = null;
+  if (controller.isRunningAsApplet () && commandId.isForAppOnly ())
+    return;
+
+  if (controller.isRunningAsApplication () && commandId.isForAppletOnly ())
+    return;
+
   if (isCheckable)
     {
       menuItem = new JCheckBoxMenuItem (title, checked);
@@ -126,9 +132,15 @@ private void addMenuItemInternal (String title, int mnemonic, String command, St
       menuItem = new JMenuItem (title, mnemonic);
     }
   menuItem.getAccessibleContext ().setAccessibleDescription (description);
-  menuItem.setActionCommand (command);
-  menuItem.addActionListener (controller);
-  menuItems.put (command, menuItem);
+  menuItem.addActionListener (new ActionListener ()
+  {
+    @Override
+    public void actionPerformed (ActionEvent e)
+    {
+      controller.performCommand (commandId, isCheckable ? new CPCommandSettings.checkBoxState (((JCheckBoxMenuItem) e.getSource ()).isSelected ()) : commandSettings);
+    }
+  });
+  menuItems.put (commandId, menuItem);
   if (lastSubMenu != null)
     lastSubMenu.add (menuItem);
   else
@@ -136,9 +148,9 @@ private void addMenuItemInternal (String title, int mnemonic, String command, St
   lastItem = menuItem;
 }
 
-JMenuItem getMenuItemByCmd (String cmd)
+JMenuItem getMenuItemByCmdId (CPCommandId cmdId)
 {
-  return menuItems.get (cmd);
+  return menuItems.get (cmdId);
 }
 
 void setEnabledForTransform (boolean enabled)
@@ -154,35 +166,46 @@ void setEnabledForTransform (boolean enabled)
   ((CPMiscPalette) getPaletteManager ().getPalettes ().get ("misc")).setEnabledForTransform (enabled);
 }
 
-void addMenuItem (String title, int mnemonic, String command)
+void addMenuItem (String title, int mnemonic, CPCommandId commandId)
 {
-  addMenuItemInternal (title, mnemonic, command, "", false, false);
+  addMenuItemInternal (title, mnemonic, commandId, "", false, false, null);
 }
 
-void addMenuItem (String title, int mnemonic, String command, String description)
+void addMenuItem (String title, int mnemonic, CPCommandId commandId, String description)
 {
-  addMenuItemInternal (title, mnemonic, command, description, false, false);
+  addMenuItemInternal (title, mnemonic, commandId, description, false, false, null);
 }
 
-void addMenuItem (String title, int mnemonic, String command, String description, KeyStroke accelerator)
+void addMenuItem (String title, int mnemonic, CPCommandId commandId, String description, CPCommandSettings settings)
 {
-  addMenuItem (title, mnemonic, command, description);
+  addMenuItemInternal (title, mnemonic, commandId, description, false, false, settings);
+}
+
+void addMenuItem (String title, int mnemonic, CPCommandId commandId, String description, KeyStroke accelerator)
+{
+  addMenuItem (title, mnemonic, commandId, description);
   lastItem.setAccelerator (accelerator);
 }
 
-void addCheckBoxMenuItem (String title, int mnemonic, String command, String description, boolean checked)
+void addMenuItem (String title, int mnemonic, CPCommandId commandId, String description, KeyStroke accelerator, CPCommandSettings settings)
 {
-  addMenuItemInternal (title, mnemonic, command, description, true, checked);
+  addMenuItemInternal (title, mnemonic, commandId, description, false, false, settings);
+  lastItem.setAccelerator (accelerator);
 }
 
-void addCheckBoxMenuItem (String title, int mnemonic, String command, boolean checked)
+void addCheckBoxMenuItem (String title, int mnemonic, CPCommandId commandId, String description, boolean checked)
 {
-  addMenuItemInternal (title, mnemonic, command, "", true, checked);
+  addMenuItemInternal (title, mnemonic, commandId, description, true, checked, null);
 }
 
-void addCheckBoxMenuItem (String title, int mnemonic, String command, String description, KeyStroke accelerator, boolean checked)
+void addCheckBoxMenuItem (String title, int mnemonic, CPCommandId commandId, boolean checked)
 {
-  addMenuItemInternal (title, mnemonic, command, description, true, checked);
+  addMenuItemInternal (title, mnemonic, commandId, "", true, checked, null);
+}
+
+void addCheckBoxMenuItem (String title, int mnemonic, CPCommandId commandId, String description, KeyStroke accelerator, boolean checked)
+{
+  addMenuItemInternal (title, mnemonic, commandId, description, true, checked, null);
   lastItem.setAccelerator (accelerator);
 }
 
@@ -226,45 +249,28 @@ void createMainMenu ()
   // File
   addMenu ("File", KeyEvent.VK_F);
 
-  if (controller.isRunningAsApplet ())
-    addMenuItem ("Send Oekaki", KeyEvent.VK_S, "CPSend", "Sends the oekaki to the server and exits ChibiPaintMod");
+  addMenuItem ("Send Oekaki", KeyEvent.VK_S, CPCommandId.Send, "Sends the oekaki to the server and exits ChibiPaintMod");
 
   if (controller.isRunningAsApplication ())
     {
-      addMenuItem ("New File", KeyEvent.VK_N, "CPNew", "Create new file");
+      addMenuItem ("New File", KeyEvent.VK_N, CPCommandId.New, "Create new file");
 
       addSeparator ();
 
-      addMenuItem ("Save", KeyEvent.VK_S, "CPSave", "Save existing file", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK));
-      addMenuItem ("Save as...", KeyEvent.VK_A, "CPSaveCHI", "Save .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
-      addMenuItem ("Open...", KeyEvent.VK_O, "CPLoadCHI", "Open .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_O, InputEvent.CTRL_MASK));
+      addMenuItem ("Save", KeyEvent.VK_S, CPCommandId.Save, "Save existing file", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK));
+      addMenuItem ("Save as...", KeyEvent.VK_A, CPCommandId.Export, "Save .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK), new CPCommandSettings.fileExtension ("chi"));
+      addMenuItem ("Open...", KeyEvent.VK_O, CPCommandId.Import, "Open .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_O, InputEvent.CTRL_MASK), new CPCommandSettings.fileExtension ("chi"));
 
-      boolean subMenuCreated = false;
-      Preferences userRoot = Preferences.userRoot ();
-      Preferences preferences = userRoot.node ("chibipaintmod");
-      int recent_file_num = 0;
-      for (int i = 0; i < 10; i++)
-        {
-          String recentFileName = preferences.get ("Recent File[" + i + "]", "");
-          if (recentFileName.length () != 0)
-            {
-              if (!subMenuCreated)
-                {
-                  addSubMenu ("Open Recent", KeyEvent.VK_R);
-                  subMenuCreated = true;
-                }
-              File recentFile = new File (recentFileName);
-              addMenuItem (recentFile.getName (), 0, "CPOpenRecent " + i, "Open Recent File " + i, KeyStroke.getKeyStroke (KeyEvent.VK_0 + (i + 1) % 10, InputEvent.CTRL_MASK));
-              recent_file_num++;
-            }
-        }
+      addSubMenu ("Open Recent", KeyEvent.VK_R);
+      recentFilesMenuItem = lastSubMenu;
+      endSubMenu ();
 
-      if (subMenuCreated)
-        endSubMenu ();
+      updateRecentFiles ();
+
       addSeparator ();
 
       String[] importExport = {"Import", "Export"};
-      String[] loadSave = {"CPLoad", "CPSave"};
+      CPCommandId[] loadSave = {CPCommandId.Import, CPCommandId.Export};
       int[] mnemonics = {KeyEvent.VK_I, KeyEvent.VK_X};
       String[] supportedExtensions = CPAbstractFile.getSupportedExtensions ();
 
@@ -278,61 +284,61 @@ void createMainMenu ()
               if (file.isNative ())
                 continue;
 
-              addMenuItem (supportedExt.toUpperCase () + " File...", 0, loadSave[i] + supportedExt.toUpperCase (), importExport[i] + " " + supportedExt.toUpperCase () + "Files");
+              addMenuItem (supportedExt.toUpperCase () + " File...", 0, loadSave[i], importExport[i] + " " + supportedExt.toUpperCase () + "Files", new CPCommandSettings.fileExtension (supportedExt));
             }
           endSubMenu ();
         }
 
       addSeparator ();
 
-      addMenuItem ("Exit", KeyEvent.VK_E, "CPExit", "Exit the application", KeyStroke.getKeyStroke (KeyEvent.VK_Q, InputEvent.CTRL_MASK));
+      addMenuItem ("Exit", KeyEvent.VK_E, CPCommandId.Exit, "Exit the application", KeyStroke.getKeyStroke (KeyEvent.VK_Q, InputEvent.CTRL_MASK));
     }
 
   // Edit
   addMenu ("Edit", KeyEvent.VK_E);
-  addMenuItem ("Undo", KeyEvent.VK_U, "CPUndo", "Undo the most recent action", KeyStroke.getKeyStroke (KeyEvent.VK_Z, InputEvent.CTRL_MASK));
-  addMenuItem ("Redo", KeyEvent.VK_U, "CPRedo", "Redo a previously undone action", KeyStroke.getKeyStroke (KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
-  addMenuItem ("Clear History", KeyEvent.VK_H, "CPClearHistory", "Remove all undo/redo information to regain memory");
+  addMenuItem ("Undo", KeyEvent.VK_U, CPCommandId.Undo, "Undo the most recent action", KeyStroke.getKeyStroke (KeyEvent.VK_Z, InputEvent.CTRL_MASK));
+  addMenuItem ("Redo", KeyEvent.VK_U, CPCommandId.Redo, "Redo a previously undone action", KeyStroke.getKeyStroke (KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+  addMenuItem ("Clear History", KeyEvent.VK_H, CPCommandId.ClearHistory, "Remove all undo/redo information to regain memory");
   addSeparator ();
 
-  addMenuItem ("Cut", KeyEvent.VK_T, "CPCut", "Cuts the selected part of the layer", KeyStroke.getKeyStroke (KeyEvent.VK_X, InputEvent.CTRL_MASK));
-  addMenuItem ("Copy", KeyEvent.VK_C, "CPCopy", "Copy the selected part of the layer", KeyStroke.getKeyStroke (KeyEvent.VK_C, InputEvent.CTRL_MASK));
-  addMenuItem ("Copy Merged", KeyEvent.VK_Y, "CPCopyMerged", "Copy the selected part of all the layers merged", KeyStroke.getKeyStroke (KeyEvent.VK_C, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
-  addMenuItem ("Paste", KeyEvent.VK_P, "CPPaste", "Paste the stuff that have been copied", KeyStroke.getKeyStroke (KeyEvent.VK_V, InputEvent.CTRL_MASK));
+  addMenuItem ("Cut", KeyEvent.VK_T, CPCommandId.Cut, "Cuts the selected part of the layer", KeyStroke.getKeyStroke (KeyEvent.VK_X, InputEvent.CTRL_MASK));
+  addMenuItem ("Copy", KeyEvent.VK_C, CPCommandId.Copy, "Copy the selected part of the layer", KeyStroke.getKeyStroke (KeyEvent.VK_C, InputEvent.CTRL_MASK));
+  addMenuItem ("Copy Merged", KeyEvent.VK_Y, CPCommandId.CopyMerged, "Copy the selected part of all the layers merged", KeyStroke.getKeyStroke (KeyEvent.VK_C, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+  addMenuItem ("Paste", KeyEvent.VK_P, CPCommandId.Paste, "Paste the stuff that have been copied", KeyStroke.getKeyStroke (KeyEvent.VK_V, InputEvent.CTRL_MASK));
   addSeparator ();
 
-  addMenuItem ("Select All", KeyEvent.VK_A, "CPSelectAll", "Selects the whole canvas", KeyStroke.getKeyStroke (KeyEvent.VK_A, InputEvent.CTRL_MASK));
-  addMenuItem ("Deselect", KeyEvent.VK_D, "CPDeselectAll", "Deselects the whole canvas", KeyStroke.getKeyStroke (KeyEvent.VK_D, InputEvent.CTRL_MASK));
+  addMenuItem ("Select All", KeyEvent.VK_A, CPCommandId.SelectAll, "Selects the whole canvas", KeyStroke.getKeyStroke (KeyEvent.VK_A, InputEvent.CTRL_MASK));
+  addMenuItem ("Deselect", KeyEvent.VK_D, CPCommandId.DeselectAll, "Deselects the whole canvas", KeyStroke.getKeyStroke (KeyEvent.VK_D, InputEvent.CTRL_MASK));
 
   // Layers
   addMenu ("Layers", KeyEvent.VK_L);
-  addMenuItem ("Show / Hide All Layers", KeyEvent.VK_A, "CPLayerToggleAll", "Toggle All Layers Visibility", KeyStroke.getKeyStroke (KeyEvent.VK_A, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+  addMenuItem ("Show / Hide All Layers", KeyEvent.VK_A, CPCommandId.LayerToggleAll, "Toggle All Layers Visibility", KeyStroke.getKeyStroke (KeyEvent.VK_A, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
   addSeparator ();
-  addMenuItem ("Duplicate", KeyEvent.VK_D, "CPLayerDuplicate", "Creates a copySelected of the currently selected layer", KeyStroke.getKeyStroke (KeyEvent.VK_D, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+  addMenuItem ("Duplicate", KeyEvent.VK_D, CPCommandId.LayerDuplicate, "Creates a copySelected of the currently selected layer", KeyStroke.getKeyStroke (KeyEvent.VK_D, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
   addSeparator ();
-  addMenuItem ("Merge Down", KeyEvent.VK_E, "CPLayerMergeDown", "Merges the currently selected layer with the one directly below it", KeyStroke.getKeyStroke (KeyEvent.VK_E, InputEvent.CTRL_MASK));
-  addMenuItem ("Merge All Layers", KeyEvent.VK_A, "CPLayerMergeAll", "Merges all the layers");
+  addMenuItem ("Merge Down", KeyEvent.VK_E, CPCommandId.LayerMergeDown, "Merges the currently selected layer with the one directly below it", KeyStroke.getKeyStroke (KeyEvent.VK_E, InputEvent.CTRL_MASK));
+  addMenuItem ("Merge All Layers", KeyEvent.VK_A, CPCommandId.LayerMergeAll, "Merges all the layers");
 
   // Effects
   addMenu ("Effects", KeyEvent.VK_E);
-  addMenuItem ("Free Transform Selected", KeyEvent.VK_T, "CPFreeTransform", "Transform selected part of the current layer", KeyStroke.getKeyStroke (KeyEvent.VK_T, InputEvent.CTRL_MASK));
+  addMenuItem ("Free Transform Selected", KeyEvent.VK_T, CPCommandId.FreeTransform, "Transform selected part of the current layer", KeyStroke.getKeyStroke (KeyEvent.VK_T, InputEvent.CTRL_MASK));
   addSeparator ();
-  addMenuItem ("Clear", KeyEvent.VK_C, "CPClear", "Clears the selected area", KeyStroke.getKeyStroke (KeyEvent.VK_DELETE, 0));
-  addMenuItem ("Fill", KeyEvent.VK_F, "CPFill", "Fills the selected area with the current color", KeyStroke.getKeyStroke (KeyEvent.VK_F, InputEvent.CTRL_MASK));
-  addMenuItem ("Invert", KeyEvent.VK_F, "CPFXInvert", "Invert the image colors");
+  addMenuItem ("Clear", KeyEvent.VK_C, CPCommandId.Clear, "Clears the selected area", KeyStroke.getKeyStroke (KeyEvent.VK_DELETE, 0));
+  addMenuItem ("Fill", KeyEvent.VK_F, CPCommandId.Fill, "Fills the selected area with the current color", KeyStroke.getKeyStroke (KeyEvent.VK_F, InputEvent.CTRL_MASK));
+  addMenuItem ("Invert", KeyEvent.VK_F, CPCommandId.FXInvert, "Invert the image colors");
 
-  addMenuItem ("Make Grayscale", KeyEvent.VK_M, "CPFXMakeMonochromeByLuma", "Make image grayscale by Luma Formula");
+  addMenuItem ("Make Grayscale", KeyEvent.VK_M, CPCommandId.FXMakeGrayscaleByLuma, "Make image grayscale by Luma Formula");
 
   addSubMenu ("Blur", KeyEvent.VK_B);
-  addMenuItem ("Box Blur...", KeyEvent.VK_B, "CPFXBoxBlur", "Blur Effect");
+  addMenuItem ("Box Blur...", KeyEvent.VK_B, CPCommandId.FXBoxBlur, "Blur Effect");
   endSubMenu ();
 
   addSubMenu ("Noise", KeyEvent.VK_N);
-  addMenuItem ("Render Monochromatic", KeyEvent.VK_M, "CPMNoise", "Fills the selection with noise");
-  addMenuItem ("Render Color", KeyEvent.VK_C, "CPCNoise", "Fills the selection with colored noise");
+  addMenuItem ("Render Monochromatic", KeyEvent.VK_M, CPCommandId.MNoise, "Fills the selection with noise");
+  addMenuItem ("Render Color", KeyEvent.VK_C, CPCommandId.CNoise, "Fills the selection with colored noise");
   endSubMenu ();
   addSeparator ();
-  addCheckBoxMenuItem ("Apply to All Layers", KeyEvent.VK_T, "CPApplyToAllLayers", "Apply all listed above effects to all layers instead of just current", false);
+  addCheckBoxMenuItem ("Apply to All Layers", KeyEvent.VK_T, CPCommandId.ApplyToAllLayers, "Apply all listed above effects to all layers instead of just current", false);
   paletteItems.put ("Apply to All Layers", (JCheckBoxMenuItem) lastItem);
 
   // View
@@ -341,51 +347,56 @@ void createMainMenu ()
 
   if (controller.isRunningAsApplet ())
     {
-      addMenuItem ("Floating mode", KeyEvent.VK_F, "CPFloat", "Opens ChibiPaintMod in an independent window");
+      addMenuItem ("Floating mode", KeyEvent.VK_F, CPCommandId.Float, "Opens ChibiPaintMod in an independent window");
       addSeparator ();
     }
 
-  addMenuItem ("Zoom In", KeyEvent.VK_I, "CPZoomIn", "Zooms In", KeyStroke.getKeyStroke (KeyEvent.VK_ADD, InputEvent.CTRL_MASK));
-  addMenuItem ("Zoom Out", KeyEvent.VK_O, "CPZoomOut", "Zooms Out", KeyStroke.getKeyStroke (KeyEvent.VK_SUBTRACT, InputEvent.CTRL_MASK));
-  addMenuItem ("Zoom 100%", KeyEvent.VK_O, "CPZoom100", "Resets the zoom factor to 100%", KeyStroke.getKeyStroke (KeyEvent.VK_NUMPAD0, InputEvent.CTRL_MASK));
+  addMenuItem ("Zoom In", KeyEvent.VK_I, CPCommandId.ZoomIn, "Zooms In", KeyStroke.getKeyStroke (KeyEvent.VK_ADD, InputEvent.CTRL_MASK));
+  addMenuItem ("Zoom Out", KeyEvent.VK_O, CPCommandId.ZoomOut, "Zooms Out", KeyStroke.getKeyStroke (KeyEvent.VK_SUBTRACT, InputEvent.CTRL_MASK));
+  addMenuItem ("Zoom 100%", KeyEvent.VK_O, CPCommandId.Zoom100, "Resets the zoom factor to 100%", KeyStroke.getKeyStroke (KeyEvent.VK_NUMPAD0, InputEvent.CTRL_MASK));
   addSeparator ();
-  addCheckBoxMenuItem ("Use Linear Interpolation", KeyEvent.VK_L, "CPLinearInterpolation", "Linear interpolation is used to give a smoothed looked to the picture when zoomed in", false);
+  addCheckBoxMenuItem ("Use Linear Interpolation", KeyEvent.VK_L, CPCommandId.LinearInterpolation, "Linear interpolation is used to give a smoothed looked to the picture when zoomed in", false);
   paletteItems.put ("Use Linear Interpolation", (JCheckBoxMenuItem) lastItem);
   addSeparator ();
-  addCheckBoxMenuItem ("Show Grid", KeyEvent.VK_G, "CPToggleGrid", "Displays a grid over the image", KeyStroke.getKeyStroke (KeyEvent.VK_G, InputEvent.CTRL_MASK), false);
+  addCheckBoxMenuItem ("Show Grid", KeyEvent.VK_G, CPCommandId.ToggleGrid, "Displays a grid over the image", KeyStroke.getKeyStroke (KeyEvent.VK_G, InputEvent.CTRL_MASK), false);
   paletteItems.put ("Show Grid", (JCheckBoxMenuItem) lastItem);
-  addMenuItem ("Grid options...", KeyEvent.VK_D, "CPGridOptions", "Shows the grid options dialog box");
+  addMenuItem ("Grid options...", KeyEvent.VK_D, CPCommandId.GridOptions, "Shows the grid options dialog box");
   addSeparator ();
 
   addSubMenu ("Palettes", KeyEvent.VK_P);
-  addMenuItem ("Toggle Palettes", KeyEvent.VK_P, "CPTogglePalettes", "Hides or shows all palettes", KeyStroke.getKeyStroke (KeyEvent.VK_TAB, 0));
+  addMenuItem ("Toggle Palettes", KeyEvent.VK_P, CPCommandId.TogglePalettes, "Hides or shows all palettes", KeyStroke.getKeyStroke (KeyEvent.VK_TAB, 0));
   addSeparator ();
-  addCheckBoxMenuItem ("Show Tool Preferences", KeyEvent.VK_T, "CPPalBrush", true);
+  addCheckBoxMenuItem ("Show Tool Preferences", KeyEvent.VK_T, CPCommandId.PalBrush, true);
   paletteItems.put ("ToolPreferences", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Color", KeyEvent.VK_C, "CPPalColor", true);
+  addCheckBoxMenuItem ("Show Color", KeyEvent.VK_C, CPCommandId.PalColor, true);
   paletteItems.put ("Color", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Layers", KeyEvent.VK_Y, "CPPalLayers", true);
+  addCheckBoxMenuItem ("Show Layers", KeyEvent.VK_Y, CPCommandId.PalLayers, true);
   paletteItems.put ("Layers", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Misc", KeyEvent.VK_M, "CPPalMisc", true);
+  addCheckBoxMenuItem ("Show Misc", KeyEvent.VK_M, CPCommandId.PalMisc, true);
   paletteItems.put ("Misc", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Stroke", KeyEvent.VK_R, "CPPalStroke", true);
+  addCheckBoxMenuItem ("Show Stroke", KeyEvent.VK_R, CPCommandId.PalStroke, true);
   paletteItems.put ("Stroke", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Swatches", KeyEvent.VK_S, "CPPalSwatches", true);
+  addCheckBoxMenuItem ("Show Swatches", KeyEvent.VK_S, CPCommandId.PalSwatches, true);
   paletteItems.put ("Color Swatches", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Textures", KeyEvent.VK_T, "CPPalTextures", true);
+  addCheckBoxMenuItem ("Show Textures", KeyEvent.VK_T, CPCommandId.PalTextures, true);
   paletteItems.put ("Textures", (JCheckBoxMenuItem) lastItem);
-  addCheckBoxMenuItem ("Show Tools", KeyEvent.VK_O, "CPPalTool", true);
+  addCheckBoxMenuItem ("Show Tools", KeyEvent.VK_O, CPCommandId.PalTool, true);
   paletteItems.put ("Tools", (JCheckBoxMenuItem) lastItem);
   endSubMenu ();
 
   // Help
   addMenu ("Help", KeyEvent.VK_H);
-  addMenuItem ("About...", KeyEvent.VK_A, "CPAbout", "Displays some information about ChibiPaintMod");
+  addMenuItem ("About...", KeyEvent.VK_A, CPCommandId.About, "Displays some information about ChibiPaintMod");
 }
 
 public void showPalette (String palette, boolean show)
 {
   getPaletteManager ().showPalette (palette, show);
+}
+
+public void togglePaletteVisibility (String palette)
+{
+  getPaletteManager ().togglePaletteVisibility (palette);
 }
 
 public void setPaletteMenuItem (String title, boolean selected)
@@ -420,6 +431,24 @@ JPanel getBg ()
 void setBg (JPanel bg)
 {
   this.bg = bg;
+}
+
+public void updateRecentFiles ()
+{
+  recentFilesMenuItem.removeAll ();
+  lastSubMenu = recentFilesMenuItem;
+  Preferences userRoot = Preferences.userRoot ();
+  Preferences preferences = userRoot.node ("chibipaintmod");
+  for (int i = 0; i < 10; i++)
+    {
+      String recentFileName = preferences.get ("Recent File[" + i + "]", "");
+      if (recentFileName.length () != 0)
+        {
+          File recentFile = new File (recentFileName);
+          addMenuItem (recentFile.getName (), 0, CPCommandId.OpenRecent, "Open Recent File " + i, KeyStroke.getKeyStroke (KeyEvent.VK_0 + (i + 1) % 10, InputEvent.CTRL_MASK), new CPCommandSettings.recentFileNumber (i));
+        }
+    }
+  lastSubMenu = null;
 }
 
 class CPDesktop extends JDesktopPane

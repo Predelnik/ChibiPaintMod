@@ -22,14 +22,15 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommonController;
 import chibipaint.engine.CPBrushInfo;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class CPToolPreferencesPalette extends CPPalette implements CPController.ICPToolListener, ActionListener
+public class CPToolPreferencesPalette extends CPPalette implements CPCommonController.ICPToolListener, ActionListener
 {
 
 private final CPAlphaSlider alphaSlider;
@@ -59,7 +60,7 @@ private final JButton transformRotate90CWButton;
 private final JLabel transformLabel;
 
 @SuppressWarnings ("serial")
-public CPToolPreferencesPalette (CPController ctrlr)
+public CPToolPreferencesPalette (CPCommonController ctrlr)
 {
   super (ctrlr);
 
@@ -73,13 +74,13 @@ public CPToolPreferencesPalette (CPController ctrlr)
 
   // transform controls
   transformLabel = addLabel (10, 5, "Transform:");
-  transformOkButton = addTextButton (10, 30, 60, 16, "Ok", "CPApplyTransform");
-  transformCancelButton = addTextButton (75, 30, 75, 16, "Cancel", "CPCancelTransform");
+  transformOkButton = addTextButton (10, 30, 60, 16, "Ok", CPCommandId.ApplyTransform);
+  transformCancelButton = addTextButton (75, 30, 75, 16, "Cancel", CPCommandId.CancelTransform);
 
-  transformFlipHButton = addTextButton (10, 100, 140, 16, "Flip Horizontally", "CPFlipHorizontally");
-  transformFlipVButton = addTextButton (10, 125, 140, 16, "Flip Verticaly", "CPFlipVertically");
-  transformRotate90CCWButton = addTextButton (10, 150, 140, 16, "Rotate 90° CCW", "CPRotate90CCW");
-  transformRotate90CWButton = addTextButton (10, 175, 140, 16, "Rotate 90° CW", "CPRotate90CW");
+  transformFlipHButton = addTextButton (10, 100, 140, 16, "Flip Horizontally", CPCommandId.FlipHorizontally);
+  transformFlipVButton = addTextButton (10, 125, 140, 16, "Flip Vertically", CPCommandId.FlipVertically);
+  transformRotate90CCWButton = addTextButton (10, 150, 140, 16, "Rotate 90° CCW", CPCommandId.Rotate90CCW);
+  transformRotate90CWButton = addTextButton (10, 175, 140, 16, "Rotate 90° CW", CPCommandId.Rotate90CW);
 
   // fill controls
   colorDistanceSlider = new CPColorDistanceSlider ();
@@ -254,11 +255,11 @@ public void newTool (int tool, CPBrushInfo toolInfo)
     {
       switch (controller.getCurMode ())
         {
-        case CPController.M_DRAW:
+        case CPCommonController.M_DRAW:
           for (JComponent jc : brushControls)
             jc.setVisible (true);
           break;
-        case CPController.M_FLOODFILL:
+        case CPCommonController.M_FLOODFILL:
           for (JComponent jc : floodFillControls)
             jc.setVisible (true);
           break;
@@ -336,7 +337,7 @@ public void actionPerformed (ActionEvent e)
     }
 }
 
-class CPBrushPreview extends JComponent implements MouseListener, MouseMotionListener, CPController.ICPToolListener
+class CPBrushPreview extends JComponent implements MouseListener, MouseMotionListener, CPCommonController.ICPToolListener
 {
 
   final int w;

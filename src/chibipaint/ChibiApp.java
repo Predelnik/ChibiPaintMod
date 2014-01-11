@@ -200,8 +200,7 @@ public void recreateEverything (CPArtwork artwork)
   controller.canvas.reinitCanvas (); // Reinit canvas
   ((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers")).addListener ();
 
-  mainGUI.recreateMenuBar (); // TODO: Change this to correct update of recent files
-  setJMenuBar (mainGUI.getMenuBar ());
+  mainGUI.updateRecentFiles (); // TODO: Change this to correct update of recent files
 }
 
 public void resetMainMenu ()

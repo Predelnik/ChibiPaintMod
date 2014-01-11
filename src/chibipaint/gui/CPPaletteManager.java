@@ -22,7 +22,7 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommonController;
 
 import javax.swing.*;
 import java.awt.event.ContainerEvent;
@@ -36,12 +36,17 @@ import java.util.prefs.Preferences;
 public class CPPaletteManager implements ContainerListener
 {
 
-private final CPController controller;
+private final CPCommonController controller;
 private JDesktopPane jdp;
 
 private Map<String, CPPalette> palettes = new HashMap<String, CPPalette> ();
 private final List<CPPaletteFrame> paletteFrames = new Vector<CPPaletteFrame> ();
 private final List<CPPaletteFrame> hiddenFrames = new Vector<CPPaletteFrame> ();
+
+public void togglePaletteVisibility (String palette)
+{
+  showPalette (palette, !((CPPaletteFrame) getPalettes ().get (palette).getPaletteContainer ()).isVisible ());
+}
 
 interface ICPPaletteContainer
 {
@@ -95,7 +100,7 @@ class CPPaletteFrame extends JInternalFrame implements ICPPaletteContainer
   }
 }
 
-public CPPaletteManager (CPController controller, JDesktopPane desktop)
+public CPPaletteManager (CPCommonController controller, JDesktopPane desktop)
 {
   this.controller = controller;
   this.setJdp (desktop);

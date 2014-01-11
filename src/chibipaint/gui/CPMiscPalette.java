@@ -22,7 +22,8 @@
 
 package chibipaint.gui;
 
-import chibipaint.controller.CPController;
+import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommonController;
 
 import java.awt.*;
 
@@ -36,7 +37,7 @@ private final CPIconButton undoButton;
 private final CPIconButton redoButton;
 private CPIconButton sendButton = null;
 
-public CPMiscPalette (CPController controller)
+public CPMiscPalette (CPCommonController controller)
 {
   super (controller);
 
@@ -45,17 +46,17 @@ public CPMiscPalette (CPController controller)
 
   Component spacer;
   icons = controller.loadImage ("icons.png");
-  zoomInButton = addIconButton (13, "CPZoomIn");
-  zoomOutButton = addIconButton (14, "CPZoomOut");
-  zoom100Button = addIconButton (15, "CPZoom100");
+  zoomInButton = addIconButton (13, CPCommandId.ZoomIn);
+  zoomOutButton = addIconButton (14, CPCommandId.ZoomOut);
+  zoom100Button = addIconButton (15, CPCommandId.Zoom100);
   addSpacer ();
-  undoButton = addIconButton (10, "CPUndo");
-  redoButton = addIconButton (11, "CPRedo");
+  undoButton = addIconButton (10, CPCommandId.Undo);
+  redoButton = addIconButton (11, CPCommandId.Redo);
 
   if (controller.isRunningAsApplet ())
     {
       addSpacer ();
-      sendButton = addIconButton (12, "CPSend");
+      sendButton = addIconButton (12, CPCommandId.Send);
     }
 }
 
