@@ -1,6 +1,6 @@
 /*
  * ChibiPaintMod
- *     Copyright (c) 2012-2013 Sergey Semushin
+ *     Copyright (c) 2012-2014 Sergey Semushin
  *     Copyright (c) 2006-2008 Marc Schefer
  *
  *     This file is part of ChibiPaintMod (previously ChibiPaint).
