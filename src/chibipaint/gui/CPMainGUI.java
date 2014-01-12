@@ -361,7 +361,8 @@ void createMainMenu ()
   addMenuItem ("Make Grayscale", KeyEvent.VK_M, CPCommandId.FXMakeGrayscaleByLuma, "Make image grayscale by Luma Formula");
 
   addSubMenu ("Blur", KeyEvent.VK_B);
-  addMenuItem ("Box Blur...", KeyEvent.VK_B, CPCommandId.FXBoxBlur, "Blur Effect");
+  addMenuItem ("Box Blur...", KeyEvent.VK_B, CPCommandId.FXBoxBlur, "Box Blur Effect");
+  addMenuItem ("Gaussian Blur...", KeyEvent.VK_G, CPCommandId.FXGaussianBlur, "Gaussian Blur Effect");
   endSubMenu ();
 
   addSubMenu ("Noise", KeyEvent.VK_N);

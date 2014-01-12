@@ -95,7 +95,7 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
     public void onValueChange ()
     {
       controller.setSelectionFillAlpha (255 * value / 100);
-      title = "Instant Fill Opacity: " + value + "%";
+      title = "Fill Opacity: " + value + "%";
     }
   };
   instantFillOpacity.setLocation (20, 25);

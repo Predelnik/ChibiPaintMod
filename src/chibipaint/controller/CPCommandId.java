@@ -61,6 +61,7 @@ public enum CPCommandId
   MNoise,
   CNoise,
   FXBoxBlur,
+  FXGaussianBlur,
   FXInvert,
   FXMakeGrayscaleByLuma,
   ApplyToAllLayers,

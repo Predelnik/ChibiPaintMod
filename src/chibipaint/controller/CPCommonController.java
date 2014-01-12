@@ -293,7 +293,10 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
       artwork.finalizeUndo ();
       break;
     case FXBoxBlur:
-      showBoxBlurDialog ();
+      showBlurDialog (BlurType.BOX_BLUR);
+      break;
+    case FXGaussianBlur:
+      showBlurDialog (BlurType.GAUSSIAN_BLUR);
       break;
     case FXInvert:
       artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPInverseEffect ());
@@ -796,7 +799,13 @@ protected abstract Component getDialogParent ();
 //
 // misc dialog boxes that shouldn't be here v___v
 
-void showBoxBlurDialog ()
+enum BlurType
+{
+  BOX_BLUR,
+  GAUSSIAN_BLUR,
+}
+
+void showBlurDialog (BlurType type)
 {
   JPanel panel = new JPanel ();
 
@@ -819,7 +828,16 @@ void showBoxBlurDialog ()
 
       int blur = ((Integer) blurX.getValue ()).intValue ();
       int iterations = ((Integer) iter.getValue ()).intValue ();
-      artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPBoxBlurEffect (blur, blur, iterations));
+      switch (type)
+        {
+        case BOX_BLUR:
+          artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPBoxBlurEffect (blur, iterations));
+          break;
+        case GAUSSIAN_BLUR:
+          artwork.doEffectAction (canvas.getApplyToAllLayers (), new CPGaussianBlurEffect (blur, iterations));
+          break;
+        }
+
       canvas.repaint ();
       artwork.finalizeUndo ();
     }
