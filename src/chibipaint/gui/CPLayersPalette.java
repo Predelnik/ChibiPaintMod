@@ -449,6 +449,8 @@ class CPLayerWidget extends JComponent implements MouseListener, MouseMotionList
     if (layerDrag)
       {
         layerDragReally = true;
+        if (renameField.isVisible ())
+          renameField.setVisible (false);
         layerDragY = e.getPoint ().y;
         repaint ();
       }
