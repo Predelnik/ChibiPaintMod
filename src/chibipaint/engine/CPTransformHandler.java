@@ -646,6 +646,10 @@ public void drawTransformHandles (Graphics2D g2d, AffineTransform canvasTransfor
   Path2D path = transformRectToPath (fuzzyRect.getLeft (), fuzzyRect.getTop (), fuzzyRect.getRight (), fuzzyRect.getBottom (), finalTransform);
   int halfSmallRectSize = smallRectPixelSize / 2;
 
+  RenderingHints hints = g2d.getRenderingHints ();
+  hints.put (RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+  g2d.addRenderingHints (hints);
+
   g2d.draw (path);
   // Draw 8 handle rectangles
   for (int i = 0; i < 3; i++)

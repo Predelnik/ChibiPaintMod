@@ -48,6 +48,7 @@ private final CPRenameField renameField;
 private final JCheckBox cbSampleAllLayers;
 private final JCheckBox cbLockAlpha;
 private boolean layerMovingAndChangingCurrentEnabled = true;
+private final JScrollPane scrollPane;
 
 
 private final String[] modeNames = {"Normal", "Multiply", "Add", "Screen", "Lighten", "Darken", "Subtract", "Dodge", "Burn",
@@ -81,7 +82,7 @@ public CPLayersPalette (CPCommonController controller)
   lw = new CPLayerWidget ();
   renameField = new CPRenameField ();
   lw.add (renameField);
-  JScrollPane sp = new JScrollPane (lw);
+  scrollPane = new JScrollPane (lw);
 
   cbSampleAllLayers = new JCheckBox ("Sample All Layers");
   cbSampleAllLayers.setSelected (controller.artwork.isSampleAllLayers ());
@@ -134,7 +135,7 @@ public CPLayersPalette (CPCommonController controller)
   vb.add (hb5);
 
   setLayout (new BorderLayout ());
-  add (sp, BorderLayout.CENTER);
+  add (scrollPane, BorderLayout.CENTER);
   add (vb, BorderLayout.PAGE_START);
   add (hb, BorderLayout.PAGE_END);
 
@@ -159,6 +160,11 @@ public void setEnabledForTransform (boolean enabled)
 public void addListener ()
 {
   controller.getArtwork ().addListener (this);
+}
+
+public void updateScroll ()
+{
+  scrollPane.updateUI ();
 }
 
 public void removeListener ()
