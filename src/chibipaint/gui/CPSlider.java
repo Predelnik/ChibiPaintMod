@@ -46,6 +46,7 @@ boolean centerMode = false;
 public CPSlider (int valueRange)
 {
   setBackground (Color.white);
+  setSize (130, 16);
 
   this.valueRange = valueRange;
   maxValue = valueRange;

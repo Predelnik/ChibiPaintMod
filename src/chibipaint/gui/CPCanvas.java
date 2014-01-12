@@ -24,6 +24,7 @@ package chibipaint.gui;
 import chibipaint.controller.CPCommandId;
 import chibipaint.controller.CPCommonController;
 import chibipaint.controller.CPControllerApplication;
+import chibipaint.effects.CPTransparentFillEffect;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPBrushInfo;
 import chibipaint.engine.CPSelection;
@@ -2141,10 +2142,18 @@ class CPFreeSelectionMode extends CPMode
   @Override
   public void cursorReleaseAction ()
   {
-
     CPSelection polygonSelection = new CPSelection (artwork.getWidth (), artwork.getHeight ());
     polygonSelection.makeSelectionFromPolygon (polygon, transform);
-    artwork.DoSelection (modifiersToSelectionApplianceType (getModifiers ()), polygonSelection);
+    if (controller.getCurSelectionAction () == CPCommonController.selectionAction.SELECT)
+      {
+        artwork.DoSelection (modifiersToSelectionApplianceType (getModifiers ()), polygonSelection);
+      }
+    else
+      {
+        artwork.DoSelection (SelectionTypeOfAppliance.CREATE, polygonSelection);
+        artwork.doEffectAction (false, new CPTransparentFillEffect (controller.getCurColorRgb () | controller.getSelectionFillAlpha () << 24));
+        artwork.deselectAll ();
+      }
     artwork.finalizeUndo ();
     setActiveMode (defaultMode); // yield control to the default mode
     repaint ();

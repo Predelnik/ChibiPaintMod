@@ -44,6 +44,8 @@ private final CPSlider spacingSlider;
 private final CPSlider scatteringSlider;
 private final CPSlider smoothingSlider;
 private final CPBrushPreview brushPreview;
+private final CPSlider instantFillOpacity;
+private final CPCheckBox instantFillCB;
 
 // For Floodfill
 private final CPSlider colorDistanceSlider;
@@ -81,6 +83,24 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
   transformRotate90CCWButton = addTextButton (10, 150, 140, 16, "Rotate 90° CCW", CPCommandId.Rotate90CCW);
   transformRotate90CWButton = addTextButton (10, 175, 140, 16, "Rotate 90° CW", CPCommandId.Rotate90CW);
 
+  // selection controls
+  instantFillCB = new CPInstaFillCB ();
+
+  instantFillCB.setLocation (2, 25);
+  add (instantFillCB);
+
+  instantFillOpacity = new CPSlider (100)
+  {
+    @Override
+    public void onValueChange ()
+    {
+      controller.setSelectionFillAlpha (255 * value / 100);
+      title = "Instant Fill Opacity: " + value + "%";
+    }
+  };
+  instantFillOpacity.setLocation (20, 25);
+  add (instantFillOpacity);
+
   // fill controls
   colorDistanceSlider = new CPColorDistanceSlider ();
   colorDistanceSlider.setLocation (20, 25);
@@ -91,30 +111,22 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
 
   alphaSlider = new CPAlphaSlider ();
   alphaSlider.setLocation (20, 120);
-  alphaSlider.setSize (130, 16);
   add (alphaSlider);
 
   brushPreview = new CPBrushPreview ();
   brushPreview.setLocation (5, 25);
   add (brushPreview);
 
-  // Label l = new Label("Opacity: ");
-  // c.add(l);
-  // l.setLocation(5, 70);
-
   alphaCB = new CPAlphaCB ();
   alphaCB.setLocation (2, 120);
-  alphaCB.setSize (16, 16);
   add (alphaCB);
 
   sizeSlider = new CPSizeSlider ();
   sizeSlider.setLocation (20, 95);
-  sizeSlider.setSize (130, 16);
   add (sizeSlider);
 
   sizeCB = new CPSizeCB ();
   sizeCB.setLocation (2, 95);
-  sizeCB.setSize (16, 16);
   add (sizeCB);
 
   tipCombo = new JComboBox (tipNames);
@@ -135,7 +147,6 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
     }
   };
   resatSlider.setLocation (20, 145);
-  resatSlider.setSize (130, 16);
   add (resatSlider);
 
   bleedSlider = new CPSlider (100)
@@ -150,7 +161,6 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
     }
   };
   bleedSlider.setLocation (20, 170);
-  bleedSlider.setSize (130, 16);
   add (bleedSlider);
 
   spacingSlider = new CPSlider (100)
@@ -165,7 +175,6 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
     }
   };
   spacingSlider.setLocation (20, 195);
-  spacingSlider.setSize (130, 16);
   add (spacingSlider);
 
   scatteringCB = new CPCheckBox ()
@@ -179,7 +188,6 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
     }
   };
   scatteringCB.setLocation (2, 220);
-  scatteringCB.setSize (16, 16);
   add (scatteringCB);
 
   scatteringSlider = new CPSlider (1000)
@@ -194,7 +202,6 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
     }
   };
   scatteringSlider.setLocation (20, 220);
-  scatteringSlider.setSize (130, 16);
   add (scatteringSlider);
 
   smoothingSlider = new CPSlider (100)
@@ -209,10 +216,13 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
     }
   };
   smoothingSlider.setLocation (20, 245);
-  smoothingSlider.setSize (130, 16);
   add (smoothingSlider);
 
+  instantFillCB.setValue (ctrlr.getCurSelectionAction () == CPCommonController.selectionAction.FILL_AND_DESELECT);
+  instantFillOpacity.setValue (ctrlr.getSelectionFillAlpha ());
+
   colorDistanceSlider.setValue (ctrlr.getColorDistance ());
+
   alphaSlider.setValue (ctrlr.getAlpha ());
   sizeSlider.setValue (ctrlr.getBrushSize ());
   sizeCB.setValue (ctrlr.getBrushInfo ().pressureSize);
@@ -238,7 +248,8 @@ public void newTool (int tool, CPBrushInfo toolInfo)
   JComponent[] floodFillControls = {colorDistanceSlider};
   JComponent[] transformControls = {transformLabel, transformOkButton, transformCancelButton, transformFlipHButton, transformFlipVButton,
           transformRotate90CCWButton, transformRotate90CWButton};
-  JComponent[][] toolArrays = {brushControls, floodFillControls, transformControls};
+  JComponent[] selectionControls = {instantFillCB, instantFillOpacity};
+  JComponent[][] toolArrays = {brushControls, floodFillControls, transformControls, selectionControls};
 
   for (JComponent[] toolArray : toolArrays)
     for (JComponent jc : toolArray)
@@ -260,6 +271,10 @@ public void newTool (int tool, CPBrushInfo toolInfo)
           break;
         case CPCommonController.M_FLOODFILL:
           for (JComponent jc : floodFillControls)
+            jc.setVisible (true);
+          break;
+        case CPCommonController.M_FREE_SELECTION:
+          for (JComponent jc : selectionControls)
             jc.setVisible (true);
           break;
         }
@@ -491,6 +506,7 @@ class CPCheckBox extends JComponent implements MouseListener
 
   public CPCheckBox ()
   {
+    setSize (16, 16);
     addMouseListener (this);
   }
 
@@ -560,6 +576,16 @@ class CPAlphaCB extends CPCheckBox
   {
     controller.getBrushInfo ().pressureAlpha = state;
     controller.callToolListeners ();
+  }
+}
+
+class CPInstaFillCB extends CPCheckBox
+{
+
+  @Override
+  public void onValueChange ()
+  {
+    controller.setSelectionAction (state ? CPCommonController.selectionAction.FILL_AND_DESELECT : CPCommonController.selectionAction.SELECT);
   }
 }
 

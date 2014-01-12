@@ -50,6 +50,39 @@ import java.util.HashMap;
 public abstract class CPCommonController implements ICPController
 {
 
+private int selectionFillAlpha = 255;
+
+public void setSelectionAction (selectionAction selectionActionArg)
+{
+  this.curSelectionAction = selectionActionArg;
+}
+
+public selectionAction getCurSelectionAction ()
+{
+  return curSelectionAction;
+}
+
+public void setCurSelectionAction (selectionAction curSelectionAction)
+{
+  this.curSelectionAction = curSelectionAction;
+}
+
+public void setSelectionFillAlpha (int selectionFillAlphaArg)
+{
+  this.selectionFillAlpha = selectionFillAlphaArg;
+}
+
+public int getSelectionFillAlpha ()
+{
+  return selectionFillAlpha;
+}
+
+public enum selectionAction
+{
+  FILL_AND_DESELECT,
+  SELECT,
+}
+
 private final static String VERSION_STRING = "0.0.5 (alpha)";
 
 private final CPColor curColor = new CPColor ();
@@ -64,6 +97,7 @@ public CPCanvas canvas = null;
 final CPBrushInfo[] tools;
 private int curBrush = T_PENCIL;
 private int curMode = M_DRAW;
+private selectionAction curSelectionAction = selectionAction.SELECT;
 
 private final ArrayList<ICPColorListener> colorListeners = new ArrayList<ICPColorListener> ();
 private final ArrayList<ICPToolListener> toolListeners = new ArrayList<ICPToolListener> ();
@@ -104,7 +138,7 @@ public static final int M_FREE_SELECTION = 5;
 public static final int M_MAX = 6;
 
 // Setting for other modes than draw (probably should do different class for them)
-private int colorDistance;
+private int colorDistance = 0;
 private boolean transformIsOn;
 
 private CPMainGUI mainGUI;

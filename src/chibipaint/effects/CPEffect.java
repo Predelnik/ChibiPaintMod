@@ -129,5 +129,12 @@ int colorInOpaque (int destColor, int selValue, int newColor)
   else
     return 0x00FFFFFF;
 }
+
+// Colors the pixel with current color according to layer's transparency and selection. (color's own transparency being counted)
+protected int colorIn (int layerColor, int selValue, int newColor)
+{
+  int newColorAlpha = (newColor >>> 24) & 0xFF;
+  return colorInOpaque (layerColor, selValue > newColorAlpha ? newColorAlpha : selValue, newColor);
+}
 }
 
