@@ -22,6 +22,7 @@
 package chibipaint.engine;
 
 import chibipaint.gui.CPCanvas;
+import chibipaint.util.CPPixelCoords;
 import chibipaint.util.CPRect;
 import sun.awt.SunHints;
 
@@ -79,6 +80,14 @@ public void AddToSelection (CPSelection otherSelection)
       if ((data[i] & 0xff) < (otherSelection.data[i] & 0xff))
         data[i] = otherSelection.data[i];
     }
+  precalculateSelection (rect);
+}
+
+public void copyFromSelection (CPSelection otherSelection)
+{
+  CPRect rect = getBoundingRect ();
+  rect.union (otherSelection.getBoundingRect ());
+  System.arraycopy (otherSelection.data, 0, data, 0, width * height);
   precalculateSelection (rect);
 }
 
@@ -185,12 +194,12 @@ private boolean getIsActiveInBounds (int off)
   return ((data[off] & 0xff) > PIXEL_IN_SELECTION_THRESHOLD);
 }
 
-private boolean isActive (PixelCoords px)
+private boolean isActive (CPPixelCoords px)
 {
   return isInside (px.x, px.y) && getIsActiveInBounds (px.x, px.y);
 }
 
-private int isMarked (PixelCoords px)
+private int isMarked (CPPixelCoords px)
 {
   if (isInside (px.x, px.y))
     return (markerArray[px.y * width + px.x]);
@@ -205,9 +214,6 @@ private static void drawLine (Graphics2D g2d, CPCanvas canvas, float x1, float y
   g2d.draw (new Line2D.Float (p1, p2));
 }
 
-
-private final int[][] Mv = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-private final int[][] Corners = {{1, 1}, {0, 1}, {0, 0}, {1, 0}};
 private final int[] OppositeDirection = {2, 3, 0, 1};
 private final int[] PowersOf2 = {1, 2, 4, 8};
 
@@ -294,70 +300,11 @@ public byte[] getData ()
 }
 
 
-class PixelCoords implements Comparable<PixelCoords>
-{
-  int x;
-  final int y;
-
-  PixelCoords (int xArg, int yArg)
-  {
-    x = xArg;
-    y = yArg;
-  }
-
-  public PixelCoords (PixelCoords point)
-  {
-    x = point.x;
-    y = point.y;
-  }
-
-  PixelCoords left ()
-  {
-    return new PixelCoords (x - 1, y);
-  }
-
-  PixelCoords right ()
-  {
-    return new PixelCoords (x + 1, y);
-  }
-
-  PixelCoords up ()
-  {
-    return new PixelCoords (x, y - 1);
-  }
-
-  PixelCoords down ()
-  {
-    return new PixelCoords (x, y + 1);
-  }
-
-  PixelCoords MoveByMv (int num)
-  {
-    return new PixelCoords (x + Mv[num % 4][0], y + Mv[num % 4][1]);
-  }
-
-  PixelCoords MoveToCorner (int num)
-  {
-    return new PixelCoords (x + Corners[num % 4][0], y + Corners[num % 4][1]);
-  }
-
-  @Override
-  public int compareTo (PixelCoords o)
-  {
-    if (x != o.x)
-      return (x - o.x);
-    else
-      return (o.y - y);
-  }
-
-
-}
-
-private class Lump extends ArrayList<PixelCoords>
+private class Lump extends ArrayList<CPPixelCoords>
 {
 }
 
-private class PixelSingleLine extends ArrayList<PixelCoords>
+private class PixelSingleLine extends ArrayList<CPPixelCoords>
 {
   boolean backwards = false;
 }
@@ -373,12 +320,12 @@ enum Directions
 }
 
 
-int GetNextDirectionNum (PixelCoords currentPoint, PixelCoords prevPoint)
+int GetNextDirectionNum (CPPixelCoords currentPoint, CPPixelCoords prevPoint)
 {
   int result = -1;
   for (int i = 0; i < directionsNum; i++)
-    if (currentPoint.x + Corners[i][0] == prevPoint.x &&
-            currentPoint.y + Corners[i][1] == prevPoint.y)
+    if (currentPoint.x + CPPixelCoords.Corners[i][0] == prevPoint.x &&
+            currentPoint.y + CPPixelCoords.Corners[i][1] == prevPoint.y)
       {
         result = i;
         break;
@@ -410,12 +357,12 @@ void convertLumpToPixelSingleLines (ArrayList<PixelSingleLine> pixelLinesTarget,
 {
   // TODO: Rewrite using scanline technique
   int fillMode = 1;
-  PixelCoords startingPoint = Collections.min (x);
+  CPPixelCoords startingPoint = Collections.min (x);
   PixelSingleLine sL = new PixelSingleLine ();
   sL.add (startingPoint.right ().down ());
   do
     {
-      PixelCoords currentPoint = new PixelCoords (startingPoint);
+      CPPixelCoords currentPoint = new CPPixelCoords (startingPoint);
       boolean Finished = false;
       do
         {
@@ -430,7 +377,7 @@ void convertLumpToPixelSingleLines (ArrayList<PixelSingleLine> pixelLinesTarget,
                   if (fillMode == 1)
                     markerArray[currentPoint.y * width + currentPoint.x] |= PowersOf2[scanningDirection];
                   else
-                    markerArray[(currentPoint.y + Mv[scanningDirection][1]) * width + currentPoint.x + Mv[scanningDirection][0]] |= (PowersOf2[OppositeDirection[scanningDirection]]);
+                    markerArray[(currentPoint.y + CPPixelCoords.Mv[scanningDirection][1]) * width + currentPoint.x + CPPixelCoords.Mv[scanningDirection][0]] |= (PowersOf2[OppositeDirection[scanningDirection]]);
                   if (currentPoint.MoveToCorner (scanningDirection).compareTo (sL.get (0)) != 0)
                     sL.add (currentPoint.MoveToCorner (scanningDirection));
                   else
@@ -441,8 +388,8 @@ void convertLumpToPixelSingleLines (ArrayList<PixelSingleLine> pixelLinesTarget,
                 }
               else
                 {
-                  PixelCoords nextPoint = currentPoint.MoveByMv (scanningDirection);
-                  PixelCoords pointAfterNext = nextPoint.MoveByMv (GetNextDirectionNum (nextPoint, sL.get (sL.size () - 1)) + 1);
+                  CPPixelCoords nextPoint = currentPoint.MoveByMv (scanningDirection);
+                  CPPixelCoords pointAfterNext = nextPoint.MoveByMv (GetNextDirectionNum (nextPoint, sL.get (sL.size () - 1)) + 1);
                   if (isActive (pointAfterNext) == (fillMode == 0))
                     currentPoint = nextPoint;
                   else
@@ -465,7 +412,7 @@ void convertLumpToPixelSingleLines (ArrayList<PixelSingleLine> pixelLinesTarget,
         {
           for (int j = 0; j < directionsNum; j++)
             {
-              PixelCoords px = x.get (i).MoveByMv (j);
+              CPPixelCoords px = x.get (i).MoveByMv (j);
               if (!isActive (px) && ((isMarked (x.get (i)) & PowersOf2[j]) == 0))
                 {
                   startingPoint = px;
@@ -533,8 +480,8 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
       for (int j = 0; j < CurPixelLines.get (i).size (); j++)
         {
           PixelSingleLine CurPSL = CurPixelLines.get (i);
-          PixelCoords FirstPoint = CurPSL.get (j);
-          PixelCoords SecondPoint = CurPSL.get ((j + 1) % CurPixelLines.get (i).size ());
+          CPPixelCoords FirstPoint = CurPSL.get (j);
+          CPPixelCoords SecondPoint = CurPSL.get ((j + 1) % CurPixelLines.get (i).size ());
           if (dashLength - dashCurLength > 1.0f)
             {
               if (dashDrawn)
@@ -642,13 +589,13 @@ public void precalculateSelection (CPRect rect)
 
 private Lump MakeLumpByScanLines (int x, int y)
 {
-  Stack<PixelCoords> S = new Stack<PixelCoords> ();
-  PixelCoords newPx = new PixelCoords (x, y);
+  Stack<CPPixelCoords> S = new Stack<CPPixelCoords> ();
+  CPPixelCoords newPx = new CPPixelCoords (x, y);
   S.push (newPx);
   Lump ResultingLump = new Lump ();
   while (!S.empty ())
     {
-      PixelCoords px = S.pop ();
+      CPPixelCoords px = S.pop ();
       int offset = px.y * width;
       // Skipping all the stuff we should add into our lump from the left
       while (px.x >= 0 && getIsActiveInBounds (offset + px.x))
@@ -663,11 +610,11 @@ private Lump MakeLumpByScanLines (int x, int y)
       int offsetPlus1 = (px.y + 1) * width + px.x;
       while (px.x < width && getIsActiveInBounds (offset) && markerArray[offset] == 0)
         {
-          ResultingLump.add (new PixelCoords (px));
+          ResultingLump.add (new CPPixelCoords (px));
           markerArray[offset] = 1;
           if (!spanTop && px.y > 0 && getIsActiveInBounds (offsetMinus1) && markerArray[offsetMinus1] == 0)
             {
-              newPx = new PixelCoords (px.x, px.y - 1);
+              newPx = new CPPixelCoords (px.x, px.y - 1);
               S.push (newPx);
               spanTop = true;
             }
@@ -677,7 +624,7 @@ private Lump MakeLumpByScanLines (int x, int y)
             }
           if (!spanBottom && px.y < height - 1 && getIsActiveInBounds (offsetPlus1) && markerArray[offsetPlus1] == 0)
             {
-              newPx = new PixelCoords (px.x, px.y + 1);
+              newPx = new CPPixelCoords (px.x, px.y + 1);
               S.push (newPx);
               spanBottom = true;
             }
@@ -689,30 +636,6 @@ private Lump MakeLumpByScanLines (int x, int y)
           offset++;
           offsetMinus1++;
           offsetPlus1++;
-        }
-    }
-  return ResultingLump;
-}
-
-private Lump MakeLump (int x, int y)
-{
-  Stack<PixelCoords> S = new Stack<PixelCoords> ();
-  PixelCoords newPx = new PixelCoords (x, y);
-  S.push (newPx);
-  Lump ResultingLump = new Lump ();
-  while (!S.empty ())
-    {
-      PixelCoords px = S.pop ();
-      markerArray[px.y * width + px.x] = 1;
-      ResultingLump.add (px);
-      for (int i = 0; i < Mv.length; i++)
-        {
-          int newY = px.y + Mv[i][1];
-          int newX = px.x + Mv[i][0];
-          if (!isInside (newX, newY))
-            continue;
-          if (markerArray[newY * width + newX] == 0 && getIsActiveInBounds (newX, newY))
-            S.push (new PixelCoords (newX, newY));
         }
     }
   return ResultingLump;

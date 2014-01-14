@@ -22,7 +22,6 @@
 package chibipaint.file;
 
 import chibipaint.engine.CPArtwork;
-import com.sun.imageio.plugins.common.ImageUtil;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -35,7 +34,7 @@ import java.io.OutputStream;
 
 
 // Basically - class to support images supported by imageIO interface
-public abstract class CPStandardImageFile extends CPAbstractFile
+public abstract class CPStandardImageFile extends CPFile
 {
 @Override
 public abstract String ext ();

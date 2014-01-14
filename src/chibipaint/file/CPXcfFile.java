@@ -29,7 +29,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class CPXcfFile extends CPAbstractFile
+public class CPXcfFile extends CPFile
 {
 private class ByteArrayOutputStreamWithSeek extends ByteArrayOutputStream
 {
@@ -992,7 +992,7 @@ public boolean write (OutputStream osArg, CPArtwork a)
       writeProperties (os);
       // LayerLinks
       int[] layerLinks = new int[a.getLayersVector ().size ()];
-      int layerLinksPoisiton = position (os);
+      int layerLinksPosition = position (os);
       // dummy links to fill later
       for (int i = 0; i < a.getLayersVector ().size (); i++)
         writeInt (os, 0);
@@ -1008,7 +1008,7 @@ public boolean write (OutputStream osArg, CPArtwork a)
         }
 
       int actualPosition = position (os);
-      setPosition (os, layerLinksPoisiton);
+      setPosition (os, layerLinksPosition);
       for (int i = 0; i < a.getLayersVector ().size (); i++)
         writeInt (os, layerLinks[i]);
 

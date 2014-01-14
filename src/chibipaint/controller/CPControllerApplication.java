@@ -25,7 +25,7 @@ import chibipaint.ChibiApp;
 import chibipaint.ChibiApp.appState;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPUndo;
-import chibipaint.file.CPAbstractFile;
+import chibipaint.file.CPFile;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -229,7 +229,7 @@ private boolean saveLoadImageFile (
         action_save_load action, String file_name)
 {
 
-  CPAbstractFile file = CPAbstractFile.fromExtension (ext);
+  CPFile file = CPFile.fromExtension (ext);
 
   int returnVal = JFileChooser.CANCEL_OPTION;
   Preferences userRoot = Preferences.userRoot ();

@@ -24,7 +24,7 @@ package chibipaint.gui;
 import chibipaint.controller.CPCommandId;
 import chibipaint.controller.CPCommandSettings;
 import chibipaint.controller.CPCommonController;
-import chibipaint.file.CPAbstractFile;
+import chibipaint.file.CPFile;
 
 import javax.swing.*;
 import java.awt.*;
@@ -303,15 +303,15 @@ void createMainMenu ()
       String[] importExport = {"Import", "Export"};
       CPCommandId[] loadSave = {CPCommandId.Import, CPCommandId.Export};
       int[] mnemonics = {KeyEvent.VK_I, KeyEvent.VK_X};
-      String[] supportedExtensions = CPAbstractFile.getSupportedExtensions ();
+      String[] supportedExtensions = CPFile.getSupportedExtensions ();
 
       for (int i = 0; i < 2; i++)
         {
           addSubMenu (importExport[i], mnemonics[i]);
-          CPAbstractFile file;
+          CPFile file;
           for (String supportedExt : supportedExtensions)
             {
-              file = CPAbstractFile.fromExtension (supportedExt);
+              file = CPFile.fromExtension (supportedExt);
               if (file.isNative ())
                 continue;
 

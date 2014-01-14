@@ -21,11 +21,14 @@
 
 package chibipaint.engine;
 
+import chibipaint.util.CPIfaces;
+import chibipaint.util.CPPixelCoords;
 import chibipaint.util.CPRect;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.LinkedList;
+import java.util.Stack;
 
 //
 // A 32bpp bitmap class (ARGB format)
@@ -456,6 +459,115 @@ private static boolean is_colors_near (int color_1Arg, int color_2Arg, int maskA
     }
 
   return Math.max (dist[3], (dist[0] + dist[1] + dist[2]) * (1.0 / 3.0)) <= distance;
+}
+
+// TODO: Make floodFillNew applicable and remove the old one
+static public void floodFill (int x, int y, final int colorOfDetection, CPLayer useDataFrom, final int colorDistance, CPLayer destination, final int destinationColor)
+{
+  if (!useDataFrom.isInside (x, y))
+    {
+      return;
+    }
+
+  final int[] oldColors = new int[2];
+  int width = useDataFrom.getWidth ();
+  int height = useDataFrom.getHeight ();
+  final int[] colorMasks = new int[2];
+  final CPColorBmp[] bitmaps = new CPColorBmp[2];
+  bitmaps[0] = destination;
+  bitmaps[1] = useDataFrom;
+  int offset = 0;
+  CPPixelCoords px = null;
+
+  for (int i = 0; i < 2; i++)
+    {
+      if ((bitmaps[i].getPixel (x, y) & 0xff000000) == 0)
+        {
+          colorMasks[i] = 0xff000000;
+          oldColors[i] = 0;
+        }
+      else
+        {
+          oldColors[i] = bitmaps[i].getPixel (x, y);
+          colorMasks[i] = 0xffffffff;
+        }
+    }
+
+  if (colorOfDetection == oldColors[1] || destinationColor == oldColors[0])
+    {
+      return;
+    }
+
+  CPIfaces.IntChecker shouldWeFill = null;
+  if (useDataFrom != destination)
+    {
+      shouldWeFill = new CPIfaces.IntChecker ()
+      {
+        public boolean check (int arg)
+        {
+          return is_colors_near (bitmaps[0].getData ()[arg], oldColors[0], colorMasks[0], 0, destinationColor) &&
+                  is_colors_near (bitmaps[1].getData ()[arg], oldColors[1], colorMasks[1], colorDistance, colorOfDetection);
+        }
+      };
+    }
+  else
+    {
+      shouldWeFill = new CPIfaces.IntChecker ()
+      {
+        public boolean check (int arg)
+        {
+          return is_colors_near (bitmaps[1].getData ()[arg], oldColors[1], colorMasks[1], colorDistance, destinationColor);
+        }
+      };
+    }
+
+  Stack<CPPixelCoords> S = new Stack<CPPixelCoords> ();
+  CPPixelCoords newPx = new CPPixelCoords (x, y);
+  S.push (newPx);
+  //destination.clear ();
+  while (!S.empty ())
+    {
+      px = S.pop ();
+      offset = px.y * width;
+      while (px.x >= 0 && shouldWeFill.check (offset + px.x))
+        px.x--;
+      px.x++; // Now we find the left side of this part
+      // careful: px.x is used as an iterator and px.y is constant
+      boolean spanTop = false;
+      boolean spanBottom = false;
+
+      offset += px.x;
+      int offsetMinus1 = (px.y - 1) * width + px.x;
+      int offsetPlus1 = (px.y + 1) * width + px.x;
+      while (px.x < width && shouldWeFill.check (offset))
+        {
+          destination.getData ()[px.y * width + px.x] = destinationColor;
+          if (!spanTop && px.y > 0 && shouldWeFill.check (offsetMinus1))
+            {
+              newPx = new CPPixelCoords (px.x, px.y - 1);
+              S.push (newPx);
+              spanTop = true;
+            }
+          else if (spanTop && px.y > 0 && !shouldWeFill.check (offsetMinus1))
+            {
+              spanTop = false;
+            }
+          if (!spanBottom && px.y < height - 1 && shouldWeFill.check (offsetPlus1))
+            {
+              newPx = new CPPixelCoords (px.x, px.y + 1);
+              S.push (newPx);
+              spanBottom = true;
+            }
+          else if (spanBottom && px.y < height - 1 && !shouldWeFill.check (offsetPlus1))
+            {
+              spanBottom = false;
+            }
+          px.x++;
+          offset++;
+          offsetMinus1++;
+          offsetPlus1++;
+        }
+    }
 }
 
 public void floodFill (int x, int y, int color, CPLayer useDataFrom, int distance)

@@ -33,7 +33,7 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
-public class CPChibiFile extends CPAbstractFile
+public class CPChibiFile extends CPFile
 {
 
 private static final byte[] CHIB = {67, 72, 73, 66};

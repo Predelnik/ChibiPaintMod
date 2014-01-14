@@ -27,6 +27,7 @@ import chibipaint.engine.CPBrushManager.CPBrushDab;
 import chibipaint.util.CPColorFloat;
 import chibipaint.util.CPRect;
 
+import java.awt.geom.Point2D;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.Vector;
@@ -35,6 +36,8 @@ import java.util.Vector;
 
 public class CPArtwork
 {
+
+private boolean showOverlay;
 
 public void doTransformAction (transformType type)
 {
@@ -59,6 +62,39 @@ public void doTransformAction (transformType type)
   invalidateFusion (updatingRect);
 }
 
+public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, Point2D.Float initialPos)
+{
+  overlayBuffer.clear ();
+  if (isPointWithin (pf.x, pf.y))
+    {
+      CPColorBmp.floodFill ((int) pf.x, (int) pf.y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), distance, overlayBuffer, 0x8000FF00);
+      for (int i = 0; i < 6; i++)
+        for (int j = 0; j < 6; j++)
+          overlayBuffer.getData ()[((int) initialPos.y - 3 + i) * overlayBuffer.getWidth () + (int) initialPos.x - 3 + j] = 0xff000000;
+      showOverlay = true;
+      System.out.print ("preview:");
+      System.out.print (distance);
+      System.out.print ("\n");
+    }
+  else
+    showOverlay = false;
+}
+
+public void cancelOverlayDrawing ()
+{
+  showOverlay = false;
+}
+
+public CPColorBmp getOverlayBM ()
+{
+  return overlayBuffer;
+}
+
+public boolean getShowOverlay ()
+{
+  return showOverlay;
+}
+
 public enum transformType
 {
   FLIP_H,
@@ -77,10 +113,11 @@ private int activeLayerNumber;
 private final CPLayer fusion; // fusion is a final view of the image, like which should be saved to png (no overlays like selection or grid here)
 private final CPLayer opacityBuffer;
 private final CPLayer transformBuffer; // temporary place to fusion active layer with preview in case if transformation is taking place.
+private final CPLayer overlayBuffer; // buffer for floodfill previed
 private final CPRect fusionArea;
 private final CPRect opacityArea;
 private final CPTransformHandler transformHandler;
-CPSelection curSelection;
+final CPSelection curSelection;
 
 private final Random rnd = new Random ();
 
@@ -217,7 +254,7 @@ public void DoSelection (SelectionTypeOfAppliance type, CPSelection selection)
   switch (type)
     {
     case CREATE:
-      curSelection = selection;
+      curSelection.copyFromSelection (selection);
       break;
     case SUBTRACT:
       curSelection.SubtractFromSelection (selection);
@@ -237,11 +274,6 @@ public void DoSelection (SelectionTypeOfAppliance type, CPSelection selection)
 public CPSelection getCurSelection ()
 {
   return curSelection;
-}
-
-public void setCurSelection (CPSelection cpSelection)
-{
-  curSelection = cpSelection;
 }
 
 public int getWidth ()
@@ -320,6 +352,7 @@ public CPArtwork (int width, int height)
   this.width = width;
   this.height = height;
 
+  curSelection = new CPSelection (width, height);
   transformHandler = new CPTransformHandler ();
   setLayers (new Vector<CPLayer> ());
 
@@ -336,6 +369,7 @@ public CPArtwork (int width, int height)
   // we reserve a double sized buffer to be used as a 16bits per channel buffer
   opacityBuffer = new CPLayer (width, height);
   transformBuffer = new CPLayer (width, height);
+  overlayBuffer = new CPLayer (width, height);
 
   fusion = new CPLayer (width, height);
 }
@@ -1806,7 +1840,13 @@ public void floodFill (float x, float y, int colorDistance)
 {
   undoManager.preserveActiveLayerData ();
 
-  getActiveLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), colorDistance);
+  System.out.print ("final:");
+  System.out.print (colorDistance);
+  System.out.print ("\n");
+  overlayBuffer.clear ();
+  getActiveLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), colorDistance, overlayBuffer, curColor | 0xff000000);
+  overlayBuffer.drawItselfOnTarget (getActiveLayer (), 0, 0);
+  //getActiveLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), colorDistance);
 
   undoManager.activeLayerDataChange (new CPRect (getWidth (), getHeight ()));
   invalidateFusion ();

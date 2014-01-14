@@ -818,9 +818,20 @@ void showBlurDialog (BlurType type)
   SpinnerModel iterSM = new SpinnerNumberModel (1, 1, 8, 1);
   JSpinner iter = new JSpinner (iterSM);
   panel.add (iter);
+  String title = "";
 
-  Object[] array = {"Box blur\n\n", panel};
-  int choice = JOptionPane.showConfirmDialog (getDialogParent (), array, "Box Blur", JOptionPane.OK_CANCEL_OPTION,
+  switch (type)
+    {
+    case BOX_BLUR:
+      title = "Box Blur";
+      break;
+    case GAUSSIAN_BLUR:
+      title = "Gaussian Blur";
+      break;
+    }
+
+  Object[] array = {title + "\n\n", panel};
+  int choice = JOptionPane.showConfirmDialog (getDialogParent (), array, title, JOptionPane.OK_CANCEL_OPTION,
                                               JOptionPane.PLAIN_MESSAGE);
 
   if (choice == JOptionPane.OK_OPTION)

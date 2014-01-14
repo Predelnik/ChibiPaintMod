@@ -58,12 +58,15 @@ private CPCommonController controller;
 
 // FIXME: this should not be public
 public Image img;
+public Image overlayImg;
 
 private BufferedImage checkerboardPattern;
 private MemoryImageSource imgSource;
 private CPRect updateRegion = new CPRect ();
+private MemoryImageSource overlayImgSource;
 
 private int[] buffer;
+private int[] overlayBuffer;
 private CPArtwork artwork;
 
 private boolean spacePressed = false;
@@ -176,17 +179,11 @@ CPCanvas getCanvas ()
 public void reinitCanvas ()
 {
   setArtwork (controller.getArtwork ());
-  buffer = artwork.getDisplayBM ().getData ();
-  int w = artwork.getWidth ();
-  int h = artwork.getHeight ();
 
-  imgSource = new MemoryImageSource (w, h, buffer, 0, w);
-  imgSource.setAnimated (true);
-  img = createImage (imgSource);
-  artwork.setCurSelection (new CPSelection (w, h));
+
   artwork.addListener (this);
 
-  updateRegion = new CPRect (w, h);
+  prepareImages ();
   if (Arrays.asList (drawingModes).contains (curSelectedMode))
     {
       controller.setTool (controller.getCurBrush ());
@@ -195,21 +192,31 @@ public void reinitCanvas ()
 
 }
 
-void initCanvas (CPCommonController ctrl)
+void prepareImages ()
 {
-  this.controller = ctrl;
-  setArtwork (ctrl.getArtwork ());
-
   buffer = artwork.getDisplayBM ().getData ();
-
   int w = artwork.getWidth ();
   int h = artwork.getHeight ();
 
+  overlayBuffer = artwork.getOverlayBM ().getData ();
+
   imgSource = new MemoryImageSource (w, h, buffer, 0, w);
   imgSource.setAnimated (true);
-  // imgSource.setFullBufferUpdates(false);
   img = createImage (imgSource);
-  artwork.setCurSelection (new CPSelection (w, h));
+
+  overlayImgSource = new MemoryImageSource (w, h, overlayBuffer, 0, w);
+  overlayImgSource.setAnimated (true);
+  overlayImg = createImage (overlayImgSource);
+  updateRegion = new CPRect (w, h);
+}
+
+void initCanvas (CPCommonController ctrl)
+{
+  this.controller = ctrl;
+
+  setArtwork (ctrl.getArtwork ());
+
+  prepareImages ();
 
   ctrl.setCanvas (this);
 
@@ -255,9 +262,6 @@ void initCanvas (CPCommonController ctrl)
   controller.addModeListener (this);
 
   artwork.addListener (this);
-
-  // We'll need to refresh the whole thing at least once
-  updateRegion = new CPRect (w, h);
 
   // So that the tab key will work
   setFocusTraversalKeysEnabled (false);
@@ -439,6 +443,7 @@ public void paint (Graphics g)
     {
       artwork.fusionLayers ();
       imgSource.newPixels (updateRegion.left, updateRegion.top, updateRegion.getWidth (), updateRegion.getHeight ());
+      overlayImgSource.newPixels (updateRegion.left, updateRegion.top, updateRegion.getWidth (), updateRegion.getHeight ());
       updateRegion.makeEmpty ();
     }
 
@@ -473,6 +478,13 @@ public void paint (Graphics g)
     }
 
   g2doc.drawImage (img, 0, 0, w, h, 0, 0, img.getWidth (null), img.getHeight (null), null);
+
+  g2doc.setColor (Color.magenta);
+
+  if (artwork.getShowOverlay ())
+    {
+      g2doc.drawImage (overlayImg, 0, 0, w, h, 0, 0, overlayImg.getWidth (null), overlayImg.getHeight (null), null);
+    }
 
   // Redraw over the checkerboard border, removing a just a little bit of the image to avoid display problems
   path.append (pathRect, false);
@@ -1872,16 +1884,51 @@ class CPMoveCanvasMode extends CPMode
 
 class CPFloodFillMode extends CPMode
 {
+  Point2D.Float cursorAnchorPos;
+  int initialColorDistance;
+  int floodFillActualColorDistance;
 
   @Override
+
   public void cursorPressAction ()
+  {
+    cursorAnchorPos = new Point2D.Float (getCursorX (), getCursorY ());
+    initialColorDistance = controller.getColorDistance ();
+  }
+
+  private void calcColorDistance ()
+  {
+    floodFillActualColorDistance = initialColorDistance + 3 * ((int) cursorAnchorPos.getY () - getCursorY ());
+    if (floodFillActualColorDistance < 0)
+      floodFillActualColorDistance = 0;
+    if (floodFillActualColorDistance > 255)
+      floodFillActualColorDistance = 255;
+  }
+
+  @Override
+  public void cursorDragAction ()
+  {
+    calcColorDistance ();
+    Point p = new Point (getCursorX (), getCursorY ());
+    Point2D.Float pf = coordToDocument (p);
+    Point2D.Float anchorPoint = coordToDocument (cursorAnchorPos);
+    artwork.updateOverlayWithFloodfillPreview (anchorPoint, floodFillActualColorDistance, anchorPoint);
+    updateRegion (artwork, artwork.getSize ());
+    repaint ();
+  }
+
+  @Override
+  public void cursorReleaseAction ()
   {
     Point p = new Point (getCursorX (), getCursorY ());
     Point2D.Float pf = coordToDocument (p);
+    artwork.cancelOverlayDrawing ();
+    calcColorDistance ();
+    Point2D.Float anchorPoint = coordToDocument (cursorAnchorPos);
 
-    if (artwork.isPointWithin (pf.x, pf.y))
+    if (artwork.isPointWithin (anchorPoint.x, anchorPoint.y))
       {
-        artwork.floodFill (pf.x, pf.y, controller.getColorDistance ());
+        artwork.floodFill (anchorPoint.x, anchorPoint.y, floodFillActualColorDistance);
         artwork.finalizeUndo ();
         repaint ();
       }
@@ -2218,7 +2265,7 @@ class CPRotateCanvasMode extends CPMode
 
     setRotation (initAngle + deltaAngle);
     setOffset ((int) rotTrans.getTranslateX (), (int) rotTrans.getTranslateY ());
-    repaint ();
+    artwork.invalidateFusion ();
   }
 
   @Override

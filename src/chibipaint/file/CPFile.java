@@ -31,7 +31,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public abstract class CPAbstractFile
+public abstract class CPFile
 {
 public abstract boolean write (OutputStream os, CPArtwork a);
 
@@ -49,7 +49,7 @@ public static String[] getSupportedExtensions ()
 
 // Add here new extensions too, this function should also resolve stuff like jpeg/jpg
 // The most important thing to be able to get class instance for every extension listed above
-public static CPAbstractFile fromExtension (String ext)
+public static CPFile fromExtension (String ext)
 {
   String uExt = ext.toUpperCase ();
   if (uExt.equals ("CHI"))
