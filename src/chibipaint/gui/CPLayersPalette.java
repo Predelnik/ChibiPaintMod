@@ -180,11 +180,18 @@ public void actionPerformed (ActionEvent e)
   artwork.finalizeUndo ();
 }
 
+public void updateArtworkState ()
+{
+  CPArtwork artwork = controller.getArtwork ();
+  artwork.setSampleAllLayers (cbSampleAllLayers.isSelected ());
+  artwork.setLockAlpha (cbLockAlpha.isSelected ());
+}
+
 @Override
 public void itemStateChanged (ItemEvent e)
 {
-  CPArtwork artwork = controller.getArtwork ();
   Object source = e.getItemSelectable ();
+  CPArtwork artwork = controller.getArtwork ();
   if (source == cbSampleAllLayers)
     {
       artwork.setSampleAllLayers (e.getStateChange () == ItemEvent.SELECTED);

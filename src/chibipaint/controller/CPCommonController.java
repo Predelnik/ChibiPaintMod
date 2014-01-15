@@ -524,9 +524,9 @@ CPCommonController ()
 public void setArtwork (CPArtwork artwork)
 {
   this.artwork = artwork;
+  artwork.setForegroundColor (curColor.getRgb ());
   if (isRunningAsApplication ())
     this.artwork.getUndoManager ().setMaxUndo (50);
-
 }
 
 public void setCanvas (CPCanvas canvasArg)
