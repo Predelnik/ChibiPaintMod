@@ -2265,7 +2265,6 @@ class CPRotateCanvasMode extends CPMode
 
     setRotation (initAngle + deltaAngle);
     setOffset ((int) rotTrans.getTranslateX (), (int) rotTrans.getTranslateY ());
-    artwork.invalidateFusion ();
   }
 
   @Override

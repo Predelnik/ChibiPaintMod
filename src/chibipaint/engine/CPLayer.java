@@ -22,7 +22,9 @@
 package chibipaint.engine;
 
 import chibipaint.util.CPRect;
+import chibipaint.util.CPTables;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -420,6 +422,14 @@ void fusionWithNormalFullAlpha (CPLayer fusion, CPRect rc)
 {
   CPRect rect = new CPRect (0, 0, width, height);
   rect.clip (rc);
+  assert fusion.alpha < 100;
+
+  if (alpha == 0)
+    return;
+
+  ByteBuffer b1 = ByteBuffer.allocate (4);
+  ByteBuffer b2 = ByteBuffer.allocate (4);
+  int alpha_256 = alpha * 256;
 
   for (int j = rect.top; j < rect.bottom; j++)
     {
@@ -427,24 +437,35 @@ void fusionWithNormalFullAlpha (CPLayer fusion, CPRect rc)
       for (int i = rect.left; i < rect.right; i++, off++)
         {
           int color1 = getData ()[off];
-          int alpha1 = (color1 >>> 24) * alpha / 100;
-          int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha1 = (color1 >> 24) & 0xFF;
 
-          int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
-          if (newAlpha > 0)
+          if (alpha < 100) // Hopefully it will be moved out of both cycles by optimizer
+            alpha1 = CPTables.getRef ().divide[alpha1 * alpha_256 + 100];
+
+          if (alpha1 == 0)
+            continue;
+
+          if (alpha1 == 255)
             {
-              int realAlpha = alpha1 * 255 / newAlpha;
-              int invAlpha = 255 - realAlpha;
-
-              fusion.getData ()[off] = newAlpha << 24
-                      | (((color1 >>> 16 & 0xff) * realAlpha + (color2 >>> 16 & 0xff)
-                      * invAlpha) / 255) << 16
-                      | (((color1 >>> 8 & 0xff) * realAlpha + (color2 >>> 8 & 0xff)
-                      * invAlpha) / 255) << 8
-                      | (((color1 & 0xff) * realAlpha + (color2 & 0xff)
-                      * invAlpha) / 255);
+              fusion.getData ()[off] = color1;
+              continue;
             }
+
+          int color2 = fusion.getData ()[off];
+          int alpha2 = (color2 >> 24) & 0xFF;
+
+          int newAlpha = alpha1 + alpha2 - CPTables.getRef ().divideBy255[alpha1 * alpha2];
+          //1300
+          int realAlpha = CPTables.getRef ().divide[alpha1 * 65280 + newAlpha]; // 255 * 256
+          int invAlpha = 255 - realAlpha;
+          // 2700
+          fusion.getData ()[off] = newAlpha << 24
+                  | ((CPTables.getRef ().divideBy255[(color1 >> 16 & 0xff) * realAlpha + (color2 >> 16 & 0xff)
+                  * invAlpha]) << 16)
+                  | ((CPTables.getRef ().divideBy255[((color1 >> 8 & 0xff) * realAlpha + (color2 >> 8 & 0xff)
+                  * invAlpha)]) << 8)
+                  | (CPTables.getRef ().divideBy255[((color1 & 0xff) * realAlpha + (color2 & 0xff)
+                  * invAlpha)]);
         }
     }
   fusion.alpha = 100;
@@ -466,7 +487,7 @@ void fusionWithMultiplyFullAlpha (CPLayer fusion, CPRect rc)
           int color1 = getData ()[off];
           int alpha1 = (color1 >>> 24) * alpha / 100;
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -510,7 +531,7 @@ void fusionWithAddFullAlpha (CPLayer fusion, CPRect rc)
           int color1 = getData ()[off];
           int alpha1 = (color1 >>> 24) * alpha / 100;
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -562,7 +583,7 @@ void fusionWithSubtractFullAlpha (CPLayer fusion, CPRect rc)
           int color1 = getData ()[off];
           int alpha1 = (color1 >>> 24) * alpha / 100;
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -612,7 +633,7 @@ void fusionWithScreenFullAlpha (CPLayer fusion, CPRect rc)
           int color1 = getData ()[off];
           int alpha1 = (color1 >>> 24) * alpha / 100;
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -660,7 +681,7 @@ void fusionWithLightenFullAlpha (CPLayer fusion, CPRect rc)
           int color1 = getData ()[off];
           int alpha1 = (color1 >>> 24) * alpha / 100;
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -716,7 +737,7 @@ void fusionWithDarkenFullAlpha (CPLayer fusion, CPRect rc)
           int color1 = getData ()[off];
           int alpha1 = (color1 >>> 24) * alpha / 100;
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -777,7 +798,7 @@ void fusionWithDodgeFullAlpha (CPLayer fusion, CPRect rc)
             }
 
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -837,7 +858,7 @@ void fusionWithBurnFullAlpha (CPLayer fusion, CPRect rc)
             }
 
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -899,7 +920,7 @@ void fusionWithOverlayFullAlpha (CPLayer fusion, CPRect rc)
             }
 
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -964,7 +985,7 @@ void fusionWithHardLightFullAlpha (CPLayer fusion, CPRect rc)
             }
 
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -1027,7 +1048,7 @@ void fusionWithSoftLightFullAlpha (CPLayer fusion, CPRect rc)
             }
 
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -1093,7 +1114,7 @@ void fusionWithVividLightFullAlpha (CPLayer fusion, CPRect rc)
             }
 
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -1158,7 +1179,7 @@ void fusionWithLinearLightFullAlpha (CPLayer fusion, CPRect rc)
             }
 
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)
@@ -1219,7 +1240,7 @@ void fusionWithPinLightFullAlpha (CPLayer fusion, CPRect rc)
             }
 
           int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+          int alpha2 = (color2 >>> 24);
 
           int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
           if (newAlpha > 0)

@@ -986,7 +986,7 @@ class CPBrushToolDirectBrush extends CPBrushToolSimpleBrush
                 continue;
               }
             int color2 = undoData[dstOffset];
-            int alpha2 = (color2 >>> 24) * fusion.alpha / 100;
+            int alpha2 = (color2 >>> 24);
 
             int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
             if (newAlpha > 0)

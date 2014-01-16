@@ -81,7 +81,8 @@ public void updateTitle ()
   if (((ChibiApp) mainFrame).getAppState () == appState.LOADING)
     titleString += " (Loading...)";
 
-  mainFrame.setTitle (titleString);
+  if (mainFrame.getTitle () != titleString)
+    mainFrame.setTitle (titleString);
 }
 
 public void setCurrentFile (File file)
