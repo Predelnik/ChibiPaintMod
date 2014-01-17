@@ -72,9 +72,6 @@ public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, P
         for (int j = 0; j < 6; j++)
           overlayBuffer.getData ()[((int) initialPos.y - 3 + i) * overlayBuffer.getWidth () + (int) initialPos.x - 3 + j] = 0xff000000;
       showOverlay = true;
-      System.out.print ("preview:");
-      System.out.print (distance);
-      System.out.print ("\n");
     }
   else
     showOverlay = false;
@@ -1845,9 +1842,6 @@ public void floodFill (float x, float y, int colorDistance)
 {
   undoManager.preserveActiveLayerData ();
 
-  System.out.print ("final:");
-  System.out.print (colorDistance);
-  System.out.print ("\n");
   overlayBuffer.clear ();
   getActiveLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), colorDistance, overlayBuffer, curColor | 0xff000000);
   overlayBuffer.drawItselfOnTarget (getActiveLayer (), 0, 0);
