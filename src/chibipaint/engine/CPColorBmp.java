@@ -416,6 +416,41 @@ public void copyDataFromSelectedPart (CPColorBmp bmp, CPSelection selection)
     }
 }
 
+abstract class bmpRectIterator
+{
+  bmpRectIterator (CPRect rect)
+  {
+    CPRect finalRect = new CPRect (width, height);
+    finalRect.clip (rect);
+    int off = 0;
+    for (int j = finalRect.top; j < finalRect.bottom; j++)
+      {
+        off = j * getWidth () + finalRect.left;
+        for (int i = finalRect.left; i < finalRect.right; i++, off++)
+          {
+            modify (i, j, off);
+          }
+      }
+  }
+
+  abstract void modify (int i, int j, int off);
+}
+
+public void drawRectangle (CPRect rect, final int color, final boolean xor)
+{
+  new bmpRectIterator (rect)
+  {
+    @Override
+    void modify (int i, int j, int off)
+    {
+      if (xor)
+        getData ()[off] = getData ()[off] ^ color;
+      else
+        getData ()[off] = color;
+    }
+  };
+}
+
 
 //
 // Flood fill algorithm
@@ -439,7 +474,7 @@ static class CPFillLine
 }
 
 // we building metric in which our new color will always be counted as not near (so it passed in farAwayColor parameter)
-private static boolean is_colors_near (int color_1Arg, int color_2Arg, int maskArg, int distance, int farAwayColor)
+private static boolean are_colors_near (int color_1Arg, int color_2Arg, int maskArg, int distance, int farAwayColor)
 {
   int color_1 = color_1Arg, color_2 = color_2Arg, mask = maskArg;
   int[] dist = new int[4];
@@ -505,8 +540,8 @@ static public void floodFill (int x, int y, final int colorOfDetection, CPLayer 
       {
         public boolean check (int arg)
         {
-          return is_colors_near (bitmaps[0].getData ()[arg], oldColors[0], colorMasks[0], 0, destinationColor) &&
-                  is_colors_near (bitmaps[1].getData ()[arg], oldColors[1], colorMasks[1], colorDistance, colorOfDetection);
+          return are_colors_near (bitmaps[0].getData ()[arg], oldColors[0], colorMasks[0], 0, destinationColor) &&
+                  are_colors_near (bitmaps[1].getData ()[arg], oldColors[1], colorMasks[1], colorDistance, colorOfDetection);
         }
       };
     }
@@ -516,7 +551,7 @@ static public void floodFill (int x, int y, final int colorOfDetection, CPLayer 
       {
         public boolean check (int arg)
         {
-          return is_colors_near (bitmaps[1].getData ()[arg], oldColors[1], colorMasks[1], colorDistance, destinationColor);
+          return are_colors_near (bitmaps[1].getData ()[arg], oldColors[1], colorMasks[1], colorDistance, destinationColor);
         }
       };
     }
@@ -631,16 +666,16 @@ public void floodFill (int x, int y, int color, CPLayer useDataFrom, int distanc
       int lineOffset = line.y * width;
 
       int left = line.x1, next;
-      while (left >= clip.left && is_colors_near (getData ()[left + lineOffset], oldColor, colorMask, distance, color)
-              && is_colors_near (useDataFrom.getData ()[left + lineOffset], dataOldColor, dataColorMask, distance, color))
+      while (left >= clip.left && are_colors_near (getData ()[left + lineOffset], oldColor, colorMask, distance, color)
+              && are_colors_near (useDataFrom.getData ()[left + lineOffset], dataOldColor, dataColorMask, distance, color))
         {
           getData ()[left + lineOffset] = color;
           left--;
         }
       if (left >= line.x1)
         {
-          while (left <= line.x2 && (!is_colors_near (getData ()[left + lineOffset], oldColor, colorMask, distance, color)
-                  || !is_colors_near (useDataFrom.getData ()[left + lineOffset], dataOldColor, dataColorMask, distance, color))
+          while (left <= line.x2 && (!are_colors_near (getData ()[left + lineOffset], oldColor, colorMask, distance, color)
+                  || !are_colors_near (useDataFrom.getData ()[left + lineOffset], dataOldColor, dataColorMask, distance, color))
                   )
             {
               left++;
@@ -664,8 +699,8 @@ public void floodFill (int x, int y, int color, CPLayer useDataFrom, int distanc
       do
         {
           getData ()[left + lineOffset] = color;
-          while (next < clip.right && is_colors_near (getData ()[next + lineOffset], oldColor, colorMask, distance, color)
-                  && is_colors_near (useDataFrom.getData ()[next + lineOffset], dataOldColor, dataColorMask, distance, color))
+          while (next < clip.right && are_colors_near (getData ()[next + lineOffset], oldColor, colorMask, distance, color)
+                  && are_colors_near (useDataFrom.getData ()[next + lineOffset], dataOldColor, dataColorMask, distance, color))
             {
               getData ()[next + lineOffset] = color;
               next++;
@@ -678,8 +713,8 @@ public void floodFill (int x, int y, int color, CPLayer useDataFrom, int distanc
             }
 
           left = next + 1;
-          while (left <= line.x2 && (!is_colors_near (getData ()[left + lineOffset], oldColor, colorMask, distance, color)
-                  || !is_colors_near (useDataFrom.getData ()[left + lineOffset], dataOldColor, dataColorMask, distance, color)))
+          while (left <= line.x2 && (!are_colors_near (getData ()[left + lineOffset], oldColor, colorMask, distance, color)
+                  || !are_colors_near (useDataFrom.getData ()[left + lineOffset], dataOldColor, dataColorMask, distance, color)))
             {
               left++;
             }

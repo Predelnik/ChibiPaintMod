@@ -62,19 +62,38 @@ public void doTransformAction (transformType type)
   invalidateFusion (updatingRect);
 }
 
+static int FLOODFILL_PREVIEW_COLOR = 0x8000FF00;
+
 public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, Point2D.Float initialPos)
 {
-  overlayBuffer.clear ();
+  tempBuffer.clear ();
   if (isPointWithin (pf.x, pf.y))
     {
-      CPColorBmp.floodFill ((int) pf.x, (int) pf.y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), distance, overlayBuffer, 0x8000FF00);
-      for (int i = 0; i < 6; i++)
-        for (int j = 0; j < 6; j++)
-          overlayBuffer.getData ()[((int) initialPos.y - 3 + i) * overlayBuffer.getWidth () + (int) initialPos.x - 3 + j] = 0xff000000;
+      applyFloodFillToLayer ((int) pf.x, (int) pf.y, distance, FLOODFILL_PREVIEW_COLOR);
+      CPRect rect = new CPRect ((int) initialPos.x - 3, (int) initialPos.y - 3, (int) initialPos.x + 3, (int) initialPos.y + 3);
+      tempBuffer.drawRectangle (rect, 0xffffffff, true);
       showOverlay = true;
     }
   else
     showOverlay = false;
+}
+
+public void applyFloodFillToLayer (int x, int y, int distance, int color)
+{
+  CPColorBmp.floodFill (x, y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), distance, tempBuffer, color);
+}
+
+public void performFloodFill (float x, float y, int colorDistance)
+{
+  undoManager.preserveActiveLayerData ();
+
+  tempBuffer.clear ();
+
+  applyFloodFillToLayer ((int) x, (int) y, colorDistance, curColor | 0xff000000);
+  tempBuffer.drawItselfOnTarget (getActiveLayer (), 0, 0);
+
+  undoManager.activeLayerDataChange (new CPRect (getWidth (), getHeight ()));
+  invalidateFusion ();
 }
 
 public void cancelOverlayDrawing ()
@@ -84,7 +103,7 @@ public void cancelOverlayDrawing ()
 
 public CPColorBmp getOverlayBM ()
 {
-  return overlayBuffer;
+  return tempBuffer;
 }
 
 public boolean getShowOverlay ()
@@ -108,9 +127,7 @@ private CPLayer activeLayer;
 private int activeLayerNumber;
 
 private final CPLayer fusion; // fusion is a final view of the image, like which should be saved to png (no overlays like selection or grid here)
-private final CPLayer opacityBuffer;
-private final CPLayer transformBuffer; // temporary place to fusion active layer with preview in case if transformation is taking place.
-private final CPLayer overlayBuffer; // buffer for floodfill previed
+private final CPLayer tempBuffer; // for now used for floodFill, transform.
 private final CPRect fusionArea;
 private final CPRect opacityArea;
 private final CPTransformHandler transformHandler;
@@ -369,9 +386,7 @@ public CPArtwork (int width, int height)
   setActiveLayerNumberWithoutUpdate (0);
 
   // we reserve a double sized buffer to be used as a 16bits per channel buffer
-  opacityBuffer = new CPLayer (width, height);
-  transformBuffer = new CPLayer (width, height);
-  overlayBuffer = new CPLayer (width, height);
+  tempBuffer = new CPLayer (width, height);
 
   fusion = new CPLayer (width, height);
 }
@@ -387,9 +402,9 @@ public CPLayer getDisplayBM ()
   fusionLayers ();
   return fusion;
 
-  // for(int i=0; i<opacityBuffer.data.length; i++)
-  // opacityBuffer.data[i] |= 0xff000000;
-  // return opacityBuffer;
+  // for(int i=0; i<tempBuffer.data.length; i++)
+  // tempBuffer.data[i] |= 0xff000000;
+  // return tempBuffer;
 }
 
 public void fusionLayers ()
@@ -413,13 +428,13 @@ public void fusionLayers ()
 
       if (getActiveLayer () == l && transformHandler.isTransformActive ())
         {
-          transformBuffer.clear ();
-          // transformBuffer.copyDataFrom (l);
-          transformBuffer.copyRectFrom (l, fusionArea);
-          transformBuffer.setAlpha (l.getAlpha ());
-          transformBuffer.setBlendMode (l.getBlendMode ());
-          transformHandler.drawPreviewOn (transformBuffer);
-          doFusionWith (transformBuffer, fullAlpha);
+          tempBuffer.clear ();
+          // tempBuffer.copyDataFrom (l);
+          tempBuffer.copyRectFrom (l, fusionArea);
+          tempBuffer.setAlpha (l.getAlpha ());
+          tempBuffer.setBlendMode (l.getBlendMode ());
+          transformHandler.drawPreviewOn (tempBuffer);
+          doFusionWith (tempBuffer, fullAlpha);
         }
       else
         doFusionWith (l, fullAlpha);
@@ -542,7 +557,7 @@ void mergeOpacityBuffer (int color, boolean clear)
           int dstOffset = opacityArea.left + j * getWidth ();
           for (int i = opacityArea.left; i < opacityArea.right; i++, dstOffset++)
             {
-              opacityBuffer.getData ()[dstOffset] = curSelection.cutOpacity (opacityBuffer.getData ()[dstOffset], i, j);
+              tempBuffer.getData ()[dstOffset] = curSelection.cutOpacity (tempBuffer.getData ()[dstOffset], i, j);
             }
         }
       paintingModes[curBrush.paintMode].mergeOpacityBuf (opacityArea, color);
@@ -555,7 +570,7 @@ void mergeOpacityBuffer (int color, boolean clear)
 
       if (clear)
         {
-          opacityBuffer.clear (opacityArea, 0);
+          tempBuffer.clear (opacityArea, 0);
         }
 
       opacityArea.makeEmpty ();
@@ -585,7 +600,7 @@ abstract class CPBrushToolBase extends CPBrushTool
   {
     undoManager.preserveActiveLayerData ();
 
-    opacityBuffer.clear ();
+    tempBuffer.clear ();
     opacityArea.makeEmpty ();
 
     lastX = x;
@@ -697,7 +712,7 @@ class CPBrushToolSimpleBrush extends CPBrushToolBase
   @Override
   public void mergeOpacityBuf (CPRect dstRect, int color)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
     int[] undoData = undoManager.getActiveLayerPreservedData ();
 
     for (int j = dstRect.top; j < dstRect.bottom; j++)
@@ -729,7 +744,7 @@ class CPBrushToolSimpleBrush extends CPBrushToolBase
 
   void paintOpacity (CPRect srcRect, CPRect dstRect, byte[] brush, int w, int alpha)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
 
     int by = srcRect.top;
     for (int j = dstRect.top; j < dstRect.bottom; j++, by++)
@@ -754,7 +769,7 @@ class CPBrushToolSimpleBrush extends CPBrushToolBase
 
   void paintFlow (CPRect srcRect, CPRect dstRect, byte[] brush, int w, int alpha)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
 
     int by = srcRect.top;
     for (int j = dstRect.top; j < dstRect.bottom; j++, by++)
@@ -783,7 +798,7 @@ class CPBrushToolEraser extends CPBrushToolSimpleBrush
   @Override
   public void mergeOpacityBuf (CPRect dstRect, int color)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
     int[] undoData = undoManager.getActiveLayerPreservedData ();
 
     for (int j = dstRect.top; j < dstRect.bottom; j++)
@@ -811,7 +826,7 @@ class CPBrushToolDodge extends CPBrushToolSimpleBrush
   @Override
   public void mergeOpacityBuf (CPRect dstRect, int color)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
     int[] undoData = undoManager.getActiveLayerPreservedData ();
 
     for (int j = dstRect.top; j < dstRect.bottom; j++)
@@ -858,7 +873,7 @@ class CPBrushToolBurn extends CPBrushToolSimpleBrush
   @Override
   public void mergeOpacityBuf (CPRect dstRect, int color)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
     int[] undoData = undoManager.getActiveLayerPreservedData ();
 
     for (int j = dstRect.top; j < dstRect.bottom; j++)
@@ -910,7 +925,7 @@ class CPBrushToolBlur extends CPBrushToolSimpleBrush
   @Override
   public void mergeOpacityBuf (CPRect dstRect, int color)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
     int[] undoData = undoManager.getActiveLayerPreservedData ();
 
     for (int j = dstRect.top; j < dstRect.bottom; j++)
@@ -973,7 +988,7 @@ class CPBrushToolDirectBrush extends CPBrushToolSimpleBrush
   @Override
   public void mergeOpacityBuf (CPRect dstRect, int color)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
     int[] undoData = undoManager.getActiveLayerPreservedData ();
 
     for (int j = dstRect.top; j < dstRect.bottom; j++)
@@ -1073,7 +1088,7 @@ class CPBrushToolWatercolor extends CPBrushToolDirectBrush
 
   void paintDirect (CPRect srcRect, CPRect dstRect, byte[] brush, int w, int alpha, int color1)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
 
     int by = srcRect.top;
     for (int j = dstRect.top; j < dstRect.bottom; j++, by++)
@@ -1261,7 +1276,7 @@ class CPBrushToolOil extends CPBrushToolDirectBrush
 
   private void oilPasteBuffer (CPRect srcRect, CPRect dstRect, int[] buffer, byte[] brush, int w, int alpha)
   {
-    int[] opacityData = opacityBuffer.getData ();
+    int[] opacityData = tempBuffer.getData ();
 
     int by = srcRect.top;
     for (int j = dstRect.top; j < dstRect.bottom; j++, by++)
@@ -1836,19 +1851,6 @@ public void setLayerName (int layer, String name)
       getLayer (layer).setName (name);
       callListenersLayerChange ();
     }
-}
-
-public void floodFill (float x, float y, int colorDistance)
-{
-  undoManager.preserveActiveLayerData ();
-
-  overlayBuffer.clear ();
-  getActiveLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), colorDistance, overlayBuffer, curColor | 0xff000000);
-  overlayBuffer.drawItselfOnTarget (getActiveLayer (), 0, 0);
-  //getActiveLayer ().floodFill ((int) x, (int) y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), colorDistance);
-
-  undoManager.activeLayerDataChange (new CPRect (getWidth (), getHeight ()));
-  invalidateFusion ();
 }
 
 public void doEffectAction (boolean applyToAllLayers, CPEffect effect)

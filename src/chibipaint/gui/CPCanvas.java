@@ -1895,11 +1895,29 @@ class CPFloodFillMode extends CPMode
 
   private void calcColorDistance ()
   {
-    floodFillActualColorDistance = initialColorDistance + 3 * ((int) cursorAnchorPos.getY () - getCursorY ());
+    floodFillActualColorDistance = initialColorDistance + ((int) cursorAnchorPos.getY () - getCursorY ());
     if (floodFillActualColorDistance < 0)
       floodFillActualColorDistance = 0;
     if (floodFillActualColorDistance > 255)
       floodFillActualColorDistance = 255;
+  }
+
+  @Override
+  public void paint (Graphics2D g2d)
+  {
+    g2d.setColor (Color.WHITE);
+    int x = getCursorX ();
+    int y = getCursorY ();
+    String str = "Color Distance: " + floodFillActualColorDistance;
+    FontMetrics fm = g2d.getFontMetrics ();
+    Rectangle2D rect = fm.getStringBounds (str, g2d);
+
+    g2d.fillRect (x,
+                  y - fm.getAscent (),
+                  (int) rect.getWidth (),
+                  (int) rect.getHeight ());
+    g2d.setColor (Color.BLACK);
+    g2d.drawString (str, x, y);
   }
 
   @Override
@@ -1925,7 +1943,7 @@ class CPFloodFillMode extends CPMode
 
     if (artwork.isPointWithin (anchorPoint.x, anchorPoint.y))
       {
-        artwork.floodFill (anchorPoint.x, anchorPoint.y, floodFillActualColorDistance);
+        artwork.performFloodFill (anchorPoint.x, anchorPoint.y, floodFillActualColorDistance);
         artwork.finalizeUndo ();
         repaint ();
       }
