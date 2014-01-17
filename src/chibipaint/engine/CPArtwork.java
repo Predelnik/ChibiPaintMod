@@ -133,11 +133,16 @@ public CPClip getClipboard ()
   return clipboard;
 }
 
-public void initializeTransform (CPCommonController controllerArg)
+public boolean initializeTransform (CPCommonController controllerArg)
 {
   undoManager.preserveActiveLayerData ();
   undoManager.preserveCurrentSelection ();
-  transformHandler.initialize (curSelection, getActiveLayer (), controllerArg);
+  if (!transformHandler.initialize (curSelection, getActiveLayer (), controllerArg))
+    {
+      undoManager.restoreSelection ();
+      return false;
+    }
+  return true;
 }
 
 public CPTransformHandler getTransformHandler ()

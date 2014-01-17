@@ -950,13 +950,10 @@ public void initTransform ()
 {
 // Here is the special case we should remove selected part of active layer, cutSelected off inactive parts of selection
 // Then show the controls for doing transformation and operate the exact pixels which were removed.
-
-// TODO: Separate active and current mode for different classes
-  if (artwork.getCurSelection ().isEmpty ())
-    return; // TODO: Message Box about selection being empty
+  if (!artwork.initializeTransform (controller))
+    return;
 
   setActiveMode (freeTransformMode);
-  artwork.initializeTransform (controller);
   artwork.invalidateFusion ();
   setEnabledForTransform (false);
   if (isRunningAsApplication ())

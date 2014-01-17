@@ -299,6 +299,17 @@ public byte[] getData ()
   return data;
 }
 
+public void cutByData (CPLayer activeLayerArg)
+{
+  for (int off = 0; off < width * height; off++)
+    {
+      byte alpha = (byte) (activeLayerArg.getData ()[off] >> 24);
+      if ((data[off] & 0xFF) > (alpha & 0xFF))
+        data[off] = alpha;
+    }
+  precalculateSelection ();
+}
+
 
 private class Lump extends ArrayList<CPPixelCoords>
 {

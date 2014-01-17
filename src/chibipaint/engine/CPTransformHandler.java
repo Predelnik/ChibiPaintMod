@@ -25,6 +25,7 @@ import chibipaint.controller.CPCommonController;
 import chibipaint.gui.CPCanvas;
 import chibipaint.util.CPRect;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
@@ -389,9 +390,20 @@ static float controlDistance = 15.0f;
 
 
 // Initializes transformation mode
-public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg, CPCommonController controllerArg)
+public boolean initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg, CPCommonController controllerArg)
 {
   currentSelection = currentSelectionArg;
+  if (currentSelection.isEmpty ())
+    currentSelection.selectAll ();
+
+  currentSelection.cutByData (activeLayerArg);
+
+  if (currentSelection.isEmpty ())
+    {
+      JOptionPane.showMessageDialog (null, "Selection is empty, so transform can't be applied", "Selection is empty", JOptionPane.WARNING_MESSAGE);
+      return false;
+    }
+
   controller = controllerArg;
   transformedPart = new CPColorBmp (0, 0);
   transformedPart.copyDataFromSelectedPart (activeLayerArg, currentSelection);
@@ -408,6 +420,7 @@ public void initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg,
   transformedPartImage = Toolkit.getDefaultToolkit ().createImage (imgSource);
   transformActive = true;
   currentSelection.makeEmpty ();
+  return true;
 }
 
 public void cursorPressed (Point2D p)
