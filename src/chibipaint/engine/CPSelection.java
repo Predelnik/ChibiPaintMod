@@ -47,12 +47,14 @@ private int minX = 1;
 private int minY = 1;
 private int maxX = 0;
 private int maxY = 0;
+private boolean neededForDrawing; // Turn need for drawing off before CPU consuming operation and after it turn it on if result of this operation will never be used for drawing (huge optimization)
 
 public CPSelection (int width, int height)
 {
   super (width, height);
   markerArray = new byte[(width + 1) * (height + 1)];
   Arrays.fill (data, (byte) 0);
+  neededForDrawing = true;
 }
 
 public void RaiseInitialDash ()
@@ -69,6 +71,7 @@ public CPSelection (CPSelection original)
 {
   super (original);
   System.arraycopy (original.markerArray, 0, markerArray, 0, width * height);
+  neededForDrawing = true;
 }
 
 public void AddToSelection (CPSelection otherSelection)
@@ -310,6 +313,16 @@ public void cutByData (CPLayer activeLayerArg)
   precalculateSelection ();
 }
 
+public boolean isNeededForDrawing ()
+{
+  return neededForDrawing;
+}
+
+public void setNeededForDrawing (boolean neededForDrawing)
+{
+  this.neededForDrawing = neededForDrawing;
+}
+
 
 private class Lump extends ArrayList<CPPixelCoords>
 {
@@ -457,15 +470,7 @@ public boolean isEmpty ()
 
 public void drawItself (Graphics2D g2d, CPCanvas canvas)
 {
-        /*
-    g2d.setXORMode(new Color(0x808080));
-		Stroke stroke = g2d.getStroke();
-		// float dashSize = 1.f / canvas.getZoom();
-		g2d.setStroke (new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1.0f,
-				new float[] { 8.0f, 8.0f}, 0f));
-		 */
-
-  if (minX > maxX || minY > maxY)
+  if (minX > maxX || minY > maxY || !neededForDrawing)
     return;
 
   Color prevColor = g2d.getColor ();
@@ -473,18 +478,6 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
 
   for (int i = 0; i < CurPixelLines.size (); i++)
     {
-      /*
-      float newDashLength = defaultDashLength;
-
-			int NumberOfDashes = (int) Math.ceil(((CurPixelLines.get(i).size ()) / dashLength));
-			if (NumberOfDashes != 0)
-				newDashLength = CurPixelLines.get(i).size () / NumberOfDashes;
-
-			if (Math.abs (newDashLength) > Float.MIN_VALUE)
-				dashLength = newDashLength;
-			else
-				dashLength = defaultDashLength;
-			 */
 
       boolean dashDrawn = initialDashDrawn;
       float dashCurLength = initialDashPiece * dashLength;
@@ -565,14 +558,8 @@ public void precalculateSelection ()
   precalculateSelection (getSize ());
 }
 
-public void precalculateSelection (CPRect rect)
+private void precalculateForDrawing (CPRect rect)
 {
-  minX = width;
-  maxX = 0;
-  minY = height;
-  maxY = 0;
-  rect.clip (getSize ());
-  CalculateBoundingBox (rect); // Warning: We count everything non-zero into bounding box, so the function is separate.
   // First step: we're dividing everything on separate 4-connected regions
   ArrayList<Lump> lumps = new ArrayList<Lump> ();
   Arrays.fill (markerArray, (byte) 0);
@@ -596,6 +583,19 @@ public void precalculateSelection (CPRect rect)
     {
       convertLumpToPixelSingleLines (CurPixelLines, lumps.get (i));
     }
+}
+
+
+public void precalculateSelection (CPRect rect)
+{
+  minX = width;
+  maxX = 0;
+  minY = height;
+  maxY = 0;
+  rect.clip (getSize ());
+  CalculateBoundingBox (rect); // Warning: We count everything non-zero into bounding box, so the function is separate.
+  if (neededForDrawing)
+    precalculateForDrawing (rect);
 }
 
 private Lump MakeLumpByScanLines (int x, int y)

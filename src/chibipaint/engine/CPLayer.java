@@ -445,14 +445,33 @@ void fusionWithNormalFullAlpha (CPLayer fusion, CPRect rc)
           if (alpha1 == 0)
             continue;
 
+          int color2 = fusion.getData ()[off];
+          int alpha2 = (color2 >> 24) & 0xFF;
+
           if (alpha1 == 255)
             {
               fusion.getData ()[off] = color1;
               continue;
             }
 
-          int color2 = fusion.getData ()[off];
-          int alpha2 = (color2 >> 24) & 0xFF;
+          if (alpha2 == 0)
+            {
+              fusion.getData ()[off] = (color1 & 0x00FFFFFF) | (alpha1 << 24);
+              continue;
+            }
+
+          if (alpha2 == 255)
+            {
+              int invAlpha = 255 - alpha1;
+              fusion.getData ()[off] = 0xFF000000
+                      | (CPTables.getRef ().divideBy255[((color1 >> 16 & 0xff) * alpha1 + (color2 >> 16 & 0xff)
+                      * invAlpha)]) << 16
+                      | (CPTables.getRef ().divideBy255[((color1 >> 8 & 0xff) * alpha1 + (color2 >> 8 & 0xff)
+                      * invAlpha)]) << 8
+                      | (CPTables.getRef ().divideBy255[(color1 & 0xff) * alpha1 + (color2 & 0xff)
+                      * invAlpha]);
+              continue;
+            }
 
           int newAlpha = alpha1 + alpha2 - CPTables.getRef ().divideBy255[alpha1 * alpha2];
           //1300

@@ -393,10 +393,12 @@ static float controlDistance = 15.0f;
 public boolean initialize (CPSelection currentSelectionArg, CPLayer activeLayerArg, CPCommonController controllerArg)
 {
   currentSelection = currentSelectionArg;
+  currentSelection.setNeededForDrawing (false);
   if (currentSelection.isEmpty ())
     currentSelection.selectAll ();
 
   currentSelection.cutByData (activeLayerArg);
+  currentSelection.setNeededForDrawing (true);
 
   if (currentSelection.isEmpty ())
     {
@@ -604,7 +606,7 @@ static Path2D.Float transformRectToPath (float left, float top, float right, flo
 
 public void drawPreviewOn (CPLayer layer)
 {
-  drawItselfOnLayer (layer, RenderingHints.VALUE_INTERPOLATION_BILINEAR, false);
+  drawItselfOnLayer (layer, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR, false);
 }
 
 public Rectangle getRectNeededForUpdating ()

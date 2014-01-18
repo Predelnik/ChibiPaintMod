@@ -24,10 +24,10 @@ package chibipaint.engine;
 import chibipaint.util.CPIfaces;
 import chibipaint.util.CPPixelCoords;
 import chibipaint.util.CPRect;
+import chibipaint.util.CPTables;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.util.LinkedList;
 import java.util.Stack;
 
 //
@@ -356,37 +356,56 @@ public void removePartsCutBySelection (CPSelection selection)
 
 public void drawItselfOnTarget (CPColorBmp target, int shiftX, int shiftY)
 {
-  for (int j = 0; j < height; j++)
+  if (shiftY + target.height <= 0 || shiftX + target.width <= 0)
+    return;
+  int yBottom = (shiftY + height <= target.height ? height : target.height - shiftY);
+  int yTop = shiftY >= 0 ? 0 : -shiftY;
+  int xRight = (shiftX + width <= target.width ? width : target.width - shiftX);
+  int xLeft = shiftX >= 0 ? 0 : -shiftX;
+  for (int j = yTop; j < yBottom; j++)
     {
-      if (j + shiftY < 0 || j + shiftY >= target.getHeight ())
-        continue;
-
-      int off = j * width;
-      int targetOff = shiftX + (j + shiftY) * target.getWidth ();
-      for (int i = 0; i < width; i++, off++, targetOff++)
+      int off = xLeft + j * width;
+      int targetOff = xLeft + shiftX + (j + shiftY) * target.getWidth ();
+      for (int i = xLeft; i < xRight; i++, off++, targetOff++)
         {
-          if (i + shiftX < 0 || i + shiftX >= target.getWidth ()) // TODO: Probably optimize
+          int color1 = getData ()[off];
+          int alpha1 = (color1 >> 24) & 0xFF;
+
+          if (alpha1 == 0)
             continue;
 
-          int color1 = getData ()[off];
-          int alpha1 = (color1 >>> 24);
           int color2 = target.getData ()[targetOff];
-          int alpha2 = (color2 >>> 24);
-
-          int newAlpha = alpha1 + alpha2 - alpha1 * alpha2 / 255;
-          if (newAlpha > 0)
+          int alpha2 = (color2 >> 24) & 0xFF;
+          if (alpha1 == 255 || alpha2 == 0)
             {
-              int realAlpha = alpha1 * 255 / newAlpha;
-              int invAlpha = 255 - realAlpha;
-
-              target.getData ()[targetOff] = newAlpha << 24
-                      | (((color1 >>> 16 & 0xff) * realAlpha + (color2 >>> 16 & 0xff)
-                      * invAlpha) / 255) << 16
-                      | (((color1 >>> 8 & 0xff) * realAlpha + (color2 >>> 8 & 0xff)
-                      * invAlpha) / 255) << 8
-                      | (((color1 & 0xff) * realAlpha + (color2 & 0xff)
-                      * invAlpha) / 255);
+              target.getData ()[targetOff] = color1;
+              continue;
             }
+
+          if (alpha2 == 255)
+            {
+              int invAlpha = 255 - alpha1;
+              target.getData ()[targetOff] = 0xFF000000
+                      | (CPTables.getRef ().divideBy255[((color1 >> 16 & 0xff) * alpha1 + (color2 >> 16 & 0xff)
+                      * invAlpha)]) << 16
+                      | (CPTables.getRef ().divideBy255[((color1 >> 8 & 0xff) * alpha1 + (color2 >> 8 & 0xff)
+                      * invAlpha)]) << 8
+                      | (CPTables.getRef ().divideBy255[(color1 & 0xff) * alpha1 + (color2 & 0xff)
+                      * invAlpha]);
+              continue;
+            }
+
+          int newAlpha = alpha1 + alpha2 - CPTables.getRef ().divideBy255[alpha1 * alpha2];
+          int realAlpha = CPTables.getRef ().divide[alpha1 * 255 * 256 + newAlpha];
+          int invAlpha = 255 - realAlpha;
+
+          target.getData ()[targetOff] = newAlpha << 24
+                  | (CPTables.getRef ().divideBy255[((color1 >> 16 & 0xff) * realAlpha + (color2 >> 16 & 0xff)
+                  * invAlpha)]) << 16
+                  | (CPTables.getRef ().divideBy255[((color1 >> 8 & 0xff) * realAlpha + (color2 >> 8 & 0xff)
+                  * invAlpha)]) << 8
+                  | (CPTables.getRef ().divideBy255[(color1 & 0xff) * realAlpha + (color2 & 0xff)
+                  * invAlpha]);
         }
     }
 }
@@ -474,74 +493,81 @@ static class CPFillLine
 }
 
 // we building metric in which our new color will always be counted as not near (so it passed in farAwayColor parameter)
-private static boolean are_colors_near (int color_1Arg, int color_2Arg, int maskArg, int distance, int farAwayColor)
+private static boolean areColorsNear (int color_1, int color_2, int distance, int farAwayColor)
 {
-  int color_1 = color_1Arg, color_2 = color_2Arg, mask = maskArg;
-  int[] dist = new int[4];
-  if (color_1 == farAwayColor && color_2 == farAwayColor)
-    return true;
-  if (color_1 == farAwayColor)
-    return false;
-  if (color_2 == farAwayColor)
-    return false;
-
-  for (int i = 0; i < 4; i++)
+  boolean color_1_faraway = (color_1 == farAwayColor);
+  boolean color_2_faraway = (color_2 == farAwayColor);
+  if (!color_1_faraway && !color_2_faraway)
     {
-      dist[i] = (Math.abs ((color_1 & 0xFF) - (color_2 & 0xFF))) & (mask & 0xFF);
-      color_1 = color_1 >> 8;
-      color_2 = color_2 >> 8;
-      mask = mask >> 8;
+      int[] dist = new int[4];
+      for (int i = 0; i < 4; i++)
+        {
+          dist[i] = (Math.abs ((color_1 & 0xFF) - (color_2 & 0xFF)));
+          color_1 = color_1 >> 8;
+          color_2 = color_2 >> 8;
+        }
+      return Math.max (dist[3] * 3, (dist[0] + dist[1] + dist[2])) <= distance * 3;
     }
+  else if (color_1_faraway || color_2_faraway)
+    return false;
+  else
+    return true;
+}
 
-  return Math.max (dist[3], (dist[0] + dist[1] + dist[2]) * (1.0 / 3.0)) <= distance;
+private static boolean areColorsNearAlpha (int color_1, int color_2, int distance, int farAwayColor)
+{
+  boolean color_1_faraway = (color_1 == farAwayColor);
+  boolean color_2_faraway = (color_2 == farAwayColor);
+  if (!color_1_faraway && !color_2_faraway)
+    {
+      return Math.abs (((color_1 >> 24) & 0xFF) - ((color_2 >> 24) & 0xFF)) <= distance;
+    }
+  else if (color_1_faraway || color_2_faraway)
+    return false;
+  else
+    return true;
+
 }
 
 // TODO: Make floodFillNew applicable and remove the old one
-static public void floodFill (int x, int y, final int colorOfDetection, CPLayer useDataFrom, final int colorDistance, CPLayer destination, final int destinationColor)
+static public void floodFill (int x, int y, final int colorOfDetection, final CPLayer useDataFrom, final int colorDistance, final CPLayer destination, final int destinationColor)
 {
   if (!useDataFrom.isInside (x, y))
     {
       return;
     }
 
-  final int[] oldColors = new int[2];
+  final int oldColor;
   int width = useDataFrom.getWidth ();
   int height = useDataFrom.getHeight ();
-  final int[] colorMasks = new int[2];
-  final CPColorBmp[] bitmaps = new CPColorBmp[2];
-  bitmaps[0] = destination;
-  bitmaps[1] = useDataFrom;
   int offset = 0;
   CPPixelCoords px = null;
+  boolean checkOnlyAlpha = true;
 
-  for (int i = 0; i < 2; i++)
+  if ((useDataFrom.getPixel (x, y) & 0xff000000) == 0)
     {
-      if ((bitmaps[i].getPixel (x, y) & 0xff000000) == 0)
-        {
-          colorMasks[i] = 0xff000000;
-          oldColors[i] = 0;
-        }
-      else
-        {
-          oldColors[i] = bitmaps[i].getPixel (x, y);
-          colorMasks[i] = 0xffffffff;
-        }
+      oldColor = 0;
+      checkOnlyAlpha = true;
+    }
+  else
+    {
+      oldColor = useDataFrom.getPixel (x, y);
+      checkOnlyAlpha = false;
     }
 
-  if (colorOfDetection == oldColors[1] || destinationColor == oldColors[0])
+  if (colorOfDetection == oldColor)
     {
       return;
     }
 
   CPIfaces.IntChecker shouldWeFill = null;
-  if (useDataFrom != destination)
+  if (checkOnlyAlpha)
     {
       shouldWeFill = new CPIfaces.IntChecker ()
       {
         public boolean check (int arg)
         {
-          return are_colors_near (bitmaps[0].getData ()[arg], oldColors[0], colorMasks[0], 0, destinationColor) &&
-                  are_colors_near (bitmaps[1].getData ()[arg], oldColors[1], colorMasks[1], colorDistance, colorOfDetection);
+          return areColorsNearAlpha (useDataFrom.getData ()[arg], oldColor, colorDistance, colorOfDetection) && (destination.getData ()[arg] != destinationColor);
         }
       };
     }
@@ -551,7 +577,7 @@ static public void floodFill (int x, int y, final int colorOfDetection, CPLayer 
       {
         public boolean check (int arg)
         {
-          return are_colors_near (bitmaps[1].getData ()[arg], oldColors[1], colorMasks[1], colorDistance, destinationColor);
+          return areColorsNear (useDataFrom.getData ()[arg], oldColor, colorDistance, colorOfDetection) && (destination.getData ()[arg] != destinationColor);
         }
       };
     }
@@ -559,7 +585,7 @@ static public void floodFill (int x, int y, final int colorOfDetection, CPLayer 
   Stack<CPPixelCoords> S = new Stack<CPPixelCoords> ();
   CPPixelCoords newPx = new CPPixelCoords (x, y);
   S.push (newPx);
-  //destination.clear ();
+
   while (!S.empty ())
     {
       px = S.pop ();
@@ -572,6 +598,7 @@ static public void floodFill (int x, int y, final int colorOfDetection, CPLayer 
       boolean spanBottom = false;
 
       offset += px.x;
+      int heightMinus1 = height - 1;
       int offsetMinus1 = (px.y - 1) * width + px.x;
       int offsetPlus1 = (px.y + 1) * width + px.x;
       while (px.x < width && shouldWeFill.check (offset))
@@ -587,13 +614,13 @@ static public void floodFill (int x, int y, final int colorOfDetection, CPLayer 
             {
               spanTop = false;
             }
-          if (!spanBottom && px.y < height - 1 && shouldWeFill.check (offsetPlus1))
+          if (!spanBottom && px.y < heightMinus1 && shouldWeFill.check (offsetPlus1))
             {
               newPx = new CPPixelCoords (px.x, px.y + 1);
               S.push (newPx);
               spanBottom = true;
             }
-          else if (spanBottom && px.y < height - 1 && !shouldWeFill.check (offsetPlus1))
+          else if (spanBottom && px.y < heightMinus1 && !shouldWeFill.check (offsetPlus1))
             {
               spanBottom = false;
             }
@@ -603,126 +630,7 @@ static public void floodFill (int x, int y, final int colorOfDetection, CPLayer 
           offsetPlus1++;
         }
     }
-}
 
-public void floodFill (int x, int y, int color, CPLayer useDataFrom, int distance)
-{
-  if (!isInside (x, y))
-    {
-      return;
-    }
-
-  int oldColor, colorMask, dataOldColor, dataColorMask;
-  oldColor = getPixel (x, y);
-
-  // If we are filling 100% transparent areas
-  // then we need to ignore the residual color information
-  // (it would also be possible to setToNothing it when erasing, but then
-  // the performance impact would be on the eraser rather than
-  // on this low importance flood fill)
-
-  if ((oldColor & 0xff000000) == 0)
-    {
-      colorMask = 0xff000000;
-      oldColor = 0;
-    }
-  else
-    {
-      colorMask = 0xffffffff;
-    }
-
-  if (color == oldColor)
-    {
-      return;
-    }
-
-  dataOldColor = useDataFrom.getPixel (x, y);
-
-
-  if ((dataOldColor & 0xff000000) == 0)
-    {
-      dataColorMask = 0xff000000;
-      dataOldColor = 0;
-    }
-  else
-    {
-      dataColorMask = 0xffffffff;
-    }
-
-  LinkedList<CPFillLine> stack = new LinkedList<CPFillLine> ();
-  stack.addLast (new CPFillLine (x, x, y, -1));
-  stack.addLast (new CPFillLine (x, x, y + 1, 1));
-
-  CPRect clip = new CPRect (width, height);
-  while (!stack.isEmpty ())
-    {
-      CPFillLine line = stack.removeFirst ();
-
-      if (line.y < clip.top || line.y >= clip.bottom)
-        {
-          continue;
-        }
-
-      int lineOffset = line.y * width;
-
-      int left = line.x1, next;
-      while (left >= clip.left && are_colors_near (getData ()[left + lineOffset], oldColor, colorMask, distance, color)
-              && are_colors_near (useDataFrom.getData ()[left + lineOffset], dataOldColor, dataColorMask, distance, color))
-        {
-          getData ()[left + lineOffset] = color;
-          left--;
-        }
-      if (left >= line.x1)
-        {
-          while (left <= line.x2 && (!are_colors_near (getData ()[left + lineOffset], oldColor, colorMask, distance, color)
-                  || !are_colors_near (useDataFrom.getData ()[left + lineOffset], dataOldColor, dataColorMask, distance, color))
-                  )
-            {
-              left++;
-            }
-          next = left + 1;
-          if (left > line.x2)
-            {
-              continue;
-            }
-        }
-      else
-        {
-          left++;
-          if (left < line.x1)
-            {
-              stack.addLast (new CPFillLine (left, line.x1 - 1, line.y - line.dy, -line.dy));
-            }
-          next = line.x1 + 1;
-        }
-
-      do
-        {
-          getData ()[left + lineOffset] = color;
-          while (next < clip.right && are_colors_near (getData ()[next + lineOffset], oldColor, colorMask, distance, color)
-                  && are_colors_near (useDataFrom.getData ()[next + lineOffset], dataOldColor, dataColorMask, distance, color))
-            {
-              getData ()[next + lineOffset] = color;
-              next++;
-            }
-          stack.addLast (new CPFillLine (left, next - 1, line.y + line.dy, line.dy));
-
-          if (next - 1 > line.x2)
-            {
-              stack.addLast (new CPFillLine (line.x2 + 1, next - 1, line.y - line.dy, -line.dy));
-            }
-
-          left = next + 1;
-          while (left <= line.x2 && (!are_colors_near (getData ()[left + lineOffset], oldColor, colorMask, distance, color)
-                  || !are_colors_near (useDataFrom.getData ()[left + lineOffset], dataOldColor, dataColorMask, distance, color)))
-            {
-              left++;
-            }
-
-          next = left + 1;
-        }
-      while (left <= line.x2);
-    }
 }
 
 //
