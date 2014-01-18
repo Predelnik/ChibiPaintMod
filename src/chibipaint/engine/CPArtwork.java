@@ -1711,11 +1711,9 @@ public void removeLayer ()
 {
   if (getLayersVector ().size () > 1)
     {
-      int previouslyActiveLayerNum = getActiveLayerNum ();
-      undoManager.preserveActiveLayerData ();
+      undoManager.beforeLayerRemoval (getActiveLayerNum ());
       getLayersVector ().remove (getActiveLayerNum ());
       setActiveLayerNumberWithoutUndo (getActiveLayerNum () < getLayersVector ().size () ? getActiveLayerNum () : getActiveLayerNum () - 1);
-      undoManager.layerWasRemoved (previouslyActiveLayerNum);
       invalidateFusion ();
       callListenersLayerChange ();
     }

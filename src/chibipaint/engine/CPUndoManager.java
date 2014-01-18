@@ -210,9 +210,9 @@ public void layerWasAppended ()
   pendingUndoList.add (undo);
 }
 
-public void layerWasRemoved (int previouslyActiveLayerNum)
+public void beforeLayerRemoval (int activeLayerNum)
 {
-  CPUndo undo = new CPUndoRemoveLayer (artwork, previouslyActiveLayerNum, preservedActiveLayer);
+  CPUndo undo = new CPUndoRemoveLayer (artwork, activeLayerNum, artwork.getActiveLayer ());
   pendingUndoList.add (undo);
 }
 
@@ -378,7 +378,7 @@ class CPUndoPaintAll extends CPUndo
   }
 }
 
-static class CPUndoLayerVisible extends CPUndo
+class CPUndoLayerVisible extends CPUndo
 {
 
   final int layer;
@@ -516,7 +516,7 @@ class CPUndoMergeDownLayer extends CPUndo
   }
 }
 
-static class CPUndoMoveLayer extends CPUndo
+class CPUndoMoveLayer extends CPUndo
 {
 
   final int from;
@@ -550,7 +550,7 @@ static class CPUndoMoveLayer extends CPUndo
   }
 }
 
-static class CPUndoRemoveLayer extends CPUndo
+class CPUndoRemoveLayer extends CPUndo
 {
 
   final int layer;
@@ -590,7 +590,7 @@ static class CPUndoRemoveLayer extends CPUndo
 
 }
 
-static class CPUndoSelection extends CPUndo
+class CPUndoSelection extends CPUndo
 {
 
   final CPRect rect;
@@ -641,7 +641,7 @@ static class CPUndoSelection extends CPUndo
   }
 }
 
-static class CPUndoAddLayer extends CPUndo
+class CPUndoAddLayer extends CPUndo
 {
 
   final int layer;
@@ -675,7 +675,7 @@ static class CPUndoAddLayer extends CPUndo
   }
 }
 
-static class CPUndoDuplicateLayer extends CPUndo
+class CPUndoDuplicateLayer extends CPUndo
 {
 
   final int layer;
@@ -715,7 +715,7 @@ static class CPUndoDuplicateLayer extends CPUndo
   }
 }
 
-static class CPUndoLayerAlpha extends CPUndo
+class CPUndoLayerAlpha extends CPUndo
 {
 
   final int layer;
@@ -800,7 +800,7 @@ class CPMultiUndo extends CPUndo
   }
 }
 
-static class CPUndoLayerMode extends CPUndo
+class CPUndoLayerMode extends CPUndo
 {
 
   final int layer;
@@ -850,7 +850,7 @@ static class CPUndoLayerMode extends CPUndo
   }
 }
 
-static class CPUndoLayerRename extends CPUndo
+class CPUndoLayerRename extends CPUndo
 {
 
   final int layer;
@@ -898,7 +898,7 @@ static class CPUndoLayerRename extends CPUndo
   }
 }
 
-static class CPUndoToggleLayers extends CPUndo
+class CPUndoToggleLayers extends CPUndo
 {
   final ArrayList<Boolean> mask;
   boolean toggleType; // true - we checking everything, false - unchecking
