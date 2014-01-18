@@ -176,6 +176,13 @@ CPCanvas getCanvas ()
   return this;
 }
 
+public void setNiceInitialPosition ()
+{
+  Rectangle bounds = this.getBounds ();
+  setZoom (Math.min (Math.min ((float) bounds.getHeight () / artwork.getHeight (), (float) bounds.getWidth () / artwork.getWidth ()), 1.0f));
+  centerCanvas ();
+}
+
 public void reinitCanvas ()
 {
   setArtwork (controller.getArtwork ());
@@ -189,7 +196,8 @@ public void reinitCanvas ()
       controller.setTool (controller.getCurBrush ());
     }
   repaint ();
-
+  controller.canvas.setNiceInitialPosition ();
+  initialUpdatesAfterCanvasCreation ();
 }
 
 void prepareImages ()
@@ -208,6 +216,11 @@ void prepareImages ()
   overlayImgSource.setAnimated (true);
   overlayImg = createImage (overlayImgSource);
   updateRegion = new CPRect (w, h);
+}
+
+public void initialUpdatesAfterCanvasCreation ()
+{
+  updateViewInfo ();
 }
 
 void initCanvas (CPCommonController ctrl)
@@ -666,7 +679,7 @@ public void mouseWheelMoved (MouseWheelEvent e)
 
 // Zoom
 
-void setZoom (float zoom)
+public void setZoom (float zoom)
 {
   this.zoom = zoom;
   updateTransform ();
@@ -740,7 +753,7 @@ void updateTransform ()
 
 // More advanced zoom methods
 
-void zoomOnCenter (float zoomArg)
+public void zoomOnCenter (float zoomArg)
 {
   Dimension d = getSize ();
   zoomOnPoint (zoomArg, d.width / 2, d.height / 2);
@@ -757,16 +770,21 @@ void zoomOnPoint (float zoomArg, int centerX, int centerY)
               + (int) ((centerY - offset.y) * (1 - zoom_ / getZoom ())));
       setZoom (zoom_);
 
-      CPCommonController.CPViewInfo viewInfo = new CPCommonController.CPViewInfo ();
-      viewInfo.zoom = zoom_;
-      viewInfo.offsetX = offsetX;
-      viewInfo.offsetY = offsetY;
-      viewInfo.height = artwork.getHeight ();
-      viewInfo.width = artwork.getWidth ();
-      controller.callViewListeners (viewInfo);
-
-      repaint ();
+      updateViewInfo ();
     }
+}
+
+private void updateViewInfo ()
+{
+  CPCommonController.CPViewInfo viewInfo = new CPCommonController.CPViewInfo ();
+  viewInfo.zoom = zoom;
+  viewInfo.offsetX = offsetX;
+  viewInfo.offsetY = offsetY;
+  viewInfo.height = artwork.getHeight ();
+  viewInfo.width = artwork.getWidth ();
+  controller.callViewListeners (viewInfo);
+
+  repaint ();
 }
 
 public void zoomIn ()
@@ -1323,7 +1341,7 @@ public void setShowSelection (boolean showSelection)
 public abstract class CPMode
 {
 
-  // Mouse Input
+// Mouse Input
 
   public void cursorPressAction ()
   {
@@ -1889,7 +1907,7 @@ class CPFloodFillMode extends CPMode
 
   public void cursorPressAction ()
   {
-    cursorAnchorPos = new Point2D.Float (getCursorX (), getCursorY ());
+    cursorAnchorPos = coordToDocument (new Point2D.Float (getCursorX (), getCursorY ()));
     initialColorDistance = controller.getColorDistance ();
   }
 
@@ -1926,8 +1944,7 @@ class CPFloodFillMode extends CPMode
     calcColorDistance ();
     Point p = new Point (getCursorX (), getCursorY ());
     Point2D.Float pf = coordToDocument (p);
-    Point2D.Float anchorPoint = coordToDocument (cursorAnchorPos);
-    artwork.updateOverlayWithFloodfillPreview (anchorPoint, floodFillActualColorDistance, anchorPoint);
+    artwork.updateOverlayWithFloodfillPreview (cursorAnchorPos, floodFillActualColorDistance, cursorAnchorPos);
     updateRegion (artwork, artwork.getSize ());
     repaint ();
   }
@@ -1939,11 +1956,10 @@ class CPFloodFillMode extends CPMode
     Point2D.Float pf = coordToDocument (p);
     artwork.cancelOverlayDrawing ();
     calcColorDistance ();
-    Point2D.Float anchorPoint = coordToDocument (cursorAnchorPos);
 
-    if (artwork.isPointWithin (anchorPoint.x, anchorPoint.y))
+    if (artwork.isPointWithin (cursorAnchorPos.x, cursorAnchorPos.y))
       {
-        artwork.performFloodFill (anchorPoint.x, anchorPoint.y, floodFillActualColorDistance);
+        artwork.performFloodFill (cursorAnchorPos.x, cursorAnchorPos.y, floodFillActualColorDistance);
         artwork.finalizeUndo ();
         repaint ();
       }

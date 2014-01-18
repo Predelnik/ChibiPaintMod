@@ -176,6 +176,9 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
     case Zoom100:
       canvas.zoom100 ();
       break;
+    case ZoomSpecific:
+      launchZoomDialog ();
+      break;
     case Undo:
       artwork.undo ();
       break;
@@ -387,6 +390,26 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
       break;
     }
   callCPEventListeners ();
+}
+
+private void launchZoomDialog ()
+{
+  JPanel panel = new JPanel ();
+
+  panel.add (new JLabel ("Desired Zoom Amount (in %):"));
+  SpinnerModel zoomXSM = new SpinnerNumberModel (100.0, 1.0, 1600.0, 5.0);
+  JSpinner zoomX = new JSpinner (zoomXSM);
+  panel.add (zoomX);
+
+  Object[] array = {panel};
+  int choice = JOptionPane.showConfirmDialog (getDialogParent (), array, "Zoom", JOptionPane.OK_CANCEL_OPTION,
+                                              JOptionPane.PLAIN_MESSAGE);
+
+  if (choice == JOptionPane.OK_OPTION)
+    {
+      float zoom = ((Double) zoomX.getValue ()).floatValue ();
+      canvas.zoomOnCenter (zoom * 0.01f);
+    }
 }
 
 private void launchAboutDialog ()

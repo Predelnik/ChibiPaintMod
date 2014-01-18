@@ -70,7 +70,7 @@ public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, P
   if (isPointWithin (pf.x, pf.y))
     {
       applyFloodFillToLayer ((int) pf.x, (int) pf.y, distance, FLOODFILL_PREVIEW_COLOR);
-      CPRect rect = new CPRect ((int) initialPos.x - 3, (int) initialPos.y - 3, (int) initialPos.x + 3, (int) initialPos.y + 3);
+      CPRect rect = new CPRect ((int) initialPos.x - 2, (int) initialPos.y - 2, (int) initialPos.x + 2, (int) initialPos.y + 2);
       tempBuffer.drawRectangle (rect, 0xffffffff, true);
       showOverlay = true;
     }
@@ -376,7 +376,7 @@ public CPArtwork (int width, int height)
   setLayers (new Vector<CPLayer> ());
 
   CPLayer defaultLayer = new CPLayer (width, height);
-  defaultLayer.setName (getDefaultLayerName ());
+  defaultLayer.setName ("Canvas");
   defaultLayer.clear (0xffffffff);
   getLayersVector ().add (defaultLayer);
 

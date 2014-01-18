@@ -26,6 +26,7 @@ public enum CPCommandId
   ZoomIn,
   ZoomOut,
   Zoom100,
+  ZoomSpecific,
   Undo,
   Redo,
   ClearHistory,

@@ -116,7 +116,6 @@ private void createGUI ()
 
   JPanel statusBar = new CPStatusBar (controller);
   mainPanel.add (statusBar, BorderLayout.PAGE_END);
-
   // jdp.addContainerListener(this);
 }
 
@@ -385,6 +384,7 @@ void createMainMenu ()
   addMenuItem ("Zoom In", KeyEvent.VK_I, CPCommandId.ZoomIn, "Zooms In", KeyStroke.getKeyStroke (KeyEvent.VK_ADD, InputEvent.CTRL_MASK));
   addMenuItem ("Zoom Out", KeyEvent.VK_O, CPCommandId.ZoomOut, "Zooms Out", KeyStroke.getKeyStroke (KeyEvent.VK_SUBTRACT, InputEvent.CTRL_MASK));
   addMenuItem ("Zoom 100%", KeyEvent.VK_O, CPCommandId.Zoom100, "Resets the zoom factor to 100%", KeyStroke.getKeyStroke (KeyEvent.VK_NUMPAD0, InputEvent.CTRL_MASK));
+  addMenuItem ("Zoom...", KeyEvent.VK_Z, CPCommandId.ZoomSpecific, "Zoom to specified scale", KeyStroke.getKeyStroke (KeyEvent.VK_Z, InputEvent.ALT_MASK));
   addSeparator ();
   addCheckBoxMenuItem ("Use Linear Interpolation", KeyEvent.VK_L, CPCommandId.LinearInterpolation, "Linear interpolation is used to give a smoothed looked to the picture when zoomed in", false);
   addCheckBoxMenuItem ("Show Selection", KeyEvent.VK_L, CPCommandId.ShowSelection, "Show animated selection borders to better see it and operate with it", true);

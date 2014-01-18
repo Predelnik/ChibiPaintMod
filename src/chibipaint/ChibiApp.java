@@ -102,6 +102,7 @@ private ChibiApp ()
   controller.loadControllerSettings ();
 
   final ChibiApp frame = this;
+  controller.canvas.initialUpdatesAfterCanvasCreation ();
 
   frame.addWindowListener (new WindowAdapter ()
   {
@@ -202,6 +203,7 @@ public void recreateEverything (CPArtwork artwork)
   ((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers")).updateArtworkState ();
 
   mainGUI.updateRecentFiles (); // TODO: Change this to correct update of recent files
+
 }
 
 public void resetMainMenu ()
