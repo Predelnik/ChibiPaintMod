@@ -22,46 +22,57 @@
 package chibipaint.controller;
 
 import chibipaint.gui.CPIconButton;
+import chibipaint.util.CPEnums;
 
 public interface CPCommandSettings
 {
-public class fileExtension implements CPCommandSettings
+public class FileExtension implements CPCommandSettings
 {
   public String extension;
 
-  public fileExtension (String value)
+  public FileExtension (String value)
   {
     extension = value;
   }
 }
 
-public class recentFileNumber implements CPCommandSettings
+public class RecentFileNumber implements CPCommandSettings
 {
   public int number;
 
-  public recentFileNumber (int numberArg)
+  public RecentFileNumber (int numberArg)
   {
     number = numberArg;
   }
 }
 
-public class checkBoxState implements CPCommandSettings
+public class CheckBoxState implements CPCommandSettings
 {
   public boolean checked;
 
-  public checkBoxState (boolean checkedArg)
+  public CheckBoxState (boolean checkedArg)
   {
     checked = checkedArg;
   }
 }
 
+public class DirectionSettings implements CPCommandSettings
+{
+  public CPEnums.Direction direction;
+
+  public DirectionSettings (CPEnums.Direction directionArg)
+  {
+    direction = directionArg;
+  }
+}
+
 // This is because icon button rely heavily on this
 // TODO: remove this logic
-public class sourceIconButton implements CPCommandSettings
+public class SourceIconButton implements CPCommandSettings
 {
   public CPIconButton button;
 
-  public sourceIconButton (CPIconButton buttonArg)
+  public SourceIconButton (CPIconButton buttonArg)
   {
     button = buttonArg;
   }

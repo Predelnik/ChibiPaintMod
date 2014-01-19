@@ -25,6 +25,7 @@ import chibipaint.controller.CPCommonController;
 import chibipaint.effects.CPEffect;
 import chibipaint.engine.CPBrushManager.CPBrushDab;
 import chibipaint.util.CPColorFloat;
+import chibipaint.util.CPEnums;
 import chibipaint.util.CPRect;
 
 import java.awt.geom.Point2D;
@@ -41,6 +42,11 @@ private boolean showOverlay;
 
 public void doTransformAction (transformType type)
 {
+  doTransformAction (type, CPEnums.Direction.Invalid);
+}
+
+public void doTransformAction (transformType type, CPEnums.Direction direction)
+{
   CPRect updatingRect = new CPRect (transformHandler.getRectNeededForUpdating ());
   switch (type)
     {
@@ -55,6 +61,9 @@ public void doTransformAction (transformType type)
       break;
     case ROTATE_90_CCW:
       transformHandler.rotate90CCW ();
+      break;
+    case MOVE:
+      transformHandler.moveSelection (direction);
       break;
     }
   CPRect rectAfter = new CPRect (transformHandler.getRectNeededForUpdating ());
@@ -117,6 +126,7 @@ public enum transformType
   FLIP_V,
   ROTATE_90_CW,
   ROTATE_90_CCW,
+  MOVE,
 }
 
 private final int width;

@@ -186,10 +186,10 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
       switch (commandId)
         {
         case Export:
-          saveLoadImageFile (((CPCommandSettings.fileExtension) commandSettings).extension, action_save_load.ACTION_SAVE, "");
+          saveLoadImageFile (((CPCommandSettings.FileExtension) commandSettings).extension, action_save_load.ACTION_SAVE, "");
           break;
         case Import:
-          saveLoadImageFile (((CPCommandSettings.fileExtension) commandSettings).extension, action_save_load.ACTION_LOAD, "");
+          saveLoadImageFile (((CPCommandSettings.FileExtension) commandSettings).extension, action_save_load.ACTION_LOAD, "");
           break;
         case Exit:
           mainFrame.getToolkit ().getSystemEventQueue ().postEvent (new WindowEvent ((mainFrame), WindowEvent.WINDOW_CLOSING));
@@ -201,7 +201,7 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
           newDialog ();
           break;
         case OpenRecent:
-          openRecent (((CPCommandSettings.recentFileNumber) commandSettings).number);
+          openRecent (((CPCommandSettings.RecentFileNumber) commandSettings).number);
           break;
         default:
           break;

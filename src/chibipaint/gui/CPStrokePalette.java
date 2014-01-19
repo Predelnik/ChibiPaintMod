@@ -82,7 +82,7 @@ public void newTool (int tool, CPBrushInfo toolInfo)
 public void performCommand (CPCommandId commandId, CPCommandSettings commandSettings)
 {
   Component[] components = getComponents ();
-  CPIconButton sourceButton = ((CPCommandSettings.sourceIconButton) commandSettings).button;
+  CPIconButton sourceButton = ((CPCommandSettings.SourceIconButton) commandSettings).button;
   for (Component c : components)
     {
       if (c != sourceButton)

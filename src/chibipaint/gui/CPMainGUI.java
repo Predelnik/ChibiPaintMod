@@ -153,7 +153,7 @@ private void addMenuItemInternal (String title, int mnemonic, final CPCommandId 
     @Override
     public void actionPerformed (ActionEvent e)
     {
-      controller.performCommand (commandId, isCheckable ? new CPCommandSettings.checkBoxState (((JCheckBoxMenuItem) e.getSource ()).isSelected ()) : commandSettings);
+      controller.performCommand (commandId, isCheckable ? new CPCommandSettings.CheckBoxState (((JCheckBoxMenuItem) e.getSource ()).isSelected ()) : commandSettings);
     }
   });
   ArrayList<JMenuItem> list = menuItems.get (commandId);
@@ -288,8 +288,8 @@ void createMainMenu ()
       addSeparator ();
 
       addMenuItem ("Save", KeyEvent.VK_S, CPCommandId.Save, "Save existing file", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK));
-      addMenuItem ("Save as...", KeyEvent.VK_A, CPCommandId.Export, "Save .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK), new CPCommandSettings.fileExtension ("chi"));
-      addMenuItem ("Open...", KeyEvent.VK_O, CPCommandId.Import, "Open .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_O, InputEvent.CTRL_MASK), new CPCommandSettings.fileExtension ("chi"));
+      addMenuItem ("Save as...", KeyEvent.VK_A, CPCommandId.Export, "Save .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK), new CPCommandSettings.FileExtension ("chi"));
+      addMenuItem ("Open...", KeyEvent.VK_O, CPCommandId.Import, "Open .chi File", KeyStroke.getKeyStroke (KeyEvent.VK_O, InputEvent.CTRL_MASK), new CPCommandSettings.FileExtension ("chi"));
 
       addSubMenu ("Open Recent", KeyEvent.VK_R);
       recentFilesMenuItem = lastSubMenu;
@@ -314,7 +314,7 @@ void createMainMenu ()
               if (file.isNative ())
                 continue;
 
-              addMenuItem (supportedExt.toUpperCase () + " File...", 0, loadSave[i], importExport[i] + " " + supportedExt.toUpperCase () + "Files", new CPCommandSettings.fileExtension (supportedExt));
+              addMenuItem (supportedExt.toUpperCase () + " File...", 0, loadSave[i], importExport[i] + " " + supportedExt.toUpperCase () + "Files", new CPCommandSettings.FileExtension (supportedExt));
             }
           endSubMenu ();
         }
@@ -475,7 +475,7 @@ public void updateRecentFiles ()
       if (recentFileName.length () != 0)
         {
           File recentFile = new File (recentFileName);
-          addMenuItem (recentFile.getName (), 0, CPCommandId.OpenRecent, "Open Recent File " + i, KeyStroke.getKeyStroke (KeyEvent.VK_0 + (i + 1) % 10, InputEvent.CTRL_MASK), new CPCommandSettings.recentFileNumber (i));
+          addMenuItem (recentFile.getName (), 0, CPCommandId.OpenRecent, "Open Recent File " + i, KeyStroke.getKeyStroke (KeyEvent.VK_0 + (i + 1) % 10, InputEvent.CTRL_MASK), new CPCommandSettings.RecentFileNumber (i));
         }
     }
   lastSubMenu = null;

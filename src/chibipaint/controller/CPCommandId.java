@@ -86,6 +86,7 @@ public enum CPCommandId
   Cut,
   ApplyTransform,
   CancelTransform,
+  MoveTransform,
   FlipHorizontally,
   FlipVertically,
   Rotate90CCW,

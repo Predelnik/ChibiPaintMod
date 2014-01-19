@@ -23,6 +23,7 @@ package chibipaint.engine;
 
 import chibipaint.controller.CPCommonController;
 import chibipaint.gui.CPCanvas;
+import chibipaint.util.CPEnums;
 import chibipaint.util.CPRect;
 
 import javax.swing.*;
@@ -74,6 +75,11 @@ public void rotate90CCW ()
 public void rotate90CW ()
 {
   activeAction.rotate90CW ();
+}
+
+public void moveSelection (CPEnums.Direction direction)
+{
+  activeAction.moveSelection (direction);
 }
 
 
@@ -372,6 +378,40 @@ class CPTransformAction
   {
     rotateAroundCenter (Math.PI * 0.5f);
   }
+
+  public void moveSelection (CPEnums.Direction direction)
+  {
+    float angle = getAbsoluteAngleByLine (getFullyTransformedSideByIndex (0));
+    AffineTransform rotateTransform = new AffineTransform ();
+    rotateTransform.rotate (angle);
+    Line2D.Float vector = new Line2D.Float ();
+    switch (direction)
+      {
+      case Up:
+        vector.setLine (0.0, 0.0, 0.0, -1.0);
+        //moveTransform.translate (0.0, -1.0);
+        break;
+      case Down:
+        vector.setLine (0.0, 0.0, 0.0, 1.0);
+        //moveTransform.translate (0.0, 1.0);
+        break;
+      case Left:
+        vector.setLine (0.0, 0.0, -1.0, 0.0);
+        //moveTransform.translate (-1.0, 0.0);
+        break;
+      case Right:
+        vector.setLine (0.0, 0.0, 1.0, 0.0);
+        //moveTransform.translate (1.0, 0.0);
+        break;
+      case Invalid:
+        break;
+      }
+
+    Line2D.Float transformedLine = getTransformedLine (vector, rotateTransform);
+    //savedTransformScaleAndMovement.concatenate (moveTransform);
+    savedTransformScaleAndMovement.translate (transformedLine.getX2 (), transformedLine.getY2 ());
+    updateEditTransform (transform);
+  }
 }
 
 CPColorBmp transformedPart;
@@ -450,9 +490,9 @@ Line2D.Float getSideByIndex (int index)
 }
 
 
-Line2D getTransformedLine (Line2D line, AffineTransform transformArg)
+Line2D.Float getTransformedLine (Line2D.Float line, AffineTransform transformArg)
 {
-  Line2D resultLine = new Line2D.Float ();
+  Line2D.Float resultLine = new Line2D.Float ();
   Point2D point1 = new Point2D.Float ();
   Point2D point2 = new Point2D.Float ();
   transformArg.transform (line.getP1 (), point1);
@@ -461,9 +501,9 @@ Line2D getTransformedLine (Line2D line, AffineTransform transformArg)
   return resultLine;
 }
 
-Line2D getTransformedSideByIndex (int index, AffineTransform transformArg)
+Line2D.Float getTransformedSideByIndex (int index, AffineTransform transformArg)
 {
-  Line2D line = getSideByIndex (index);
+  Line2D.Float line = getSideByIndex (index);
   return getTransformedLine (line, transformArg);
 }
 
@@ -485,7 +525,7 @@ Line2D getFullyTransformedSideByIndex (int index)
   return getTransformedSideByIndex (index, finalTransform);
 }
 
-Line2D getFullyTransformedLine (Line2D line)
+Line2D.Float getFullyTransformedLine (Line2D.Float line)
 {
   return getTransformedLine (line, finalTransform);
 }
@@ -524,7 +564,7 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
 {
   Point2D transformedP = new Point2D.Float ();
   Point2D pointOfInterest = new Point2D.Float ();
-  Line2D lineOfInterest = new Line2D.Float ();
+  Line2D.Float lineOfInterest = new Line2D.Float ();
   try
     {
       transform.createInverse ().transform (p, transformedP);
@@ -532,6 +572,12 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
   catch (NoninvertibleTransformException e)
     {
       e.printStackTrace ();
+    }
+
+  if (transformingRect.isInside (transformedP))
+    {
+      action.setToMove ();
+      return;
     }
 
   for (int i = 0; i < 4; i++)
@@ -563,11 +609,6 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
           return;
         }
     }
-  if (transformingRect.isInside (transformedP))
-    {
-      action.setToMove ();
-      return;
-    }
 
 }
 
@@ -581,7 +622,8 @@ public void cursorDragged (Point2D p)
   activeAction.updateEditTransform (transform, pointOfOrigin, p);
 }
 
-public void cursorMoved (Point2D p, CPCanvas canvas) // TODO: change it to some kind of cursor manager
+
+public void updateCursor (Point2D p, CPCanvas canvas) // TODO: change it to some kind of cursor manager
 {
   CPTransformAction tempAction = new CPTransformAction ();
   getActionTypeByPosition (tempAction, p);

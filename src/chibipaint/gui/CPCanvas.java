@@ -22,6 +22,7 @@
 package chibipaint.gui;
 
 import chibipaint.controller.CPCommandId;
+import chibipaint.controller.CPCommandSettings;
 import chibipaint.controller.CPCommonController;
 import chibipaint.controller.CPControllerApplication;
 import chibipaint.effects.CPTransparentFillEffect;
@@ -30,6 +31,7 @@ import chibipaint.engine.CPBrushInfo;
 import chibipaint.engine.CPSelection;
 import chibipaint.engine.CPTransformHandler;
 import chibipaint.util.CPBezier;
+import chibipaint.util.CPEnums;
 import chibipaint.util.CPRect;
 import chibipaint.util.CPTablet;
 
@@ -973,6 +975,7 @@ public void initTransform ()
 
   setActiveMode (freeTransformMode);
   artwork.invalidateFusion ();
+  updateTransformCursor ();
   setEnabledForTransform (false);
   if (isRunningAsApplication ())
     {
@@ -2077,6 +2080,11 @@ public void cancelTransform ()
     }
 }
 
+public void updateTransformCursor ()
+{
+  Point2D.Float p = coordToDocument (new Point (getCursorX (), getCursorY ()));
+  artwork.getTransformHandler ().updateCursor (p, this);
+}
 
 class CPFreeTransformMode extends CPMode
 {
@@ -2090,8 +2098,7 @@ class CPFreeTransformMode extends CPMode
   @Override
   public void cursorMoveAction ()
   {
-    Point2D.Float p = coordToDocument (new Point (getCursorX (), getCursorY ()));
-    transformHandler.cursorMoved (p, getCanvas ());
+    updateTransformCursor ();
   }
 
   @Override
@@ -2161,6 +2168,11 @@ class CPFreeTransformMode extends CPMode
       case KeyEvent.VK_ESCAPE:
         controller.performCommand (CPCommandId.CancelTransform, null);
         break;
+      case KeyEvent.VK_RIGHT:
+      case KeyEvent.VK_LEFT:
+      case KeyEvent.VK_UP:
+      case KeyEvent.VK_DOWN:
+        controller.performCommand (CPCommandId.MoveTransform, new CPCommandSettings.DirectionSettings (CPEnums.Direction.fromKeyEvent (e)));
       }
   }
 

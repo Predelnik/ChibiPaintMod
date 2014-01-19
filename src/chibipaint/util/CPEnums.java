@@ -21,32 +21,33 @@
 
 package chibipaint.util;
 
-public class CPTables
+import java.awt.event.KeyEvent;
+
+public class CPEnums
 {
-private static CPTables ref;
-public int[] divide;
-public int[] divideBy255;
-
-public static CPTables getRef ()
+public static enum Direction
 {
-  return ref;
-}
+  Up,
+  Down,
+  Left,
+  Right,
+  Invalid;
 
-public static void init ()
-{
-  ref = new CPTables ();
-}
-
-
-private CPTables ()
-{
-  divide = new int[65026 * 256];
-  for (int i = 0; i < 65026; i++)
-    for (int j = 1; j < 256; j++)
-      divide[i * 256 + j] = i / j;
-
-  divideBy255 = new int[65026 * 2];
-  for (int i = 0; i < 65026 * 2; i++)
-    divideBy255[i] = i / 255;
+  public static Direction fromKeyEvent (KeyEvent event)
+  {
+    switch (event.getKeyCode ())
+      {
+      case KeyEvent.VK_LEFT:
+        return Left;
+      case KeyEvent.VK_RIGHT:
+        return Right;
+      case KeyEvent.VK_UP:
+        return Up;
+      case KeyEvent.VK_DOWN:
+        return Down;
+      default:
+        return Invalid;
+      }
+  }
 }
 }

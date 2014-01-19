@@ -111,7 +111,7 @@ public void mouseClicked (MouseEvent e)
   if (e.getClickCount () == 2 && doubleClickCommandId != null)
     {
       for (ICPController controller : controllers)
-        controller.performCommand (doubleClickCommandId, new CPCommandSettings.sourceIconButton (this));
+        controller.performCommand (doubleClickCommandId, new CPCommandSettings.SourceIconButton (this));
     }
 }
 
@@ -142,7 +142,7 @@ public void mousePressed (MouseEvent e)
   if (onClickDown)
     {
       for (ICPController controller : controllers)
-        controller.performCommand (commandId, new CPCommandSettings.sourceIconButton (this));
+        controller.performCommand (commandId, new CPCommandSettings.SourceIconButton (this));
     }
 }
 
@@ -155,7 +155,7 @@ public void mouseReleased (MouseEvent e)
   if (mouseOver)
     {
       for (ICPController controller : controllers)
-        controller.performCommand (commandId, new CPCommandSettings.sourceIconButton (this));
+        controller.performCommand (commandId, new CPCommandSettings.SourceIconButton (this));
     }
   mousePressed = false;
   repaint ();

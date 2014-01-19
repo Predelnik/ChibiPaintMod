@@ -28,6 +28,7 @@ import chibipaint.engine.CPBrushInfo;
 import chibipaint.gui.CPCanvas;
 import chibipaint.gui.CPMainGUI;
 import chibipaint.util.CPColor;
+import chibipaint.util.CPTables;
 import chibipaint.util.CPTablet;
 import chibipaint.util.CPTablet2;
 
@@ -310,16 +311,16 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
       artwork.finalizeUndo ();
       break;
     case ApplyToAllLayers:
-      canvas.setApplyToAllLayers (((CPCommandSettings.checkBoxState) commandSettings).checked);
+      canvas.setApplyToAllLayers (((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case LinearInterpolation:
-      canvas.setInterpolation (((CPCommandSettings.checkBoxState) commandSettings).checked);
+      canvas.setInterpolation (((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case ShowSelection:
-      canvas.setShowSelection (((CPCommandSettings.checkBoxState) commandSettings).checked);
+      canvas.setShowSelection (((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case ShowGrid:
-      canvas.showGrid (((CPCommandSettings.checkBoxState) commandSettings).checked);
+      canvas.showGrid (((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case GridOptions:
       showGridOptionsDialog ();
@@ -328,28 +329,28 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
       canvas.resetRotation ();
       break;
     case PalColor:
-      mainGUI.showPalette ("color", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      mainGUI.showPalette ("color", ((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case PalBrush:
-      mainGUI.showPalette ("tool_preferences", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      mainGUI.showPalette ("tool_preferences", ((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case PalLayers:
-      mainGUI.showPalette ("layers", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      mainGUI.showPalette ("layers", ((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case PalStroke:
-      mainGUI.showPalette ("stroke", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      mainGUI.showPalette ("stroke", ((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case PalSwatches:
-      mainGUI.showPalette ("swatches", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      mainGUI.showPalette ("swatches", ((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case PalTool:
-      mainGUI.showPalette ("tool", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      mainGUI.showPalette ("tool", ((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case PalMisc:
-      mainGUI.showPalette ("misc", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      mainGUI.showPalette ("misc", ((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case PalTextures:
-      mainGUI.showPalette ("textures", ((CPCommandSettings.checkBoxState) commandSettings).checked);
+      mainGUI.showPalette ("textures", ((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case TogglePalettes:
       mainGUI.togglePalettes ();
@@ -372,25 +373,35 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
     case CancelTransform:
       canvas.cancelTransform ();
       break;
+    case MoveTransform:
     case FlipHorizontally:
-      artwork.doTransformAction (CPArtwork.transformType.FLIP_H);
-      canvas.repaint ();
-      break;
     case FlipVertically:
-      artwork.doTransformAction (CPArtwork.transformType.FLIP_V);
-      canvas.repaint ();
-      break;
     case Rotate90CCW:
-      artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CCW);
-      canvas.repaint ();
-      break;
     case Rotate90CW:
-      artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CW);
+      switch (commandId)
+        {
+        case MoveTransform:
+          artwork.doTransformAction (CPArtwork.transformType.MOVE, ((CPCommandSettings.DirectionSettings) commandSettings).direction);
+          break;
+        case FlipHorizontally:
+          artwork.doTransformAction (CPArtwork.transformType.FLIP_H);
+          break;
+        case FlipVertically:
+          artwork.doTransformAction (CPArtwork.transformType.FLIP_V);
+          break;
+        case Rotate90CCW:
+          artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CCW);
+          break;
+        case Rotate90CW:
+          artwork.doTransformAction (CPArtwork.transformType.ROTATE_90_CW);
+          break;
+        }
+      canvas.updateTransformCursor ();
       canvas.repaint ();
       break;
     }
-  callCPEventListeners ();
 }
+
 
 private void launchZoomDialog ()
 {
@@ -518,6 +529,7 @@ CPCommonController ()
 {
   Image img = loadImage ("cursor/rotate.png");
   Point hotSpot = new Point (11, 11);
+  CPTables.init ();
   rotateCursor = Toolkit.getDefaultToolkit ().createCustomCursor (img, hotSpot, "Rotate");
   tools = new CPBrushInfo[T_MAX];
   tools[T_PENCIL] = new CPBrushInfo (T_PENCIL, 16, 255, true, false, .5f, .05f, false, true,
