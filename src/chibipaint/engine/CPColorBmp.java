@@ -567,7 +567,7 @@ static public void floodFill (int x, int y, final int colorOfDetection, final CP
       {
         public boolean check (int arg)
         {
-          return areColorsNearAlpha (useDataFrom.getData ()[arg], oldColor, colorDistance, colorOfDetection) && (destination.getData ()[arg] != destinationColor);
+          return areColorsNearAlpha (useDataFrom.getData ()[arg], oldColor, colorDistance, colorOfDetection) && (destination.getData ()[arg] == 0);
         }
       };
     }
@@ -577,7 +577,7 @@ static public void floodFill (int x, int y, final int colorOfDetection, final CP
       {
         public boolean check (int arg)
         {
-          return areColorsNear (useDataFrom.getData ()[arg], oldColor, colorDistance, colorOfDetection) && (destination.getData ()[arg] != destinationColor);
+          return areColorsNear (useDataFrom.getData ()[arg], oldColor, colorDistance, colorOfDetection) && (destination.getData ()[arg] == 0);
         }
       };
     }

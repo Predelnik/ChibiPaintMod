@@ -43,7 +43,7 @@ public CPToolsPalette (CPCommonController controller)
   addIconButton (0, CPCommandId.RectSelection, CPCommonController.M_RECT_SELECTION);
   addIconButton (30, CPCommandId.FreeSelection, CPCommonController.M_FREE_SELECTION);
   addIconButton (2, CPCommandId.FloodFill, CPCommonController.M_FLOODFILL);
-  addIconButton (29, CPCommandId.RotateCanvas, CPCommonController.M_ROTATE_CANVAS, "CPResetCanvasRotation");
+  addIconButton (31, CPCommandId.MagicWand, CPCommonController.M_MAGIC_WAND);
   addIconButton (5, CPCommandId.Pencil, CPCommonController.M_DRAW, null, CPCommonController.T_PENCIL);
   addIconButton (6, CPCommandId.Pen, CPCommonController.M_DRAW, null, CPCommonController.T_PEN);
   addIconButton (7, CPCommandId.AirBrush, CPCommonController.M_DRAW, null, CPCommonController.T_AIRBRUSH);
@@ -55,6 +55,7 @@ public CPToolsPalette (CPCommonController controller)
   addIconButton (16, CPCommandId.Dodge, CPCommonController.M_DRAW, null, CPCommonController.T_DODGE);
   addIconButton (17, CPCommandId.Burn, CPCommonController.M_DRAW, null, CPCommonController.T_BURN);
   addIconButton (23, CPCommandId.Blur, CPCommonController.M_DRAW, null, CPCommonController.T_BLUR);
+  addIconButton (29, CPCommandId.RotateCanvas, CPCommonController.M_ROTATE_CANVAS, CPCommandId.ResetCanvasRotation);
 }
 
 @Override

@@ -136,7 +136,8 @@ public static final int M_FLOODFILL = 1;
 public static final int M_RECT_SELECTION = 3;
 public static final int M_ROTATE_CANVAS = 4;
 public static final int M_FREE_SELECTION = 5;
-public static final int M_MAX = 6;
+public static final int M_MAGIC_WAND = 6;
+public static final int M_MAX = 7;
 
 // Setting for other modes than draw (probably should do different class for them)
 private int colorDistance = 0;
@@ -227,6 +228,9 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
       break;
     case FreeSelection:
       setMode (M_FREE_SELECTION);
+      break;
+    case MagicWand:
+      setMode (M_MAGIC_WAND);
       break;
     case FreeTransform:
       canvas.initTransform ();

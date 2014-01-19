@@ -42,6 +42,7 @@ public enum CPCommandId
   Smudge,
   Blender,
   FloodFill,
+  MagicWand,
   FreeSelection,
   FreeTransform,
   RectSelection,

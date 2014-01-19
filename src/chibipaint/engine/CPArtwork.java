@@ -105,6 +105,17 @@ public void performFloodFill (float x, float y, int colorDistance)
   invalidateFusion ();
 }
 
+public void performMagicWand (float x, float y, int colorDistance, SelectionTypeOfAppliance selectionTypeOfAppliance)
+{
+
+  tempBuffer.clear ();
+
+  applyFloodFillToLayer ((int) x, (int) y, colorDistance, 0xff000000);
+  CPSelection tempSelection = new CPSelection (width, height);
+  tempSelection.makeSelectionFromAlpha (tempBuffer.getData (), tempBuffer.getSize ());
+  DoSelection (selectionTypeOfAppliance, tempSelection);
+}
+
 public void cancelOverlayDrawing ()
 {
   showOverlay = false;

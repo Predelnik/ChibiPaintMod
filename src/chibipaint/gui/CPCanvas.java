@@ -127,6 +127,7 @@ private final CPMode colorPickerMode = new CPColorPickerMode ();
 private final CPMode moveCanvasMode = new CPMoveCanvasMode ();
 private final CPMode rotateCanvasMode = new CPRotateCanvasMode ();
 private final CPMode floodFillMode = new CPFloodFillMode ();
+private final CPMode magicWandMode = new CPMagicWandMode ();
 private final CPMode rectMode = new CPRectSelectionMode ();
 private final CPMode freeSelectionMode = new CPFreeSelectionMode ();
 private final CPFreeTransformMode freeTransformMode = new CPFreeTransformMode ();
@@ -995,6 +996,10 @@ public void modeChange (int mode)
 
     case CPCommonController.M_FLOODFILL:
       curSelectedMode = floodFillMode;
+      break;
+
+    case CPCommonController.M_MAGIC_WAND:
+      curSelectedMode = magicWandMode;
       break;
 
     case CPCommonController.M_FREE_SELECTION:
@@ -1906,7 +1911,7 @@ class CPMoveCanvasMode extends CPMode
 // Flood fill mode
 //
 
-class CPFloodFillMode extends CPMode
+abstract class CPGeneralFillMode extends CPMode
 {
   Point2D.Float cursorAnchorPos;
   int initialColorDistance;
@@ -1922,7 +1927,7 @@ class CPFloodFillMode extends CPMode
 
   private void calcColorDistance ()
   {
-    floodFillActualColorDistance = initialColorDistance + ((int) cursorAnchorPos.getY () - getCursorY ());
+    floodFillActualColorDistance = initialColorDistance + ((int) cursorAnchorPos.getY () - (int) coordToDocument (new Point2D.Float (getCursorX (), getCursorY ())).getY ());
     if (floodFillActualColorDistance < 0)
       floodFillActualColorDistance = 0;
     if (floodFillActualColorDistance > 255)
@@ -1958,6 +1963,8 @@ class CPFloodFillMode extends CPMode
     repaint ();
   }
 
+  abstract void performFloodFill ();
+
   @Override
   public void cursorReleaseAction ()
   {
@@ -1968,7 +1975,7 @@ class CPFloodFillMode extends CPMode
 
     if (artwork.isPointWithin (cursorAnchorPos.x, cursorAnchorPos.y))
       {
-        artwork.performFloodFill (cursorAnchorPos.x, cursorAnchorPos.y, floodFillActualColorDistance);
+        performFloodFill ();
         artwork.finalizeUndo ();
         repaint ();
       }
@@ -1977,6 +1984,24 @@ class CPFloodFillMode extends CPMode
   }
 
 
+}
+
+class CPFloodFillMode extends CPGeneralFillMode
+{
+  @Override
+  void performFloodFill ()
+  {
+    artwork.performFloodFill (cursorAnchorPos.x, cursorAnchorPos.y, floodFillActualColorDistance);
+  }
+}
+
+class CPMagicWandMode extends CPGeneralFillMode
+{
+  @Override
+  void performFloodFill ()
+  {
+    artwork.performMagicWand (cursorAnchorPos.x, cursorAnchorPos.y, floodFillActualColorDistance, modifiersToSelectionApplianceType (getModifiers ()));
+  }
 }
 
 //

@@ -106,9 +106,9 @@ protected CPIconButton addIconButton (int iconIndex, final CPCommandId commandId
   return button;
 }
 
-protected CPIconButton addIconButton (int iconIndex, CPCommandId id, int mode, String actionDouble)
+protected CPIconButton addIconButton (int iconIndex, CPCommandId id, int mode, CPCommandId commandDoubleId)
 {
-  return addIconButton (iconIndex, id, mode, null, CPCommonController.T_INVALID);
+  return addIconButton (iconIndex, id, mode, commandDoubleId, CPCommonController.T_INVALID);
 }
 
 protected CPIconButton addIconButton (int iconIndex, CPCommandId id, int mode)
