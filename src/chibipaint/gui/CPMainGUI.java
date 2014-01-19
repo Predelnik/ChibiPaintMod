@@ -438,9 +438,9 @@ public void setPaletteMenuItem (String title, boolean selected)
     }
 }
 
-public void togglePalettes ()
+public boolean togglePalettes ()
 {
-  getPaletteManager ().togglePalettes ();
+  return getPaletteManager ().togglePalettes ();
 }
 
 public CPPaletteManager getPaletteManager ()

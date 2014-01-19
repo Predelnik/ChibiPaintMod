@@ -515,12 +515,12 @@ Point2D.Float getTransformedAngleByIndex (int index, AffineTransform transformAr
   return dstPoint;
 }
 
-Line2D getCanvasTransformedSideByIndex (int index)
+Line2D.Float getCanvasTransformedSideByIndex (int index)
 {
   return getTransformedSideByIndex (index, transform);
 }
 
-Line2D getFullyTransformedSideByIndex (int index)
+Line2D.Float getFullyTransformedSideByIndex (int index)
 {
   return getTransformedSideByIndex (index, finalTransform);
 }
@@ -560,11 +560,20 @@ private Point2D.Float getSideCenterByIndex (int index)
   return new Point2D.Float ((float) (line.getP1 ().getX () + line.getP2 ().getX ()) * 0.5f, (float) (line.getP1 ().getY () + line.getP2 ().getY ()) * 0.5f);
 }
 
+static private float getLineLength (Line2D.Float line)
+{
+  float a = line.x1 - line.x2;
+  float b = line.y1 - line.y2;
+  return (float) (Math.sqrt ((double) (a * a + b * b)));
+}
+
 public void getActionTypeByPosition (CPTransformAction action, Point2D p)
 {
   Point2D transformedP = new Point2D.Float ();
   Point2D pointOfInterest = new Point2D.Float ();
   Line2D.Float lineOfInterest = new Line2D.Float ();
+  float fourthOfMinSide = Math.min (getLineLength (getCanvasTransformedSideByIndex (0)), getLineLength (getCanvasTransformedSideByIndex (1))) * 0.25f;
+  float calculatedControlDistance = fourthOfMinSide < controlDistance ? fourthOfMinSide : controlDistance;
   try
     {
       transform.createInverse ().transform (p, transformedP);
@@ -583,7 +592,7 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
   for (int i = 0; i < 4; i++)
     {
       transform.transform (getAngleByIndex (i), pointOfInterest);
-      if (pointOfInterest.distance (p) < controlDistance)
+      if (pointOfInterest.distance (p) < calculatedControlDistance)
         {
           action.setToStretchToAngle ((i + 2) % 4);
           return;
@@ -594,7 +603,7 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
     {
       //transform.transform (getAngleByIndex (i), pointOfInterest);
       transform.transform (getSideCenterByIndex (i), pointOfInterest);
-      if (pointOfInterest.distance (p) < controlDistance)
+      if (pointOfInterest.distance (p) < calculatedControlDistance)
         {
           action.setToStretchToSide ((i + 2) % 4);
           return;
@@ -603,7 +612,7 @@ public void getActionTypeByPosition (CPTransformAction action, Point2D p)
 
   for (int i = 0; i < 4; i++)
     {
-      if (getCanvasTransformedSideByIndex (i).ptSegDist (p) < controlDistance)
+      if (getCanvasTransformedSideByIndex (i).ptSegDist (p) < calculatedControlDistance)
         {
           action.setToRotate ();
           return;

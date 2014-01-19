@@ -353,7 +353,7 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
       mainGUI.showPalette ("textures", ((CPCommandSettings.CheckBoxState) commandSettings).checked);
       break;
     case TogglePalettes:
-      mainGUI.togglePalettes ();
+      canvas.setPalettesShown (mainGUI.togglePalettes ());
       break;
     case Copy:
       canvas.copy ();

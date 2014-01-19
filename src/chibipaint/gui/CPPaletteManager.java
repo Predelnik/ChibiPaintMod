@@ -263,7 +263,7 @@ public void componentRemoved (ContainerEvent e)
     }
 }
 
-public void togglePalettes ()
+public boolean togglePalettes ()
 {
   if (hiddenFrames.isEmpty ())
     {
@@ -278,6 +278,7 @@ public void togglePalettes ()
               hiddenFrames.add (frame);
             }
         }
+      return false;
     }
   else
     {
@@ -292,6 +293,7 @@ public void togglePalettes ()
             }
         }
       hiddenFrames.clear ();
+      return true;
     }
 }
 
@@ -315,7 +317,10 @@ public void loadPalettesSettings ()
     }
 
   if (preferences.getBoolean ("Palettes Hidden", false))
-    togglePalettes ();
+    {
+      togglePalettes ();
+      controller.canvas.setPalettesShown (false);
+    }
 }
 
 public void savePalettesSettings ()

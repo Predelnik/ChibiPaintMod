@@ -100,6 +100,7 @@ private Cursor crossCursor;
 private CPMode prevMode = null;
 private boolean drawPrevMode = false;
 private boolean showSelection = true;
+private boolean palettesShown = true;
 
 public boolean isCursorIn ()
 {
@@ -1340,6 +1341,11 @@ public void setShowSelection (boolean showSelection)
   this.showSelection = showSelection;
 }
 
+public void setPalettesShown (boolean palettesShown)
+{
+  this.palettesShown = palettesShown;
+}
+
 
 public abstract class CPMode
 {
@@ -2150,7 +2156,8 @@ class CPFreeTransformMode extends CPMode
   @Override
   public void paint (Graphics2D g2d)
   {
-    transformHandler.drawTransformHandles (g2d, transform);
+    if (palettesShown)
+      transformHandler.drawTransformHandles (g2d, transform);
   }
 
   public void setTransformHandler (CPTransformHandler transformHandlerArg)
