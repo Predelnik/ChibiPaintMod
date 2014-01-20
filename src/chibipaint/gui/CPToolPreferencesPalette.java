@@ -246,10 +246,11 @@ public void newTool (int tool, CPBrushInfo toolInfo)
   JComponent[] brushControls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
           bleedSlider, spacingSlider, scatteringSlider, smoothingSlider, tipCombo, brushPreview};
   JComponent[] floodFillControls = {colorDistanceSlider};
+  JComponent[] magicWandControls = {colorDistanceSlider};
   JComponent[] transformControls = {transformLabel, transformOkButton, transformCancelButton, transformFlipHButton, transformFlipVButton,
           transformRotate90CCWButton, transformRotate90CWButton};
   JComponent[] selectionControls = {instantFillCB, instantFillOpacity};
-  JComponent[][] toolArrays = {brushControls, floodFillControls, transformControls, selectionControls};
+  JComponent[][] toolArrays = {brushControls, floodFillControls, transformControls, selectionControls, magicWandControls};
 
   for (JComponent[] toolArray : toolArrays)
     for (JComponent jc : toolArray)
@@ -275,6 +276,10 @@ public void newTool (int tool, CPBrushInfo toolInfo)
           break;
         case CPCommonController.M_FREE_SELECTION:
           for (JComponent jc : selectionControls)
+            jc.setVisible (true);
+          break;
+        case CPCommonController.M_MAGIC_WAND:
+          for (JComponent jc : magicWandControls)
             jc.setVisible (true);
           break;
         }

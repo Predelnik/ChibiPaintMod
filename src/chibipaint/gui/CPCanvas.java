@@ -526,7 +526,7 @@ public void paint (Graphics g)
 		 */
 
   // Drawing Selection
-  if (showSelection)
+  if (palettesShown && showSelection)
     artwork.getCurSelection ().drawItself (g2d, this);
 
   // Draw grid
@@ -1916,9 +1916,32 @@ abstract class CPGeneralFillMode extends CPMode
   Point2D.Float cursorAnchorPos;
   int initialColorDistance;
   int floodFillActualColorDistance;
+  Point2D.Float prevDocPoint;
+  Timer updateTimer;
+
+  void updateIfCursorIsStable ()
+  {
+    calcColorDistance ();
+    Point p = new Point (getCursorX (), getCursorY ());
+    Point2D.Float pf = coordToDocument (p);
+    artwork.updateOverlayWithFloodfillPreview (cursorAnchorPos, floodFillActualColorDistance, cursorAnchorPos);
+    updateRegion (artwork, artwork.getSize ());
+  }
+
+  CPGeneralFillMode ()
+  {
+    updateTimer = new Timer (50, new ActionListener ()
+    {
+      @Override
+      public void actionPerformed (ActionEvent arg0)
+      {
+        updateIfCursorIsStable ();
+      }
+    });
+    updateTimer.setRepeats (false);
+  }
 
   @Override
-
   public void cursorPressAction ()
   {
     cursorAnchorPos = coordToDocument (new Point2D.Float (getCursorX (), getCursorY ()));
@@ -1955,12 +1978,10 @@ abstract class CPGeneralFillMode extends CPMode
   @Override
   public void cursorDragAction ()
   {
-    calcColorDistance ();
+    updateTimer.restart ();
     Point p = new Point (getCursorX (), getCursorY ());
     Point2D.Float pf = coordToDocument (p);
-    artwork.updateOverlayWithFloodfillPreview (cursorAnchorPos, floodFillActualColorDistance, cursorAnchorPos);
-    updateRegion (artwork, artwork.getSize ());
-    repaint ();
+    prevDocPoint = pf;
   }
 
   abstract void performFloodFill ();
@@ -1977,7 +1998,7 @@ abstract class CPGeneralFillMode extends CPMode
       {
         performFloodFill ();
         artwork.finalizeUndo ();
-        repaint ();
+        updateRegion (artwork, artwork.getSize ());
       }
 
     setActiveMode (defaultMode); // yield control to the default mode

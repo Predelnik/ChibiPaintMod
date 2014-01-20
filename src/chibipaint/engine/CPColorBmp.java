@@ -493,43 +493,24 @@ static class CPFillLine
 }
 
 // we building metric in which our new color will always be counted as not near (so it passed in farAwayColor parameter)
-private static boolean areColorsNear (int color_1, int color_2, int distance, int farAwayColor)
+private static boolean areColorsNear (int color_1, int color_2, int distance)
 {
-  boolean color_1_faraway = (color_1 == farAwayColor);
-  boolean color_2_faraway = (color_2 == farAwayColor);
-  if (!color_1_faraway && !color_2_faraway)
+  int[] dist = new int[4];
+  for (int i = 0; i < 4; i++)
     {
-      int[] dist = new int[4];
-      for (int i = 0; i < 4; i++)
-        {
-          dist[i] = (Math.abs ((color_1 & 0xFF) - (color_2 & 0xFF)));
-          color_1 = color_1 >> 8;
-          color_2 = color_2 >> 8;
-        }
-      return Math.max (dist[3] * 3, (dist[0] + dist[1] + dist[2])) <= distance * 3;
+      dist[i] = (Math.abs ((color_1 & 0xFF) - (color_2 & 0xFF)));
+      color_1 = color_1 >> 8;
+      color_2 = color_2 >> 8;
     }
-  else if (color_1_faraway || color_2_faraway)
-    return false;
-  else
-    return true;
+  return Math.max (dist[3] * 3, (dist[0] + dist[1] + dist[2])) <= distance * 3;
 }
 
-private static boolean areColorsNearAlpha (int color_1, int color_2, int distance, int farAwayColor)
+private static boolean areColorsNearAlpha (int color_1, int color_2, int distance)
 {
-  boolean color_1_faraway = (color_1 == farAwayColor);
-  boolean color_2_faraway = (color_2 == farAwayColor);
-  if (!color_1_faraway && !color_2_faraway)
-    {
-      return Math.abs (((color_1 >> 24) & 0xFF) - ((color_2 >> 24) & 0xFF)) <= distance;
-    }
-  else if (color_1_faraway || color_2_faraway)
-    return false;
-  else
-    return true;
+  return Math.abs (((color_1 >> 24) & 0xFF) - ((color_2 >> 24) & 0xFF)) <= distance;
 
 }
 
-// TODO: Make floodFillNew applicable and remove the old one
 static public void floodFill (int x, int y, final int colorOfDetection, final CPLayer useDataFrom, final int colorDistance, final CPLayer destination, final int destinationColor)
 {
   if (!useDataFrom.isInside (x, y))
@@ -555,11 +536,6 @@ static public void floodFill (int x, int y, final int colorOfDetection, final CP
       checkOnlyAlpha = false;
     }
 
-  if (colorOfDetection == oldColor)
-    {
-      return;
-    }
-
   CPIfaces.IntChecker shouldWeFill = null;
   if (checkOnlyAlpha)
     {
@@ -567,7 +543,7 @@ static public void floodFill (int x, int y, final int colorOfDetection, final CP
       {
         public boolean check (int arg)
         {
-          return areColorsNearAlpha (useDataFrom.getData ()[arg], oldColor, colorDistance, colorOfDetection) && (destination.getData ()[arg] == 0);
+          return areColorsNearAlpha (useDataFrom.getData ()[arg], oldColor, colorDistance) && (destination.getData ()[arg] == 0);
         }
       };
     }
@@ -577,7 +553,7 @@ static public void floodFill (int x, int y, final int colorOfDetection, final CP
       {
         public boolean check (int arg)
         {
-          return areColorsNear (useDataFrom.getData ()[arg], oldColor, colorDistance, colorOfDetection) && (destination.getData ()[arg] == 0);
+          return areColorsNear (useDataFrom.getData ()[arg], oldColor, colorDistance) && (destination.getData ()[arg] == 0);
         }
       };
     }

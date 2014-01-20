@@ -75,9 +75,9 @@ static int FLOODFILL_PREVIEW_COLOR = 0x8000FF00;
 
 public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, Point2D.Float initialPos)
 {
-  tempBuffer.clear ();
   if (isPointWithin (pf.x, pf.y))
     {
+      tempBuffer.clear ();
       applyFloodFillToLayer ((int) pf.x, (int) pf.y, distance, FLOODFILL_PREVIEW_COLOR);
       CPRect rect = new CPRect ((int) initialPos.x - 2, (int) initialPos.y - 2, (int) initialPos.x + 2, (int) initialPos.y + 2);
       tempBuffer.drawRectangle (rect, 0xffffffff, true);
@@ -110,7 +110,7 @@ public void performMagicWand (float x, float y, int colorDistance, SelectionType
 
   tempBuffer.clear ();
 
-  applyFloodFillToLayer ((int) x, (int) y, colorDistance, 0xff000000);
+  applyFloodFillToLayer ((int) x, (int) y, colorDistance, 0xFF000000);
   CPSelection tempSelection = new CPSelection (width, height);
   tempSelection.makeSelectionFromAlpha (tempBuffer.getData (), tempBuffer.getSize ());
   DoSelection (selectionTypeOfAppliance, tempSelection);

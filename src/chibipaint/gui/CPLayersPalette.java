@@ -164,7 +164,8 @@ public void addListener ()
 
 public void updateScroll ()
 {
-  scrollPane.updateUI ();
+  scrollPane.invalidate ();
+  scrollPane.repaint ();
 }
 
 public void removeListener ()
