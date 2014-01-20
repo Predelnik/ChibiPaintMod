@@ -24,8 +24,8 @@ package chibipaint.util;
 // utility class to help dealing with pixel algorithms (i.e. scanline)
 public class CPPixelCoords implements Comparable<CPPixelCoords>
 {
-static public final int[][] Mv = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-static public final int[][] Corners = {{1, 1}, {0, 1}, {0, 0}, {1, 0}};
+static public final int[] Mv = {1, 0, 0, 1, -1, 0, 0, -1};
+static public final int[] Corners = {1, 1, 0, 1, 0, 0, 1, 0};
 public int x;
 public final int y;
 
@@ -63,12 +63,14 @@ public CPPixelCoords down ()
 
 public CPPixelCoords MoveByMv (int num)
 {
-  return new CPPixelCoords (x + Mv[num % 4][0], y + Mv[num % 4][1]);
+  int num2 = num * 2;
+  return new CPPixelCoords (x + Mv[num2], y + Mv[num2 + 1]);
 }
 
 public CPPixelCoords MoveToCorner (int num)
 {
-  return new CPPixelCoords (x + Corners[num % 4][0], y + Corners[num % 4][1]);
+  int num2 = num * 2;
+  return new CPPixelCoords (x + Corners[num2], y + Corners[num2 + 1]);
 }
 
 @Override

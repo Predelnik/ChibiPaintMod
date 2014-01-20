@@ -348,8 +348,8 @@ int GetNextDirectionNum (CPPixelCoords currentPoint, CPPixelCoords prevPoint)
 {
   int result = -1;
   for (int i = 0; i < directionsNum; i++)
-    if (currentPoint.x + CPPixelCoords.Corners[i][0] == prevPoint.x &&
-            currentPoint.y + CPPixelCoords.Corners[i][1] == prevPoint.y)
+    if (currentPoint.x + CPPixelCoords.Corners[i * 2] == prevPoint.x &&
+            currentPoint.y + CPPixelCoords.Corners[i * 2 + 1] == prevPoint.y)
       {
         result = i;
         break;
@@ -395,13 +395,16 @@ void convertLumpToPixelSingleLines (ArrayList<PixelSingleLine> pixelLinesTarget,
             break;
           for (int i = 1; i < directionsNum; i++)
             {
-              scanningDirection = (scanningDirection + 1) % 4;
+              scanningDirection++;
+              if (scanningDirection == 4)
+                scanningDirection = 0;
+
               if (isActive (currentPoint.MoveByMv (scanningDirection)) == (fillMode == 0))
                 {
                   if (fillMode == 1)
                     markerArray[currentPoint.y * width + currentPoint.x] |= PowersOf2[scanningDirection];
                   else
-                    markerArray[(currentPoint.y + CPPixelCoords.Mv[scanningDirection][1]) * width + currentPoint.x + CPPixelCoords.Mv[scanningDirection][0]] |= (PowersOf2[OppositeDirection[scanningDirection]]);
+                    markerArray[(currentPoint.y + CPPixelCoords.Mv[scanningDirection * 2 + 1]) * width + currentPoint.x + CPPixelCoords.Mv[scanningDirection * 2]] |= (PowersOf2[OppositeDirection[scanningDirection]]);
                   if (currentPoint.MoveToCorner (scanningDirection).compareTo (sL.get (0)) != 0)
                     sL.add (currentPoint.MoveToCorner (scanningDirection));
                   else
@@ -413,7 +416,10 @@ void convertLumpToPixelSingleLines (ArrayList<PixelSingleLine> pixelLinesTarget,
               else
                 {
                   CPPixelCoords nextPoint = currentPoint.MoveByMv (scanningDirection);
-                  CPPixelCoords pointAfterNext = nextPoint.MoveByMv (GetNextDirectionNum (nextPoint, sL.get (sL.size () - 1)) + 1);
+                  int l = GetNextDirectionNum (nextPoint, sL.get (sL.size () - 1)) + 1;
+                  if (l == 4)
+                    l = 0;
+                  CPPixelCoords pointAfterNext = nextPoint.MoveByMv (l);
                   if (isActive (pointAfterNext) == (fillMode == 0))
                     currentPoint = nextPoint;
                   else
@@ -445,7 +451,10 @@ void convertLumpToPixelSingleLines (ArrayList<PixelSingleLine> pixelLinesTarget,
                     {
                       if (isActive (startingPoint.MoveByMv (k)))
                         {
-                          sL.add (startingPoint.MoveToCorner ((k + 3) % 4));
+                          int l = k + 3;
+                          if (l >= 4)
+                            l -= 4;
+                          sL.add (startingPoint.MoveToCorner (l));
                           break;
                         }
                     }
