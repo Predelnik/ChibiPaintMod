@@ -187,6 +187,17 @@ private boolean getIsActive (int i, int j)
   return isInside (i, j) && getIsActiveInBounds (i, j);
 }
 
+private boolean getIsNonActive (int i, int j)
+{
+  return ((data[j * width + i] & 0xff) <= PIXEL_IN_SELECTION_THRESHOLD);
+}
+
+private boolean getIsNonActive (int off)
+{
+  return ((data[off] & 0xff) <= PIXEL_IN_SELECTION_THRESHOLD);
+}
+
+
 private boolean getIsActiveInBounds (int i, int j)
 {
   return ((data[j * width + i] & 0xff) > PIXEL_IN_SELECTION_THRESHOLD);
@@ -383,6 +394,113 @@ public CPRect getBoundingRect ()
   return new CPRect (minX, minY, maxX + 1, maxY + 1);
 }
 
+void createSingleLinesFromPoint (ArrayList<PixelSingleLine> pixelLinesTarget, int x, int y)
+{
+  CPPixelCoords startingPoint = new CPPixelCoords (x, y);
+  int fillMode = isActive (startingPoint) ? 1 : 0;
+  CPPixelCoords currentPoint = new CPPixelCoords (startingPoint);
+  PixelSingleLine sL = new PixelSingleLine ();
+  sL.add (startingPoint.right ().down ());
+  boolean Finished = false;
+  do
+    {
+      int scanningDirection = GetNextDirectionNum (currentPoint, sL.get (sL.size () - 1));
+      if (scanningDirection == -1)
+        break;
+      for (int i = 1; i < directionsNum; i++)
+        {
+          scanningDirection++;
+          if (scanningDirection == 4)
+            scanningDirection = 0;
+
+          if (isActive (currentPoint.MoveByMv (scanningDirection)) == (fillMode == 0))
+            {
+              if (currentPoint.MoveToCorner (scanningDirection).compareTo (sL.get (0)) != 0)
+                sL.add (currentPoint.MoveToCorner (scanningDirection));
+              else
+                {
+                  Finished = true;
+                  break;
+                }
+            }
+          else
+            {
+              CPPixelCoords nextPoint = currentPoint.MoveByMv (scanningDirection);
+              int l = GetNextDirectionNum (nextPoint, sL.get (sL.size () - 1)) + 1;
+              if (l == 4)
+                l = 0;
+              CPPixelCoords pointAfterNext = nextPoint.MoveByMv (l);
+              if (isActive (pointAfterNext) == (fillMode == 0))
+                currentPoint = nextPoint;
+              else
+                currentPoint = pointAfterNext;
+              break;
+            }
+        }
+      if (Finished)
+        break;
+    }
+  while (true);
+
+  if (fillMode == 0)
+    Collections.reverse (sL);
+  pixelLinesTarget.add (sL);
+}
+
+// set 1 in markerArray array for all the connected pixels with similar activity as target
+void markOutWithSimilarActivity (int xArg, int yArg)
+{
+  TIntArrayStack S = new TIntArrayStack ();
+  S.push (xArg);
+  S.push (yArg);
+  boolean activity = getIsActiveInBounds (xArg, yArg);
+  while (S.size () != 0)
+    {
+      int y = S.pop ();
+      int x = S.pop ();
+      int offset = y * width;
+      // Skipping all the stuff we should add into our lump from the left
+      while (x >= 0 && getIsActiveInBounds (offset + x) == activity)
+        x--;
+      x++; // Now we find the left side of this part
+      // careful: px.x is used as an iterator and px.y is constant
+      boolean spanTop = false;
+      boolean spanBottom = false;
+
+      offset += x;
+      int offsetMinus1 = offset - width;
+      int offsetPlus1 = offset + width;
+      while (x < width && getIsActiveInBounds (offset) == activity && markerArray[offset] == 0)
+        {
+          markerArray[offset] = 1;
+          if (!spanTop && y > 0 && getIsActiveInBounds (offsetMinus1) == activity && markerArray[offsetMinus1] == 0)
+            {
+              S.push (x);
+              S.push (y - 1);
+              spanTop = true;
+            }
+          else if (spanTop && y > 0 && (!(getIsActiveInBounds (offsetMinus1) == activity) || markerArray[offsetMinus1] == 1))
+            {
+              spanTop = false;
+            }
+          if (!spanBottom && y < height - 1 && getIsActiveInBounds (offsetPlus1) == activity && markerArray[offsetPlus1] == 0)
+            {
+              S.push (x);
+              S.push (y + 1);
+              spanBottom = true;
+            }
+          else if (spanBottom && y < height - 1 && (!(getIsActiveInBounds (offsetPlus1) == activity) || markerArray[offsetPlus1] == 1))
+            {
+              spanBottom = false;
+            }
+          x++;
+          offset++;
+          offsetMinus1++;
+          offsetPlus1++;
+        }
+    }
+}
+
 void convertLumpToPixelSingleLines (ArrayList<PixelSingleLine> pixelLinesTarget, Lump x)
 {
   // TODO: Rewrite using scanline technique
@@ -575,6 +693,7 @@ public void precalculateSelection ()
 
 private void precalculateForDrawing (CPRect rect)
 {
+  /*
   // First step: we're dividing everything on separate 4-connected regions
   ArrayList<Lump> lumps = new ArrayList<Lump> ();
   Arrays.fill (markerArray, (byte) 0);
@@ -598,6 +717,50 @@ private void precalculateForDrawing (CPRect rect)
     {
       convertLumpToPixelSingleLines (CurPixelLines, lumps.get (i));
     }
+    */
+  // Trying completely new algorithm:
+  // cutting out inactive lumps connected with border - these are one we do not care about.
+  Arrays.fill (markerArray, (byte) 0);
+  for (int i = 0; i < width; i++)
+    {
+      if (markerArray[i] == 0 && getIsNonActive (i))
+        {
+          markOutWithSimilarActivity (i, 0);
+        }
+      if (markerArray[(height - 1) * width + i] == 0 && getIsNonActive ((height - 1) * width + i))
+        {
+          markOutWithSimilarActivity (i, height - 1);
+        }
+    }
+
+  int off = width;
+  for (int i = 1; i < height - 1; i++, off += width)
+    {
+      if (markerArray[off] == 0 && getIsNonActive (off))
+        {
+          markOutWithSimilarActivity (0, i);
+        }
+      if (markerArray[off + width - 1] == 0 && getIsNonActive (off + width - 1))
+        {
+          markOutWithSimilarActivity (width - 1, i);
+        }
+    }
+  // Now the actual part - we're running through all of the pixels, we're interested only in unmarked
+  off = 0;
+  CurPixelLines = new ArrayList<PixelSingleLine> ();
+  for (int j = height - 1; j >= 0; j--)
+    {
+      off = j * width;
+      for (int i = 0; i < width; i++, off++)
+        {
+          if (markerArray[off] == 0) // we're found interesting pixels.
+            {
+              createSingleLinesFromPoint (CurPixelLines, i, j); // create single lines from this point
+              markOutWithSimilarActivity (i, j);
+            }
+        }
+    }
+  // That's all folks!
 }
 
 
