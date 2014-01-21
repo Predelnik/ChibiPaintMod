@@ -41,7 +41,7 @@ public CPPixelCoords (CPPixelCoords point)
   y = point.y;
 }
 
-CPPixelCoords left ()
+public CPPixelCoords left ()
 {
   return new CPPixelCoords (x - 1, y);
 }
