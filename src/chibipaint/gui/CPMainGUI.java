@@ -338,6 +338,7 @@ void createMainMenu ()
   addSeparator ();
 
   addMenuItem ("Select All", KeyEvent.VK_A, CPCommandId.SelectAll, "Selects the whole canvas", KeyStroke.getKeyStroke (KeyEvent.VK_A, InputEvent.CTRL_MASK));
+  addMenuItem ("Invert Selection", KeyEvent.VK_I, CPCommandId.InvertSelection, "Invert selection", KeyStroke.getKeyStroke (KeyEvent.VK_I, InputEvent.CTRL_MASK));
   addMenuItem ("Deselect", KeyEvent.VK_D, CPCommandId.DeselectAll, "Deselects the whole canvas", KeyStroke.getKeyStroke (KeyEvent.VK_D, InputEvent.CTRL_MASK));
 
   // Layers

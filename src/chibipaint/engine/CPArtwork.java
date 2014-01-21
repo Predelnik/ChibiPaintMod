@@ -131,6 +131,11 @@ public boolean getShowOverlay ()
   return showOverlay;
 }
 
+public void invertSelection ()
+{
+  curSelection.invert ();
+}
+
 public enum transformType
 {
   FLIP_H,

@@ -22,13 +22,12 @@
 package chibipaint.engine;
 
 import chibipaint.util.CPIfaces;
-import chibipaint.util.CPPixelCoords;
 import chibipaint.util.CPRect;
 import chibipaint.util.CPTables;
+import gnu.trove.stack.array.TIntArrayStack;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.util.Stack;
 
 //
 // A 32bpp bitmap class (ARGB format)
@@ -511,9 +510,9 @@ private static boolean areColorsNearAlpha (int color_1, int color_2, int distanc
 
 }
 
-static public void floodFill (int x, int y, final int colorOfDetection, final CPLayer useDataFrom, final int colorDistance, final CPLayer destination, final int destinationColor)
+static public void floodFill (int xArg, int yArg, final int colorOfDetection, final CPLayer useDataFrom, final int colorDistance, final CPLayer destination, final int destinationColor)
 {
-  if (!useDataFrom.isInside (x, y))
+  if (!useDataFrom.isInside (xArg, yArg))
     {
       return;
     }
@@ -522,17 +521,16 @@ static public void floodFill (int x, int y, final int colorOfDetection, final CP
   int width = useDataFrom.getWidth ();
   int height = useDataFrom.getHeight ();
   int offset = 0;
-  CPPixelCoords px = null;
   boolean checkOnlyAlpha = true;
 
-  if ((useDataFrom.getPixel (x, y) & 0xff000000) == 0)
+  if ((useDataFrom.getPixel (xArg, yArg) & 0xff000000) == 0)
     {
       oldColor = 0;
       checkOnlyAlpha = true;
     }
   else
     {
-      oldColor = useDataFrom.getPixel (x, y);
+      oldColor = useDataFrom.getPixel (xArg, yArg);
       checkOnlyAlpha = false;
     }
 
@@ -558,49 +556,50 @@ static public void floodFill (int x, int y, final int colorOfDetection, final CP
       };
     }
 
-  Stack<CPPixelCoords> S = new Stack<CPPixelCoords> ();
-  CPPixelCoords newPx = new CPPixelCoords (x, y);
-  S.push (newPx);
+  TIntArrayStack S = new TIntArrayStack ();
+  S.push (xArg);
+  S.push (yArg);
 
-  while (!S.empty ())
+  while (S.size () != 0)
     {
-      px = S.pop ();
-      offset = px.y * width;
-      while (px.x >= 0 && shouldWeFill.check (offset + px.x))
-        px.x--;
-      px.x++; // Now we find the left side of this part
+      int y = S.pop ();
+      int x = S.pop ();
+      offset = y * width;
+      while (x >= 0 && shouldWeFill.check (offset + x))
+        x--;
+      x++; // Now we find the left side of this part
       // careful: px.x is used as an iterator and px.y is constant
       boolean spanTop = false;
       boolean spanBottom = false;
 
-      offset += px.x;
+      offset += x;
       int heightMinus1 = height - 1;
-      int offsetMinus1 = (px.y - 1) * width + px.x;
-      int offsetPlus1 = (px.y + 1) * width + px.x;
-      while (px.x < width && shouldWeFill.check (offset))
+      int offsetMinus1 = offset - width;
+      int offsetPlus1 = offset + width;
+      while (x < width && shouldWeFill.check (offset))
         {
-          destination.getData ()[px.y * width + px.x] = destinationColor;
-          if (!spanTop && px.y > 0 && shouldWeFill.check (offsetMinus1))
+          destination.getData ()[y * width + x] = destinationColor;
+          if (!spanTop && y > 0 && shouldWeFill.check (offsetMinus1))
             {
-              newPx = new CPPixelCoords (px.x, px.y - 1);
-              S.push (newPx);
+              S.push (x);
+              S.push (y - 1);
               spanTop = true;
             }
-          else if (spanTop && px.y > 0 && !shouldWeFill.check (offsetMinus1))
+          else if (spanTop && y > 0 && !shouldWeFill.check (offsetMinus1))
             {
               spanTop = false;
             }
-          if (!spanBottom && px.y < heightMinus1 && shouldWeFill.check (offsetPlus1))
+          if (!spanBottom && y < heightMinus1 && shouldWeFill.check (offsetPlus1))
             {
-              newPx = new CPPixelCoords (px.x, px.y + 1);
-              S.push (newPx);
+              S.push (x);
+              S.push (y + 1);
               spanBottom = true;
             }
-          else if (spanBottom && px.y < heightMinus1 && !shouldWeFill.check (offsetPlus1))
+          else if (spanBottom && y < heightMinus1 && !shouldWeFill.check (offsetPlus1))
             {
               spanBottom = false;
             }
-          px.x++;
+          x++;
           offset++;
           offsetMinus1++;
           offsetPlus1++;

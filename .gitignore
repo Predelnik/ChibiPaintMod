@@ -1,11 +1,12 @@
 .idea
 .settings
 *.iml
-*.jar
 *.exe
 *.zip
 bin
 build
 *.map
 *.pro
+/*.jar
+out/*
 

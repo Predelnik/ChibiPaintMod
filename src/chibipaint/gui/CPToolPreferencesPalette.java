@@ -483,7 +483,7 @@ class CPColorDistanceSlider extends CPSlider
   public void onValueChange ()
   {
     controller.setColorDistance (value);
-    title = "Color distance: " + value;
+    title = "Threshold: " + value;
   }
 }
 

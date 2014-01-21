@@ -1919,7 +1919,7 @@ abstract class CPGeneralFillMode extends CPMode
   Point2D.Float prevDocPoint;
   Timer updateTimer;
 
-  void updateIfCursorIsStable ()
+  void updatePreview ()
   {
     calcColorDistance ();
     Point p = new Point (getCursorX (), getCursorY ());
@@ -1935,7 +1935,7 @@ abstract class CPGeneralFillMode extends CPMode
       @Override
       public void actionPerformed (ActionEvent arg0)
       {
-        updateIfCursorIsStable ();
+        updatePreview ();
       }
     });
     updateTimer.setRepeats (false);
@@ -1978,7 +1978,7 @@ abstract class CPGeneralFillMode extends CPMode
   @Override
   public void cursorDragAction ()
   {
-    updateTimer.restart ();
+    updatePreview ();
     Point p = new Point (getCursorX (), getCursorY ());
     Point2D.Float pf = coordToDocument (p);
     prevDocPoint = pf;

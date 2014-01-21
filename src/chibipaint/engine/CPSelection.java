@@ -24,6 +24,7 @@ package chibipaint.engine;
 import chibipaint.gui.CPCanvas;
 import chibipaint.util.CPPixelCoords;
 import chibipaint.util.CPRect;
+import gnu.trove.stack.array.TIntArrayStack;
 import sun.awt.SunHints;
 
 import java.awt.*;
@@ -33,7 +34,6 @@ import java.awt.image.DataBufferByte;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Stack;
 
 public class CPSelection extends CPGreyBmp
 {
@@ -323,6 +323,12 @@ public void setNeededForDrawing (boolean neededForDrawing)
   this.neededForDrawing = neededForDrawing;
 }
 
+public void invert ()
+{
+  for (int off = 0; off < width * height; off++)
+    getData ()[off] = (byte) (getData ()[off] ^ 0xFF);
+}
+
 
 private class Lump extends ArrayList<CPPixelCoords>
 {
@@ -607,52 +613,53 @@ public void precalculateSelection (CPRect rect)
     precalculateForDrawing (rect);
 }
 
-private Lump MakeLumpByScanLines (int x, int y)
+private Lump MakeLumpByScanLines (int xArg, int yArg)
 {
-  Stack<CPPixelCoords> S = new Stack<CPPixelCoords> ();
-  CPPixelCoords newPx = new CPPixelCoords (x, y);
-  S.push (newPx);
+  TIntArrayStack S = new TIntArrayStack ();
+  S.push (xArg);
+  S.push (yArg);
   Lump ResultingLump = new Lump ();
-  while (!S.empty ())
+  while (S.size () != 0)
     {
-      CPPixelCoords px = S.pop ();
-      int offset = px.y * width;
+      int y = S.pop ();
+      int x = S.pop ();
+      int offset = y * width;
       // Skipping all the stuff we should add into our lump from the left
-      while (px.x >= 0 && getIsActiveInBounds (offset + px.x))
-        px.x--;
-      px.x++; // Now we find the left side of this part
+      while (x >= 0 && getIsActiveInBounds (offset + x))
+        x--;
+      x++; // Now we find the left side of this part
       // careful: px.x is used as an iterator and px.y is constant
       boolean spanTop = false;
       boolean spanBottom = false;
 
-      offset += px.x;
-      int offsetMinus1 = (px.y - 1) * width + px.x;
-      int offsetPlus1 = (px.y + 1) * width + px.x;
-      while (px.x < width && getIsActiveInBounds (offset) && markerArray[offset] == 0)
+      offset += x;
+      int offsetMinus1 = offset - width;
+      int offsetPlus1 = offset + width;
+      while (x < width && getIsActiveInBounds (offset) && markerArray[offset] == 0)
         {
-          ResultingLump.add (new CPPixelCoords (px));
+          ResultingLump.add (new CPPixelCoords (x, y));
           markerArray[offset] = 1;
-          if (!spanTop && px.y > 0 && getIsActiveInBounds (offsetMinus1) && markerArray[offsetMinus1] == 0)
+          if (!spanTop && y > 0 && getIsActiveInBounds (offsetMinus1) && markerArray[offsetMinus1] == 0)
             {
-              newPx = new CPPixelCoords (px.x, px.y - 1);
-              S.push (newPx);
+              S.push (x);
+              S.push (y - 1);
               spanTop = true;
             }
-          else if (spanTop && px.y > 0 && (!getIsActiveInBounds (offsetMinus1) || markerArray[offsetMinus1] == 1))
+          else if (spanTop && y > 0 && (!getIsActiveInBounds (offsetMinus1) || markerArray[offsetMinus1] == 1))
             {
               spanTop = false;
             }
-          if (!spanBottom && px.y < height - 1 && getIsActiveInBounds (offsetPlus1) && markerArray[offsetPlus1] == 0)
+          if (!spanBottom && y < height - 1 && getIsActiveInBounds (offsetPlus1) && markerArray[offsetPlus1] == 0)
             {
-              newPx = new CPPixelCoords (px.x, px.y + 1);
-              S.push (newPx);
+              S.push (x);
+              S.push (y + 1);
               spanBottom = true;
             }
-          else if (spanBottom && px.y < height - 1 && (!getIsActiveInBounds (offsetPlus1) || markerArray[offsetPlus1] == 1))
+          else if (spanBottom && y < height - 1 && (!getIsActiveInBounds (offsetPlus1) || markerArray[offsetPlus1] == 1))
             {
               spanBottom = false;
             }
-          px.x++;
+          x++;
           offset++;
           offsetMinus1++;
           offsetPlus1++;

@@ -59,6 +59,7 @@ public enum CPCommandId
   Fill,
   Clear,
   SelectAll,
+  InvertSelection,
   DeselectAll,
   MNoise,
   CNoise,

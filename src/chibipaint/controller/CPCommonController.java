@@ -288,6 +288,10 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
       artwork.selectAll ();
       canvas.repaint ();
       break;
+    case InvertSelection:
+      artwork.invertSelection ();
+      canvas.repaint ();
+      break;
     case DeselectAll:
       artwork.deselectAll ();
       canvas.repaint ();
