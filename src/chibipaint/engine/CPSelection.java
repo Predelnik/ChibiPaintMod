@@ -22,8 +22,8 @@
 package chibipaint.engine;
 
 import chibipaint.gui.CPCanvas;
-import chibipaint.util.CPPixelCoords;
 import chibipaint.util.CPRect;
+import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.stack.array.TIntArrayStack;
 import sun.awt.SunHints;
 
@@ -33,7 +33,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 public class CPSelection extends CPGreyBmp
 {
@@ -42,7 +41,7 @@ final float DASH_ZOOM_INDEPENDENT_LENGTH = 8.2f; // Dash final length, independe
 private byte[] markerArray;
 private float initialDashPiece = 0.0f;
 private boolean initialDashDrawn = false;
-private ArrayList<PixelSingleLine> CurPixelLines;
+private ArrayList<TIntArrayList> CurPixelLines;
 private int minX = 1;
 private int minY = 1;
 private int maxX = 0;
@@ -208,17 +207,9 @@ private boolean getIsActiveInBounds (int off)
   return ((data[off] & 0xff) > PIXEL_IN_SELECTION_THRESHOLD);
 }
 
-private boolean isActive (CPPixelCoords px)
+private boolean isActive (int x, int y)
 {
-  return isInside (px.x, px.y) && getIsActiveInBounds (px.x, px.y);
-}
-
-private int isMarked (CPPixelCoords px)
-{
-  if (isInside (px.x, px.y))
-    return (markerArray[px.y * width + px.x]);
-  else
-    return 15;
+  return isInside (x, y) && getIsActiveInBounds (x, y);
 }
 
 private static void drawLine (Graphics2D g2d, CPCanvas canvas, float x1, float y1, float x2, float y2)
@@ -227,9 +218,6 @@ private static void drawLine (Graphics2D g2d, CPCanvas canvas, float x1, float y
   Point2D.Float p2 = canvas.coordToDisplay (new Point2D.Float (x2, y2));
   g2d.draw (new Line2D.Float (p1, p2));
 }
-
-private final int[] OppositeDirection = {2, 3, 0, 1};
-private final int[] PowersOf2 = {1, 2, 4, 8};
 
 public void makeEmpty ()
 {
@@ -340,16 +328,6 @@ public void invert ()
     getData ()[off] = (byte) (getData ()[off] ^ 0xFF);
 }
 
-
-private class Lump extends ArrayList<CPPixelCoords>
-{
-}
-
-private class PixelSingleLine extends ArrayList<CPPixelCoords>
-{
-  boolean backwards = false;
-}
-
 private static final int directionsNum = 4;
 
 enum Directions
@@ -361,12 +339,12 @@ enum Directions
 }
 
 
-int GetNextDirectionNum (CPPixelCoords currentPoint, CPPixelCoords prevPoint)
+int GetNextDirectionNum (int cX, int cY, int pX, int pY)
 {
   int result = -1;
   for (int i = 0; i < directionsNum; i++)
-    if (currentPoint.x + CPPixelCoords.Corners[i * 2] == prevPoint.x &&
-            currentPoint.y + CPPixelCoords.Corners[i * 2 + 1] == prevPoint.y)
+    if (cX + Corners[i * 2] == pX &&
+            cY + Corners[i * 2 + 1] == pY)
       {
         result = i;
         break;
@@ -394,17 +372,25 @@ public CPRect getBoundingRect ()
   return new CPRect (minX, minY, maxX + 1, maxY + 1);
 }
 
-void createSingleLinesFromPoint (ArrayList<PixelSingleLine> pixelLinesTarget, int x, int y)
+static public final int[] Mv = {1, 0, 0, 1, -1, 0, 0, -1};
+static public final int[] Corners = {1, 1, 0, 1, 0, 0, 1, 0};
+
+void createSingleLinesFromPoint (ArrayList<TIntArrayList> pixelLinesTarget, int x, int y)
 {
-  CPPixelCoords startingPoint = new CPPixelCoords (x, y);
-  int fillMode = isActive (startingPoint) ? 1 : 0;
-  CPPixelCoords currentPoint = new CPPixelCoords (startingPoint);
-  PixelSingleLine sL = new PixelSingleLine ();
-  sL.add (startingPoint.down ());
+  int sX = x;
+  int sY = y;
+  boolean fillMode = isActive (sX, sY);
+  int cX = x;
+  int cY = y;
+  TIntArrayList sL = new TIntArrayList ();
+  sL.add (sX);
+  sL.add (sY + 1);
+  int lX = sX;
+  int lY = sY + 1;
   boolean Finished = false;
   do
     {
-      int scanningDirection = GetNextDirectionNum (currentPoint, sL.get (sL.size () - 1));
+      int scanningDirection = GetNextDirectionNum (cX, cY, lX, lY);
       if (scanningDirection == -1)
         break;
       for (int i = 1; i < directionsNum; i++)
@@ -413,10 +399,17 @@ void createSingleLinesFromPoint (ArrayList<PixelSingleLine> pixelLinesTarget, in
           if (scanningDirection == 4)
             scanningDirection = 0;
 
-          if (isActive (currentPoint.MoveByMv (scanningDirection)) == (fillMode == 0))
+          if (isActive (cX + Mv[scanningDirection * 2], cY + Mv[scanningDirection * 2 + 1]) != fillMode)
             {
-              if (currentPoint.MoveToCorner (scanningDirection).compareTo (sL.get (0)) != 0)
-                sL.add (currentPoint.MoveToCorner (scanningDirection));
+              int nX = cX + Corners[scanningDirection * 2];
+              int nY = cY + Corners[scanningDirection * 2 + 1];
+              if (nX != x || nY != y + 1)
+                {
+                  sL.add (nX);
+                  sL.add (nY);
+                  lX = nX;
+                  lY = nY;
+                }
               else
                 {
                   Finished = true;
@@ -425,15 +418,23 @@ void createSingleLinesFromPoint (ArrayList<PixelSingleLine> pixelLinesTarget, in
             }
           else
             {
-              CPPixelCoords nextPoint = currentPoint.MoveByMv (scanningDirection);
-              int l = GetNextDirectionNum (nextPoint, sL.get (sL.size () - 1)) + 1;
+              int nX = cX + Mv[scanningDirection * 2];
+              int nY = cY + Mv[scanningDirection * 2 + 1];
+              int l = GetNextDirectionNum (nX, nY, lX, lY) + 1;
               if (l == 4)
                 l = 0;
-              CPPixelCoords pointAfterNext = nextPoint.MoveByMv (l);
-              if (isActive (pointAfterNext) == (fillMode == 0))
-                currentPoint = nextPoint;
+              int panX = nX + Mv[l * 2];
+              int panY = nY + Mv[l * 2 + 1];
+              if (isActive (panX, panY) != fillMode)
+                {
+                  cX = nX;
+                  cY = nY;
+                }
               else
-                currentPoint = pointAfterNext;
+                {
+                  cX = panX;
+                  cY = panY;
+                }
               break;
             }
         }
@@ -442,8 +443,18 @@ void createSingleLinesFromPoint (ArrayList<PixelSingleLine> pixelLinesTarget, in
     }
   while (true);
 
-  if (fillMode == 0)
-    Collections.reverse (sL);
+  if (!fillMode)
+    {
+      for (int i = 0; i < sL.size () / 4; i++)
+        {
+          for (int j = 0; j < 2; j++)
+            {
+              int temp = sL.get (2 * i + j);
+              sL.set (2 * i + j, sL.get (sL.size () - 2 - 2 * i + j));
+              sL.set (sL.size () - 2 * i - 2 + j, temp);
+            }
+        }
+    }
   pixelLinesTarget.add (sL);
 }
 
@@ -506,12 +517,12 @@ public boolean isEmpty ()
   return (minX >= maxX || minY >= maxY);
 }
 
-public void drawItself (Graphics2D g2d, CPCanvas canvas)
+public void drawItself (Graphics2D g2dArg, CPCanvas canvas)
 {
   if (minX > maxX || minY > maxY || !neededForDrawing)
     return;
 
-  Color prevColor = g2d.getColor ();
+  Graphics2D g2d = (Graphics2D) g2dArg.create ();
   float dashLength = DASH_ZOOM_INDEPENDENT_LENGTH / canvas.getZoom ();
 
   for (int i = 0; i < CurPixelLines.size (); i++)
@@ -519,11 +530,16 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
 
       boolean dashDrawn = initialDashDrawn;
       float dashCurLength = initialDashPiece * dashLength;
-      for (int j = 0; j < CurPixelLines.get (i).size (); j++)
+      for (int j = 0; j < CurPixelLines.get (i).size () / 2; j++)
         {
-          PixelSingleLine CurPSL = CurPixelLines.get (i);
-          CPPixelCoords FirstPoint = CurPSL.get (j);
-          CPPixelCoords SecondPoint = CurPSL.get ((j + 1) % CurPixelLines.get (i).size ());
+          TIntArrayList CurPSL = CurPixelLines.get (i);
+          int fpX = CurPSL.get (j * 2);
+          int fpY = CurPSL.get (j * 2 + 1);
+          int nextIndex = (j + 1);
+          if (nextIndex == CurPSL.size () / 2)
+            nextIndex = 0;
+          int spX = CurPSL.get (nextIndex * 2);
+          int spY = CurPSL.get (nextIndex * 2 + 1);
           if (dashLength - dashCurLength > 1.0f)
             {
               if (dashDrawn)
@@ -531,7 +547,7 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
               else
                 g2d.setColor (Color.white);
 
-              drawLine (g2d, canvas, FirstPoint.x, FirstPoint.y, SecondPoint.x, SecondPoint.y);
+              drawLine (g2d, canvas, fpX, fpY, spX, spY);
               dashCurLength += 1.0f;
             }
           else
@@ -552,9 +568,9 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
                   else
                     g2d.setColor (Color.white);
 
-                  drawLine (g2d, canvas, FirstPoint.x + (SecondPoint.x - FirstPoint.x) * (segmentStart), FirstPoint.y + (SecondPoint.y - FirstPoint.y) * (segmentStart),
-                            FirstPoint.x + (SecondPoint.x - FirstPoint.x) * (segmentEnd),
-                            FirstPoint.y + (SecondPoint.y - FirstPoint.y) * (segmentEnd));
+                  drawLine (g2d, canvas, fpX + (spX - fpX) * (segmentStart), fpY + (spY - fpY) * (segmentStart),
+                            fpX + (spX - fpX) * (segmentEnd),
+                            fpY + (spY - fpY) * (segmentEnd));
 
 
                   if (leaveCycle)
@@ -566,11 +582,6 @@ public void drawItself (Graphics2D g2d, CPCanvas canvas)
             }
         }
     }
-
-  g2d.setColor (prevColor);
-  // Preparing
-  // And then the MAGICS!
-  // g2d.setStroke(stroke);
 }
 
 private void CalculateBoundingBox (CPRect rect)
@@ -626,7 +637,7 @@ private void precalculateForDrawing (CPRect rect)
     }
   // Now the actual part - we're running through all of the pixels, we're interested only in unmarked
   off = 0;
-  CurPixelLines = new ArrayList<PixelSingleLine> ();
+  CurPixelLines = new ArrayList<TIntArrayList> ();
   for (int j = 0; j < height; j++)
     {
       for (int i = 0; i < width; i++, off++)
