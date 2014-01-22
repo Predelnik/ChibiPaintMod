@@ -293,6 +293,18 @@ public enum SelectionTypeOfAppliance
 
 ;
 
+public void DoSelection (SelectionTypeOfAppliance type, CPSelection selection, boolean notNeededForDrawing)
+{
+  if (notNeededForDrawing)
+    {
+      curSelection.setNeededForDrawing (false);
+    }
+
+  DoSelection (type, selection);
+  curSelection.setNeededForDrawing (true);
+}
+
+// All that is passed into that function shouldn't be needed for drawing
 public void DoSelection (SelectionTypeOfAppliance type, CPSelection selection)
 {
   undoManager.preserveCurrentSelection ();
@@ -398,6 +410,7 @@ public CPArtwork (int width, int height)
   this.height = height;
 
   curSelection = new CPSelection (width, height);
+  curSelection.setNeededForDrawing (true);
   transformHandler = new CPTransformHandler ();
   setLayers (new Vector<CPLayer> ());
 

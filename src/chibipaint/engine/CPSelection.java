@@ -53,7 +53,7 @@ public CPSelection (int width, int height)
   super (width, height);
   markerArray = new byte[(width + 1) * (height + 1)];
   Arrays.fill (data, (byte) 0);
-  neededForDrawing = true;
+  neededForDrawing = false;
 }
 
 public void RaiseInitialDash ()
@@ -662,7 +662,9 @@ public void precalculateSelection (CPRect rect)
   rect.clip (getSize ());
   CalculateBoundingBox (rect); // Warning: We count everything non-zero into bounding box, so the function is separate.
   if (neededForDrawing)
-    precalculateForDrawing (rect);
+    {
+      precalculateForDrawing (rect);
+    }
 }
 
 }

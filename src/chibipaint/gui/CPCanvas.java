@@ -2294,7 +2294,8 @@ class CPFreeSelectionMode extends CPMode
     else
       {
         artwork.DoSelection (SelectionTypeOfAppliance.CREATE, polygonSelection);
-        artwork.doEffectAction (false, new CPTransparentFillEffect (controller.getCurColorRgb () | controller.getSelectionFillAlpha () << 24));
+        if (!artwork.getCurSelection ().isEmpty ())
+          artwork.doEffectAction (false, new CPTransparentFillEffect (controller.getCurColorRgb () | controller.getSelectionFillAlpha () << 24));
         artwork.deselectAll ();
       }
     artwork.finalizeUndo ();
