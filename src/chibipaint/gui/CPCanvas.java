@@ -664,16 +664,7 @@ public void mouseWheelMoved (MouseWheelEvent e)
     }
 
   Point2D.Float pf = coordToDocument (new Point2D.Float (getCursorX (), getCursorY ()));
-  if (artwork.isPointWithin (pf.x, pf.y))
-    {
-      zoomOnPoint (getZoom () * factor, getCursorX (), getCursorY ());
-    }
-  else
-    {
-      zoomOnPoint (getZoom () * factor, offsetX + (int) (artwork.getWidth () * zoom / 2), offsetY
-              + (int) (artwork.getHeight () * zoom / 2));
-    }
-  // FIXME: clean the above code, some coordinates get transformed multiple times for nothing
+  zoomOnPoint (getZoom () * factor, getCursorX (), getCursorY ());
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////
