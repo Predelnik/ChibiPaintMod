@@ -73,12 +73,12 @@ public void doTransformAction (transformType type, CPEnums.Direction direction)
 
 static int FLOODFILL_PREVIEW_COLOR = 0x8000FF00;
 
-public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, Point2D.Float initialPos)
+public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, Point2D.Float initialPos, boolean mindSelection)
 {
   if (isPointWithin (pf.x, pf.y))
     {
       tempBuffer.clear ();
-      applyFloodFillToLayer ((int) pf.x, (int) pf.y, distance, FLOODFILL_PREVIEW_COLOR);
+      applyFloodFillToLayer ((int) pf.x, (int) pf.y, distance, FLOODFILL_PREVIEW_COLOR, mindSelection);
       CPRect rect = new CPRect ((int) initialPos.x - 2, (int) initialPos.y - 2, (int) initialPos.x + 2, (int) initialPos.y + 2);
       tempBuffer.drawRectangle (rect, 0xffffffff, true);
       showOverlay = true;
@@ -87,9 +87,9 @@ public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, P
     showOverlay = false;
 }
 
-public void applyFloodFillToLayer (int x, int y, int distance, int color)
+public void applyFloodFillToLayer (int x, int y, int distance, int color, boolean mindSelection)
 {
-  CPColorBmp.floodFill (x, y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), distance, tempBuffer, color);
+  CPColorBmp.floodFill (x, y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), distance, tempBuffer, color, mindSelection && !curSelection.isEmpty () ? curSelection : null);
 }
 
 public void performFloodFill (float x, float y, int colorDistance)
@@ -98,7 +98,7 @@ public void performFloodFill (float x, float y, int colorDistance)
 
   tempBuffer.clear ();
 
-  applyFloodFillToLayer ((int) x, (int) y, colorDistance, curColor | 0xff000000);
+  applyFloodFillToLayer ((int) x, (int) y, colorDistance, curColor | 0xff000000, true);
   tempBuffer.drawItselfOnTarget (getActiveLayer (), 0, 0);
 
   undoManager.activeLayerDataChange (new CPRect (getWidth (), getHeight ()));
@@ -107,10 +107,9 @@ public void performFloodFill (float x, float y, int colorDistance)
 
 public void performMagicWand (float x, float y, int colorDistance, SelectionTypeOfAppliance selectionTypeOfAppliance)
 {
-
   tempBuffer.clear ();
 
-  applyFloodFillToLayer ((int) x, (int) y, colorDistance, 0xFF000000);
+  applyFloodFillToLayer ((int) x, (int) y, colorDistance, 0xFF000000, false);
   CPSelection tempSelection = new CPSelection (width, height);
   tempSelection.makeSelectionFromAlpha (tempBuffer.getData (), tempBuffer.getSize ());
   DoSelection (selectionTypeOfAppliance, tempSelection);

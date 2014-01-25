@@ -238,7 +238,6 @@ void initCanvas (CPCommonController ctrl)
   ctrl.setCanvas (this);
 
   int[] pixels = new int[16 * 16];
-  Image image = Toolkit.getDefaultToolkit ().createImage (new MemoryImageSource (16, 16, pixels, 0, 16));
   defaultCursor = new Cursor (Cursor.DEFAULT_CURSOR);
   moveCursor = new Cursor (Cursor.MOVE_CURSOR);
   crossCursor = new Cursor (Cursor.CROSSHAIR_CURSOR);
@@ -1331,16 +1330,6 @@ public void setCursorIn (boolean cursorIn)
   this.cursorIn = cursorIn;
 }
 
-public boolean getInterpolation ()
-{
-  return interpolation;
-}
-
-public boolean getShowGrid ()
-{
-  return showGrid;
-}
-
 public void setShowSelection (boolean showSelection)
 {
   this.showSelection = showSelection;
@@ -1370,7 +1359,7 @@ public abstract class CPMode
 
   public void cursorClickAction ()
   {
-    // To not define actions for some functions in every case
+
   }
 
   public void cursorMoveAction ()
@@ -1918,13 +1907,12 @@ abstract class CPGeneralFillMode extends CPMode
   int floodFillActualColorDistance;
   Point2D.Float prevDocPoint;
   Timer updateTimer;
+  protected boolean mindSelection;
 
   void updatePreview ()
   {
     calcColorDistance ();
-    Point p = new Point (getCursorX (), getCursorY ());
-    Point2D.Float pf = coordToDocument (p);
-    artwork.updateOverlayWithFloodfillPreview (cursorAnchorPos, floodFillActualColorDistance, cursorAnchorPos);
+    artwork.updateOverlayWithFloodfillPreview (cursorAnchorPos, floodFillActualColorDistance, cursorAnchorPos, mindSelection);
     updateRegion (artwork, artwork.getSize ());
   }
 
@@ -1963,7 +1951,7 @@ abstract class CPGeneralFillMode extends CPMode
     g2d.setColor (Color.WHITE);
     int x = getCursorX ();
     int y = getCursorY ();
-    String str = "Color Distance: " + floodFillActualColorDistance;
+    String str = "Threshold: " + floodFillActualColorDistance;
     FontMetrics fm = g2d.getFontMetrics ();
     Rectangle2D rect = fm.getStringBounds (str, g2d);
 
@@ -1989,8 +1977,6 @@ abstract class CPGeneralFillMode extends CPMode
   @Override
   public void cursorReleaseAction ()
   {
-    Point p = new Point (getCursorX (), getCursorY ());
-    Point2D.Float pf = coordToDocument (p);
     artwork.cancelOverlayDrawing ();
     calcColorDistance ();
 
@@ -2009,6 +1995,11 @@ abstract class CPGeneralFillMode extends CPMode
 
 class CPFloodFillMode extends CPGeneralFillMode
 {
+  CPFloodFillMode ()
+  {
+    mindSelection = true;
+  }
+
   @Override
   void performFloodFill ()
   {
@@ -2018,6 +2009,11 @@ class CPFloodFillMode extends CPGeneralFillMode
 
 class CPMagicWandMode extends CPGeneralFillMode
 {
+  CPMagicWandMode ()
+  {
+    mindSelection = false;
+  }
+
   @Override
   void performFloodFill ()
   {

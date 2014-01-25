@@ -510,7 +510,7 @@ private static boolean areColorsNearAlpha (int color_1, int color_2, int distanc
 
 }
 
-static public void floodFill (int xArg, int yArg, final int colorOfDetection, final CPLayer useDataFrom, final int colorDistance, final CPLayer destination, final int destinationColor)
+static public void floodFill (int xArg, int yArg, final int colorOfDetection, final CPLayer useDataFrom, final int colorDistance, final CPLayer destination, final int destinationColor, final CPSelection selection)
 {
   if (!useDataFrom.isInside (xArg, yArg))
     {
@@ -522,6 +522,7 @@ static public void floodFill (int xArg, int yArg, final int colorOfDetection, fi
   int height = useDataFrom.getHeight ();
   int offset = 0;
   boolean checkOnlyAlpha = true;
+  int destinationColorWithoutAlpha = destinationColor & 0xFFFFFF;
 
   if ((useDataFrom.getPixel (xArg, yArg) & 0xff000000) == 0)
     {
@@ -535,26 +536,53 @@ static public void floodFill (int xArg, int yArg, final int colorOfDetection, fi
     }
 
   CPIfaces.IntChecker shouldWeFill = null;
-  if (checkOnlyAlpha)
+  if (selection == null)
     {
-      shouldWeFill = new CPIfaces.IntChecker ()
-      {
-        public boolean check (int arg)
+      if (checkOnlyAlpha)
         {
-          return areColorsNearAlpha (useDataFrom.getData ()[arg], oldColor, colorDistance) && (destination.getData ()[arg] == 0);
+          shouldWeFill = new CPIfaces.IntChecker ()
+          {
+            public boolean check (int arg)
+            {
+              return areColorsNearAlpha (useDataFrom.getData ()[arg], oldColor, colorDistance) && (destination.getData ()[arg] == 0);
+            }
+          };
         }
-      };
+      else
+        {
+          shouldWeFill = new CPIfaces.IntChecker ()
+          {
+            public boolean check (int arg)
+            {
+              return areColorsNear (useDataFrom.getData ()[arg], oldColor, colorDistance) && (destination.getData ()[arg] == 0);
+            }
+          };
+        }
     }
   else
     {
-      shouldWeFill = new CPIfaces.IntChecker ()
-      {
-        public boolean check (int arg)
+      if (checkOnlyAlpha)
         {
-          return areColorsNear (useDataFrom.getData ()[arg], oldColor, colorDistance) && (destination.getData ()[arg] == 0);
+          shouldWeFill = new CPIfaces.IntChecker ()
+          {
+            public boolean check (int arg)
+            {
+              return areColorsNearAlpha (useDataFrom.getData ()[arg], oldColor, colorDistance) && (destination.getData ()[arg] == 0) && (selection.getData ()[arg] != 0);
+            }
+          };
         }
-      };
+      else
+        {
+          shouldWeFill = new CPIfaces.IntChecker ()
+          {
+            public boolean check (int arg)
+            {
+              return areColorsNear (useDataFrom.getData ()[arg], oldColor, colorDistance) && (destination.getData ()[arg] == 0) && (selection.getData ()[arg] != 0);
+            }
+          };
+        }
     }
+
 
   TIntArrayStack S = new TIntArrayStack ();
   S.push (xArg);
@@ -578,7 +606,10 @@ static public void floodFill (int xArg, int yArg, final int colorOfDetection, fi
       int offsetPlus1 = offset + width;
       while (x < width && shouldWeFill.check (offset))
         {
-          destination.getData ()[y * width + x] = destinationColor;
+          if (selection == null)
+            destination.getData ()[offset] = destinationColor;
+          else
+            destination.getData ()[offset] = destinationColorWithoutAlpha | selection.getData ()[offset] << 24;
           if (!spanTop && y > 0 && shouldWeFill.check (offsetMinus1))
             {
               S.push (x);
