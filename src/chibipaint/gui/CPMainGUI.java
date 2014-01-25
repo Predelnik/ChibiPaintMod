@@ -464,13 +464,15 @@ void setBg (JPanel bg)
   this.bg = bg;
 }
 
+static public final int RECENT_FILES_COUNT = 9;
+
 public void updateRecentFiles ()
 {
   recentFilesMenuItem.removeAll ();
   lastSubMenu = recentFilesMenuItem;
   Preferences userRoot = Preferences.userRoot ();
   Preferences preferences = userRoot.node ("chibipaintmod");
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < RECENT_FILES_COUNT; i++)
     {
       String recentFileName = preferences.get ("Recent File[" + i + "]", "");
       if (recentFileName.length () != 0)

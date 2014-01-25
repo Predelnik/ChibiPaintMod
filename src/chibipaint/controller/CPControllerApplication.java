@@ -26,6 +26,7 @@ import chibipaint.ChibiApp.appState;
 import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPUndo;
 import chibipaint.file.CPFile;
+import chibipaint.gui.CPMainGUI;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -342,7 +343,7 @@ private boolean saveLoadImageFile (
       if (file.isNative ())
         {
           Boolean found = false;
-          for (int i = 0; i < 10; i++)
+          for (int i = 0; i < CPMainGUI.RECENT_FILES_COUNT; i++)
             {
               String file_name_from_list = preferences.get ("Recent File["
                                                                     + i + "]", "");
