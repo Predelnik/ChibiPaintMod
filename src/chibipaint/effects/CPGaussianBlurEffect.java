@@ -39,6 +39,7 @@ protected void blurLine (int[] src, int dst[], int radius, int startOffset, int 
   float s, ta, tr, tg, tb;
   s = ta = tr = tg = tb = 0;
   int pix = 0;
+  int m;
 
   float[] matrix = kernel.getKernelData (null);
 
@@ -47,15 +48,37 @@ protected void blurLine (int[] src, int dst[], int radius, int startOffset, int 
       int start = i - radius;
       int end = i + radius;
       ta = tr = tg = tb = 0;
-      for (int j = start, m = 0; j < end; j++, m++)
-        {
-          if (j >= startOffset && j <= endOffset)
-            pix = src[j];
-          else if (j < startOffset)
-            pix = src[startOffset];
-          else if (j > endOffset)
-            pix = src[endOffset];
+      m = 0;
 
+      if (start < startOffset)
+        {
+          pix = src[startOffset];
+          for (int j = start; j < startOffset; j++, m++)
+            {
+              ta += ((pix >>> 24) & 0xff) * matrix[m];
+              tr += ((pix >>> 16) & 0xff) * matrix[m];
+              tg += ((pix >>> 8) & 0xff) * matrix[m];
+              tb += (pix & 0xff) * matrix[m];
+            }
+          start = startOffset;
+        }
+
+      if (end > endOffset + 1)
+        {
+          pix = src[endOffset];
+          for (int j = endOffset + 1, m1 = endOffset + 1 - start; j < end; j++, m1++)
+            {
+              ta += ((pix >>> 24) & 0xff) * matrix[m1];
+              tr += ((pix >>> 16) & 0xff) * matrix[m1];
+              tg += ((pix >>> 8) & 0xff) * matrix[m1];
+              tb += (pix & 0xff) * matrix[m1];
+            }
+          end = endOffset;
+        }
+
+      for (int j = start; j < end; j++, m++)
+        {
+          pix = src[j];
           ta += ((pix >>> 24) & 0xff) * matrix[m];
           tr += ((pix >>> 16) & 0xff) * matrix[m];
           tg += ((pix >>> 8) & 0xff) * matrix[m];

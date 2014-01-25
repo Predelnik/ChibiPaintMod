@@ -326,6 +326,7 @@ public void invert ()
 {
   for (int off = 0; off < width * height; off++)
     getData ()[off] = (byte) (getData ()[off] ^ 0xFF);
+  precalculateSelection ();
 }
 
 private static final int directionsNum = 4;
