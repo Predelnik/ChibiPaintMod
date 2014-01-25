@@ -43,7 +43,14 @@ private int transformColor (int color)
 
 public int modify (int[] data, byte[] selData, int offset)
 {
-  return colorInOpaque (data[offset], selData[offset], transformColor (data[offset]));
+  int selValue = selData[offset] & 0xFF;
+  int alphaValue = (data[offset] >>> 24) & 0xFF;
+  if (selValue >= alphaValue)
+    return transformColor (data[offset]);
+  else
+    {
+      return colorInOpaque (((alphaValue - selValue) << 24) | 0xFFFFFF & data[offset], selData[offset], transformColor (data[offset]));
+    }
 }
 
 public int modify (int[] data, int offset)
