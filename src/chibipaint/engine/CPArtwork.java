@@ -71,7 +71,7 @@ public void doTransformAction (transformType type, CPEnums.Direction direction)
   invalidateFusion (updatingRect);
 }
 
-static int FLOODFILL_PREVIEW_COLOR = 0x8000FF00;
+static int FLOODFILL_PREVIEW_COLOR = 0xFF000000;
 
 public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, Point2D.Float initialPos, boolean mindSelection)
 {

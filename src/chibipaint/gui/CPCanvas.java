@@ -499,6 +499,7 @@ public void paint (Graphics g)
 
   if (artwork.getShowOverlay ())
     {
+      g2doc.setXORMode (Color.WHITE);
       g2doc.drawImage (overlayImg, 0, 0, w, h, 0, 0, overlayImg.getWidth (null), overlayImg.getHeight (null), null);
     }
 
