@@ -71,7 +71,7 @@ public CPStrokePalette (CPCommonController controller)
 }
 
 @Override
-public void newTool (int tool, CPBrushInfo toolInfo)
+public void newTool (CPBrushInfo toolInfo)
 {
   freeHandButton.setSelected (toolInfo.strokeMode == CPBrushInfo.SM_FREEHAND);
   lineButton.setSelected (toolInfo.strokeMode == CPBrushInfo.SM_LINE);

@@ -43,7 +43,6 @@ public CPMiscPalette (CPCommonController controller)
   title = "Misc";
   setLayout (new FlowLayout ());
 
-  Component spacer;
   icons = controller.loadImage ("icons.png");
   zoomInButton = addIconButton (13, CPCommandId.ZoomIn);
   zoomOutButton = addIconButton (14, CPCommandId.ZoomOut);

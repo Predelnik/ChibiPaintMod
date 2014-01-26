@@ -38,7 +38,6 @@ public CPToolsPalette (CPCommonController controller)
   title = "Tools";
   setLayout (new FlowLayout ());
 
-  CPIconButton button;
   icons = controller.loadImage ("icons.png");
   addIconButton (0, CPCommandId.RectSelection, CPCommonController.M_RECT_SELECTION);
   addIconButton (30, CPCommandId.FreeSelection, CPCommonController.M_FREE_SELECTION);

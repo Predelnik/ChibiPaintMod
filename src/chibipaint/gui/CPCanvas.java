@@ -60,7 +60,7 @@ private CPCommonController controller;
 
 // FIXME: this should not be public
 public Image img;
-public Image overlayImg;
+private Image overlayImg;
 
 private BufferedImage checkerboardPattern;
 private MemoryImageSource imgSource;
@@ -180,7 +180,7 @@ CPCanvas getCanvas ()
   return this;
 }
 
-public void setNiceInitialPosition ()
+void setNiceInitialPosition ()
 {
   Rectangle bounds = this.getBounds ();
   setZoom (Math.min (Math.min ((float) bounds.getHeight () / artwork.getHeight (), (float) bounds.getWidth () / artwork.getWidth ()), 1.0f));
@@ -674,7 +674,7 @@ public void mouseWheelMoved (MouseWheelEvent e)
 
 // Zoom
 
-public void setZoom (float zoom)
+void setZoom (float zoom)
 {
   this.zoom = zoom;
   updateTransform ();
@@ -937,7 +937,7 @@ Rectangle getBrushPreviewOval (boolean calcPressureArg)
 //
 
 @Override
-public void newTool (int tool, CPBrushInfo toolInfo)
+public void newTool (CPBrushInfo toolInfo)
 {
   if (curSelectedMode == curDrawMode)
     {
@@ -1186,7 +1186,7 @@ public void componentShown (ComponentEvent e)
 }
 
 @Override
-public void updateRegion (CPArtwork artworkArg, CPRect region)
+public void updateRegion (CPRect region)
 {
   updateRegion.union (region);
 
@@ -1646,12 +1646,12 @@ class CPLineMode extends CPMode
 // Bezier drawing mode
 //
 
-class CPBezierMode extends CPMode
+public class CPBezierMode extends CPMode
 {
 
   // bezier drawing
-  static final int BEZIER_POINTS = 500;
-  static final int BEZIER_POINTS_PREVIEW = 100;
+  static final public int BEZIER_POINTS = 500;
+  static final public int BEZIER_POINTS_PREVIEW = 100;
 
   boolean dragBezier = false;
   int dragBezierMode; // 0 Initial drag, 1 first control point, 2 second point
@@ -1898,14 +1898,14 @@ abstract class CPGeneralFillMode extends CPMode
   int initialColorDistance;
   int floodFillActualColorDistance;
   Point2D.Float prevDocPoint;
-  Timer updateTimer;
-  protected boolean mindSelection;
+  final Timer updateTimer;
+  boolean mindSelection;
 
   void updatePreview ()
   {
     calcColorDistance ();
     artwork.updateOverlayWithFloodfillPreview (cursorAnchorPos, floodFillActualColorDistance, cursorAnchorPos, mindSelection);
-    updateRegion (artwork, artwork.getSize ());
+    updateRegion (artwork.getSize ());
   }
 
   CPGeneralFillMode ()
@@ -1976,7 +1976,7 @@ abstract class CPGeneralFillMode extends CPMode
       {
         performFloodFill ();
         artwork.finalizeUndo ();
-        updateRegion (artwork, artwork.getSize ());
+        updateRegion (artwork.getSize ());
       }
 
     setActiveMode (defaultMode); // yield control to the default mode

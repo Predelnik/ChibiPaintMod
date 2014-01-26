@@ -75,7 +75,7 @@ private void getTabletInfo ()
     {
       try
         {
-          if (((Boolean) mPoll.invoke (tablet, (Object[]) null)).booleanValue ())
+          if ((Boolean) mPoll.invoke (tablet, (Object[]) null))
             {
               pressure = (Integer) mGetPressure.invoke (tablet, (Object[]) null);
               pressureExtent = (Integer) mGetPressureExtent.invoke (tablet, (Object[]) null);

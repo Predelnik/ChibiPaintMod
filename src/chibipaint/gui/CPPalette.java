@@ -34,7 +34,7 @@ import java.awt.event.ActionListener;
 class CPPalette extends JComponent
 {
 
-protected Image icons = null;
+Image icons = null;
 final CPCommonController controller;
 private ICPPaletteContainer container;
 
@@ -55,7 +55,7 @@ public ICPPaletteContainer getPaletteContainer ()
   return container;
 }
 
-protected JLabel addLabel (int x, int y, String text)
+JLabel addLabel (int x, int y, String text)
 {
   // transform controls
   JLabel label = new JLabel ();
@@ -66,7 +66,7 @@ protected JLabel addLabel (int x, int y, String text)
   return label;
 }
 
-protected JButton addTextButton (int x, int y, int width, int height, String text, final CPCommandId commandId)
+JButton addTextButton (int x, int y, int width, int height, String text, final CPCommandId commandId)
 {
   // transform controls
   CPTextButton button = new CPTextButton ();
@@ -85,7 +85,7 @@ protected JButton addTextButton (int x, int y, int width, int height, String tex
   return button;
 }
 
-protected CPIconButton addIconButton (int iconIndex, final CPCommandId commandId, int mode, CPCommandId commandDoubleId, int brushType)
+CPIconButton addIconButton (int iconIndex, final CPCommandId commandId, int mode, CPCommandId commandDoubleId, int brushType)
 {
   CPIconButton button;
   int buttonSize = 32;
@@ -106,22 +106,22 @@ protected CPIconButton addIconButton (int iconIndex, final CPCommandId commandId
   return button;
 }
 
-protected CPIconButton addIconButton (int iconIndex, CPCommandId id, int mode, CPCommandId commandDoubleId)
+CPIconButton addIconButton (int iconIndex, CPCommandId id, int mode, CPCommandId commandDoubleId)
 {
   return addIconButton (iconIndex, id, mode, commandDoubleId, CPCommonController.T_INVALID);
 }
 
-protected CPIconButton addIconButton (int iconIndex, CPCommandId id, int mode)
+CPIconButton addIconButton (int iconIndex, CPCommandId id, int mode)
 {
   return addIconButton (iconIndex, id, mode, null);
 }
 
-protected CPIconButton addIconButton (int iconIndex, CPCommandId id)
+CPIconButton addIconButton (int iconIndex, CPCommandId id)
 {
   return addIconButton (iconIndex, id, CPCommonController.M_INVALID);
 }
 
-protected void addSpacer ()
+void addSpacer ()
 {
   JPanel spacer = new JPanel ();
   spacer.setSize (16, 32);

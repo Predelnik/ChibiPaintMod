@@ -30,7 +30,7 @@ import java.util.Vector;
 public class CPUndoManager
 {
 
-public int maxUndo = 30;
+private int maxUndo = 30;
 
 private final LinkedList<CPUndo> undoList = new LinkedList<CPUndo> ();
 private final LinkedList<CPUndo> redoList = new LinkedList<CPUndo> ();
@@ -45,11 +45,11 @@ public CPSelection getPreservedSelection ()
   return preservedSelection;
 }
 
-final CPSelection preservedSelection;
-final CPLayer preservedActiveLayer;
-Vector<CPLayer> preservedAllLayers;
+private final CPSelection preservedSelection;
+private final CPLayer preservedActiveLayer;
+private Vector<CPLayer> preservedAllLayers;
 
-public CPLayer getPreservedActiveLayer ()
+CPLayer getPreservedActiveLayer ()
 {
   return preservedActiveLayer;
 }
@@ -128,7 +128,7 @@ public void finalizeUndo ()
     }
 }
 
-public void discardUndo ()
+void discardUndo ()
 {
   pendingUndoList.clear ();
 }
@@ -238,7 +238,6 @@ public void preserveLayersCheckState ()
 {
 
   preservedLayerCheckState.clear ();
-  boolean first = false;
   for (int i = 0; i < preservedLayerCheckState.size (); i++)
     {
       preservedLayerCheckState.set (i, artwork.getLayersVector ().elementAt (i).isVisible ());
@@ -902,7 +901,7 @@ class CPUndoToggleLayers extends CPUndo
 {
   final ArrayList<Boolean> mask;
   boolean toggleType; // true - we checking everything, false - unchecking
-  private CPArtwork artwork;
+  private final CPArtwork artwork;
 
   public CPUndoToggleLayers (CPArtwork artwork, ArrayList<Boolean> maskArg)
   {

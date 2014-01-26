@@ -71,7 +71,7 @@ public void doTransformAction (transformType type, CPEnums.Direction direction)
   invalidateFusion (updatingRect);
 }
 
-static int FLOODFILL_PREVIEW_COLOR = 0xFF000000;
+private static final int FLOODFILL_PREVIEW_COLOR = 0xFF000000;
 
 public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, Point2D.Float initialPos, boolean mindSelection)
 {
@@ -87,9 +87,9 @@ public void updateOverlayWithFloodfillPreview (Point2D.Float pf, int distance, P
     showOverlay = false;
 }
 
-public void applyFloodFillToLayer (int x, int y, int distance, int color, boolean mindSelection)
+void applyFloodFillToLayer (int x, int y, int distance, int color, boolean mindSelection)
 {
-  CPColorBmp.floodFill (x, y, curColor | 0xff000000, isSampleAllLayers () ? fusion : getActiveLayer (), distance, tempBuffer, color, mindSelection && !curSelection.isEmpty () ? curSelection : null);
+  CPColorBmp.floodFill (x, y, isSampleAllLayers () ? fusion : getActiveLayer (), distance, tempBuffer, color, mindSelection && !curSelection.isEmpty () ? curSelection : null);
 }
 
 public void performFloodFill (float x, float y, int colorDistance)
@@ -350,7 +350,7 @@ public void finalizeUndo ()
 public interface ICPArtworkListener
 {
 
-  void updateRegion (CPArtwork artwork, CPRect region);
+  void updateRegion (CPRect region);
 
   void layerChange (CPArtwork artwork);
 }
@@ -452,7 +452,7 @@ public void fusionLayers ()
       return;
     }
 
-  mergeOpacityBuffer (curColor, false);
+  mergeOpacityBuffer (curColor);
 
   fusion.clear (fusionArea, 0x00ffffff);
   boolean fullAlpha = true, first = true;
@@ -514,7 +514,7 @@ void callListenersUpdateRegion (CPRect region)
 {
   for (ICPArtworkListener l : artworkListeners)
     {
-      l.updateRegion (this, region);
+      l.updateRegion (region);
     }
 }
 
@@ -585,7 +585,7 @@ public void endStroke ()
   undoManager.finalizeUndo ();
 }
 
-void mergeOpacityBuffer (int color, boolean clear)
+void mergeOpacityBuffer (int color)
 {
   if (!opacityArea.isEmpty ())
     {
@@ -606,7 +606,7 @@ void mergeOpacityBuffer (int color, boolean clear)
           undoManager.restoreActiveLayerAlpha (opacityArea);
         }
 
-      if (clear)
+      if (false)
         {
           tempBuffer.clear (opacityArea, 0);
         }
@@ -677,7 +677,7 @@ abstract class CPBrushToolBase extends CPBrushTool
     undoArea.clip (getSize ());
     if (!undoArea.isEmpty ())
       {
-        mergeOpacityBuffer (curColor, false);
+        mergeOpacityBuffer (curColor);
         undoManager.activeLayerDataChange (undoArea);
         undoArea.makeEmpty ();
       }
@@ -1117,7 +1117,7 @@ class CPBrushToolWatercolor extends CPBrushToolDirectBrush
     previousSamples.removeFirst ();
 
     paintDirect (srcRect, dstRect, dab.brush, dab.width, Math.max (1, dab.alpha / 4), newColor);
-    mergeOpacityBuffer (0, false);
+    mergeOpacityBuffer (0);
     if (isSampleAllLayers ())
       {
         fusionLayers ();
@@ -1230,7 +1230,7 @@ class CPBrushToolOil extends CPBrushToolDirectBrush
         oilPasteBuffer (srcRect, dstRect, brushBuffer, dab.brush, dab.width, dab.alpha);
         oilAccumBuffer (srcRect, dstRect, brushBuffer, dab.width, (int) ((curBrush.bleed) * 255));
       }
-    mergeOpacityBuffer (0, false);
+    mergeOpacityBuffer (0);
     if (isSampleAllLayers ())
       {
         fusionLayers ();

@@ -24,8 +24,8 @@ package chibipaint.util;
 public class CPTables
 {
 private static CPTables ref;
-public int[] divide;
-public int[] divideBy255;
+public final int[] divide;
+public final int[] divideBy255;
 
 public static CPTables getRef ()
 {

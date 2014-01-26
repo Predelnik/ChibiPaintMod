@@ -237,11 +237,11 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
   smoothingSlider.setValue ((int) (ctrlr.getBrushInfo ().smoothing * 100));
 
   ctrlr.addToolListener (this);
-  newTool (0, null); // Just to figure out visibility
+  newTool (null); // Just to figure out visibility
 }
 
 @Override
-public void newTool (int tool, CPBrushInfo toolInfo)
+public void newTool (CPBrushInfo toolInfo)
 {
   JComponent[] brushControls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
           bleedSlider, spacingSlider, scatteringSlider, smoothingSlider, tipCombo, brushPreview};
@@ -443,7 +443,7 @@ class CPBrushPreview extends JComponent implements MouseListener, MouseMotionLis
   }
 
   @Override
-  public void newTool (int tool, CPBrushInfo toolInfo)
+  public void newTool (CPBrushInfo toolInfo)
   {
     if (toolInfo.size != size)
       {

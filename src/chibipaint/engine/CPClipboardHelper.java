@@ -31,12 +31,12 @@ import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
 import java.io.IOException;
 
-public class CPClipboardHelper
+class CPClipboardHelper
 {
 private static class TransferableImage implements Transferable
 {
 
-  private boolean limited;
+  private final boolean limited;
   private final CPCopyPasteImage image;
 
   public TransferableImage (CPCopyPasteImage imageArg, boolean limitedArg)
@@ -85,7 +85,7 @@ private static class TransferableImage implements Transferable
 }
 
 
-public static final DataFlavor cpmImageFlavor = new DataFlavor ("image/cpm-image; class=chibipaint.engine.CPCopyPasteImage", "ChibiPaint Image");
+private static final DataFlavor cpmImageFlavor = new DataFlavor ("image/cpm-image; class=chibipaint.engine.CPCopyPasteImage", "ChibiPaint Image");
 
 static public CPCopyPasteImage GetClipboardImage (boolean limited)
 {

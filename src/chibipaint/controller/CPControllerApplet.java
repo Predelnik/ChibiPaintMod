@@ -50,7 +50,7 @@ public Applet getApplet ()
 }
 
 @Override
-public Component getDialogParent ()
+protected Component getDialogParent ()
 {
   if (floatingFrame != null)
     {

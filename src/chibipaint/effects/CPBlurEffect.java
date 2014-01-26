@@ -33,7 +33,7 @@ abstract public class CPBlurEffect extends CPEffect
 private final int radius;
 private final int iterations;
 
-public CPBlurEffect (int radiusArg, int iterationsArg)
+CPBlurEffect (int radiusArg, int iterationsArg)
 {
   radius = radiusArg;
   iterations = iterationsArg;
@@ -67,7 +67,7 @@ private void boxBlur (CPLayer layer, int iterations)
           System.arraycopy (layer.getData (), j * layerWidth, src, 0, layerWidth);
           multiplyAlpha (src, layerWidth);
           Arrays.fill (dst, 0);
-          blurLine (src, dst, radius, 0, layerWidth - 1);
+          blurLine (src, dst, radius, layerWidth - 1);
           copyArrayToRow (layer, j, layerWidth, dst);
         }
 
@@ -75,7 +75,7 @@ private void boxBlur (CPLayer layer, int iterations)
         {
           copyColumnToArray (layer, i, layerHeight, src);
           Arrays.fill (dst, 0);
-          blurLine (src, dst, radius, 0, layerHeight - 1);
+          blurLine (src, dst, radius, layerHeight - 1);
           restoreAlpha (dst, layerHeight);
           copyArrayToColumn (layer, i, layerHeight, dst);
         }
@@ -109,7 +109,7 @@ private void boxBlurWithWeights (CPLayer layer, CPSelection selection, int itera
           makeWeightsFromRow (selection, j, rect.getLeft (), rect.getTop (), rectWidth, weights);
           System.arraycopy (tempBmp.getData (), j * rectWidth, src, 0, rectWidth);
           multiplyAlpha (src, rectWidth);
-          blurLine (src, dst, radius, 0, rectWidth - 1, weights);
+          blurLine (src, dst, radius, rectWidth - 1, weights);
           copyArrayToRow (tempBmp, j, rectWidth, dst);
         }
 
@@ -117,7 +117,7 @@ private void boxBlurWithWeights (CPLayer layer, CPSelection selection, int itera
         {
           makeWeightsFromColumn (selection, i, rect.getLeft (), rect.getTop (), rectHeight, weights);
           copyColumnToArray (tempBmp, i, rectHeight, src);
-          blurLine (src, dst, radius, 0, rectHeight - 1, weights);
+          blurLine (src, dst, radius, rectHeight - 1, weights);
           restoreAlpha (dst, rectHeight);
           copyArrayToColumn (tempBmp, i, rectHeight, dst);
         }
@@ -144,7 +144,7 @@ private void makeWeightsFromRow (CPSelection sel, int j, int initialXOffset, int
   int offset = (j + initialYOffset) * sel.getWidth () + initialXOffset;
   for (int i = 0; i < len; i++, offset++)
     {
-      weights[i] = (((int) (sel.getData ()[offset] & 0xFF)) / 255.0f);
+      weights[i] = ((sel.getData ()[offset] & 0xFF) / 255.0f);
     }
 }
 
@@ -153,7 +153,7 @@ void makeWeightsFromColumn (CPSelection sel, int x, int initialXOffset, int init
   for (int i = 0; i < len; i++)
     {
       int offset = initialXOffset + x + (i + initialYOffset) * sel.getWidth ();
-      weights[i] = (((int) (sel.getData ()[offset] & 0xFF)) / 255.0f);
+      weights[i] = ((sel.getData ()[offset] & 0xFF) / 255.0f);
     }
 }
 
@@ -209,8 +209,8 @@ private static void restoreAlpha (int[] buffer, int len)
     }
 }
 
-abstract protected void blurLine (int[] src, int dst[], int radius, int startOffset, int endOffset);
+abstract protected void blurLine (int[] src, int dst[], int radius, int length);
 
-abstract protected void blurLine (int[] src, int dst[], int radius, int startOffset, int endOffset, float[] weights);
+abstract protected void blurLine (int[] src, int dst[], int radius, int length, float[] weights);
 
 }

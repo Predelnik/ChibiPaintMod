@@ -37,7 +37,7 @@ import java.util.Arrays;
 public class CPSelection extends CPGreyBmp
 {
 private final int PIXEL_IN_SELECTION_THRESHOLD = 32;     // Pixels with value > this treated as once that belong to selection visually
-final float DASH_ZOOM_INDEPENDENT_LENGTH = 8.2f; // Dash final length, independent from current zoom
+private final float DASH_ZOOM_INDEPENDENT_LENGTH = 8.2f; // Dash final length, independent from current zoom
 private byte[] markerArray;
 private float initialDashPiece = 0.0f;
 private boolean initialDashDrawn = false;
@@ -281,7 +281,7 @@ public int getData (int i, int j)
   return data[j * width + i];
 }
 
-public byte getData (int offset)
+byte getData (int offset)
 {
   return data[offset];
 }
@@ -374,8 +374,8 @@ public CPRect getBoundingRect ()
   return new CPRect (minX, minY, maxX + 1, maxY + 1);
 }
 
-static public final int[] Mv = {1, 0, 0, 1, -1, 0, 0, -1};
-static public final int[] Corners = {1, 1, 0, 1, 0, 0, 1, 0};
+private static final int[] Mv = {1, 0, 0, 1, -1, 0, 0, -1};
+private static final int[] Corners = {1, 1, 0, 1, 0, 0, 1, 0};
 
 void createSingleLinesFromPoint (ArrayList<TIntArrayList> pixelLinesTarget, int x, int y)
 {
@@ -527,27 +527,33 @@ public void drawItself (Graphics2D g2dArg, CPCanvas canvas)
   Graphics2D g2d = (Graphics2D) g2dArg.create ();
   float dashLength = DASH_ZOOM_INDEPENDENT_LENGTH / canvas.getZoom ();
 
-  for (int i = 0; i < CurPixelLines.size (); i++)
+  for (TIntArrayList CurPixelLine : CurPixelLines)
     {
 
       boolean dashDrawn = initialDashDrawn;
       float dashCurLength = initialDashPiece * dashLength;
-      for (int j = 0; j < CurPixelLines.get (i).size () / 2; j++)
+      for (int j = 0; j < CurPixelLine.size () / 2; j++)
         {
-          TIntArrayList CurPSL = CurPixelLines.get (i);
+          TIntArrayList CurPSL = CurPixelLine;
           int fpX = CurPSL.get (j * 2);
           int fpY = CurPSL.get (j * 2 + 1);
           int nextIndex = (j + 1);
           if (nextIndex == CurPSL.size () / 2)
-            nextIndex = 0;
+            {
+              nextIndex = 0;
+            }
           int spX = CurPSL.get (nextIndex * 2);
           int spY = CurPSL.get (nextIndex * 2 + 1);
           if (dashLength - dashCurLength > 1.0f)
             {
               if (dashDrawn)
-                g2d.setColor (Color.black);
+                {
+                  g2d.setColor (Color.black);
+                }
               else
-                g2d.setColor (Color.white);
+                {
+                  g2d.setColor (Color.white);
+                }
 
               drawLine (g2d, canvas, fpX, fpY, spX, spY);
               dashCurLength += 1.0f;
@@ -566,9 +572,13 @@ public void drawItself (Graphics2D g2dArg, CPCanvas canvas)
                       leaveCycle = true;
                     }
                   if (dashDrawn)
-                    g2d.setColor (Color.black);
+                    {
+                      g2d.setColor (Color.black);
+                    }
                   else
-                    g2d.setColor (Color.white);
+                    {
+                      g2d.setColor (Color.white);
+                    }
 
                   drawLine (g2d, canvas, fpX + (spX - fpX) * (segmentStart), fpY + (spY - fpY) * (segmentStart),
                             fpX + (spX - fpX) * (segmentEnd),
@@ -576,7 +586,9 @@ public void drawItself (Graphics2D g2dArg, CPCanvas canvas)
 
 
                   if (leaveCycle)
-                    break;
+                    {
+                      break;
+                    }
                   segmentStart = segmentEnd;
                   dashDrawn = !dashDrawn;
                   dashCurLength = 0.0f;
@@ -609,7 +621,7 @@ public void precalculateSelection ()
   precalculateSelection (getSize ());
 }
 
-private void precalculateForDrawing (CPRect rect)
+private void precalculateForDrawing ()
 {
   // cutting out inactive lumps connected with border - these are one we do not care about.
   Arrays.fill (markerArray, (byte) 0);
@@ -655,7 +667,7 @@ private void precalculateForDrawing (CPRect rect)
 }
 
 
-public void precalculateSelection (CPRect rect)
+void precalculateSelection (CPRect rect)
 {
   minX = width;
   maxX = 0;
@@ -665,7 +677,7 @@ public void precalculateSelection (CPRect rect)
   CalculateBoundingBox (rect); // Warning: We count everything non-zero into bounding box, so the function is separate.
   if (neededForDrawing)
     {
-      precalculateForDrawing (rect);
+      precalculateForDrawing ();
     }
 }
 

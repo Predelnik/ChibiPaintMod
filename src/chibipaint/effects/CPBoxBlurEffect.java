@@ -29,13 +29,13 @@ public CPBoxBlurEffect (int radius, int iterationsArg)
 }
 
 @Override
-protected void blurLine (int[] src, int dst[], int radius, int startOffset, int endOffset)
+protected void blurLine (int[] src, int dst[], int radius, int length)
 {
   int s, ta, tr, tg, tb;
   s = ta = tr = tg = tb = 0;
   int pix;
 
-  for (int i = startOffset; i < startOffset + radius && i <= endOffset; i++)
+  for (int i = 0; i < 0 + radius && i <= length; i++)
     {
       pix = src[i];
       ta += pix >>> 24;
@@ -44,9 +44,9 @@ protected void blurLine (int[] src, int dst[], int radius, int startOffset, int 
       tb += pix & 0xff;
       s++;
     }
-  for (int i = startOffset; i <= endOffset; i++)
+  for (int i = 0; i <= length; i++)
     {
-      if (i + radius <= endOffset)
+      if (i + radius <= length)
         {
           pix = src[i + radius];
           ta += pix >>> 24;
@@ -58,7 +58,7 @@ protected void blurLine (int[] src, int dst[], int radius, int startOffset, int 
 
       dst[i] = (ta / s << 24) | (tr / s << 16) | (tg / s << 8) | tb / s;
 
-      if (i - radius >= startOffset)
+      if (i - radius >= 0)
         {
           pix = src[i - radius];
           ta -= pix >>> 24;
@@ -71,14 +71,14 @@ protected void blurLine (int[] src, int dst[], int radius, int startOffset, int 
 }
 
 @Override
-protected void blurLine (int[] src, int dst[], int radius, int startOffset, int endOffset, float[] weights)
+protected void blurLine (int[] src, int dst[], int radius, int length, float[] weights)
 {
   float ta, s, tr, tg, tb;
 
   s = ta = tr = tg = tb = 0.0f;
   int pix;
 
-  for (int i = startOffset; i < startOffset + radius && i <= endOffset; i++)
+  for (int i = 0; i < 0 + radius && i <= length; i++)
     {
       pix = src[i];
       ta += (pix >>> 24) * weights[i];
@@ -87,9 +87,9 @@ protected void blurLine (int[] src, int dst[], int radius, int startOffset, int 
       tb += (pix & 0xff) * weights[i];
       s += weights[i];
     }
-  for (int i = startOffset; i <= endOffset; i++)
+  for (int i = 0; i <= length; i++)
     {
-      if (i + radius <= endOffset)
+      if (i + radius <= length)
         {
           pix = src[i + radius];
           ta += (pix >>> 24) * weights[i + radius];
@@ -104,7 +104,7 @@ protected void blurLine (int[] src, int dst[], int radius, int startOffset, int 
       else
         dst[i] = 0;
 
-      if (i - radius >= startOffset)
+      if (i - radius >= 0)
         {
           pix = src[i - radius];
           ta -= (pix >>> 24) * weights[i - radius];

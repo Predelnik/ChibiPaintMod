@@ -29,14 +29,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.awt.image.MemoryImageSource;
 
-public class CPImageUtils
+class CPImageUtils
 {
 public static void PasteImageToOrigin (CPLayer layer, Image img)
 {
   int[] data = layer.getData ();
   MemoryImageSource imgSource = new MemoryImageSource (layer.getWidth (), layer.getHeight (), data, 0, layer.getWidth ());
   Image layerImage = Toolkit.getDefaultToolkit ().createImage (imgSource);
-  int imageType = BufferedImage.TYPE_INT_ARGB;
   BufferedImage bI = new BufferedImage (layer.getWidth (), layer.getHeight (), BufferedImage.TYPE_INT_ARGB);
   Graphics2D g = bI.createGraphics ();
   g.drawImage (layerImage, 0, 0, null);

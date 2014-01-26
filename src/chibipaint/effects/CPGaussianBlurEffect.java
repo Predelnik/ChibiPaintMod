@@ -34,46 +34,45 @@ public CPGaussianBlurEffect (int radiusArg, int iterationsArg)
 }
 
 @Override
-protected void blurLine (int[] src, int dst[], int radius, int startOffset, int endOffset)
+protected void blurLine (int[] src, int dst[], int radius, int length)
 {
   float s, ta, tr, tg, tb;
-  s = ta = tr = tg = tb = 0;
-  int pix = 0;
+  int pix;
   int m;
 
   float[] matrix = kernel.getKernelData (null);
 
-  for (int i = startOffset; i <= endOffset; i++)
+  for (int i = 0; i <= length; i++)
     {
       int start = i - radius;
       int end = i + radius;
       ta = tr = tg = tb = 0;
       m = 0;
 
-      if (start < startOffset)
+      if (start < 0)
         {
-          pix = src[startOffset];
-          for (int j = start; j < startOffset; j++, m++)
+          pix = src[0];
+          for (int j = start; j < 0; j++, m++)
             {
               ta += ((pix >>> 24) & 0xff) * matrix[m];
               tr += ((pix >>> 16) & 0xff) * matrix[m];
               tg += ((pix >>> 8) & 0xff) * matrix[m];
               tb += (pix & 0xff) * matrix[m];
             }
-          start = startOffset;
+          start = 0;
         }
 
-      if (end > endOffset + 1)
+      if (end > length + 1)
         {
-          pix = src[endOffset];
-          for (int j = endOffset + 1, m1 = endOffset + 1 - start; j < end; j++, m1++)
+          pix = src[length];
+          for (int j = length + 1, m1 = length + 1 - start; j < end; j++, m1++)
             {
               ta += ((pix >>> 24) & 0xff) * matrix[m1];
               tr += ((pix >>> 16) & 0xff) * matrix[m1];
               tg += ((pix >>> 8) & 0xff) * matrix[m1];
               tb += (pix & 0xff) * matrix[m1];
             }
-          end = endOffset;
+          end = length;
         }
 
       for (int j = start; j < end; j++, m++)
@@ -89,28 +88,27 @@ protected void blurLine (int[] src, int dst[], int radius, int startOffset, int 
 }
 
 @Override
-protected void blurLine (int[] src, int dst[], int radius, int startOffset, int endOffset, float[] weights)
+protected void blurLine (int[] src, int dst[], int radius, int length, float[] weights)
 {
   float s, ta, tr, tg, tb;
-  int pix = 0;
+  int pix;
   int actualIndex = 0;
 
   float[] matrix = kernel.getKernelData (null);
-  float count = 2 * radius + 1;
 
-  for (int i = startOffset; i <= endOffset; i++)
+  for (int i = 0; i <= length; i++)
     {
       int start = i - radius;
       int end = i + radius;
       s = ta = tr = tg = tb = 0.0f;
       for (int j = start, m = 0; j <= end; j++, m++)
         {
-          if (j >= startOffset && j <= endOffset)
+          if (j >= 0 && j <= length)
             actualIndex = j;
-          else if (j < startOffset)
-            actualIndex = startOffset;
-          else if (j > endOffset)
-            actualIndex = endOffset;
+          else if (j < 0)
+            actualIndex = 0;
+          else if (j > length)
+            actualIndex = length;
 
           pix = src[actualIndex];
           ta += ((pix >>> 24) & 0xff) * matrix[m] * weights[actualIndex];
@@ -133,7 +131,7 @@ protected void blurLine (int[] src, int dst[], int radius, int startOffset, int 
     }
 }
 
-public static Kernel makeKernel (float radius)
+private static Kernel makeKernel (float radius)
 {
   int r = (int) Math.ceil (radius);
   int rows = r * 2 + 1;

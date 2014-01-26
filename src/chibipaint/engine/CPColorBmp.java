@@ -37,7 +37,7 @@ public class CPColorBmp extends CPBitmap
 {
 
 // The bitmap data
-public int[] data;
+private int[] data;
 
 //
 // Constructors
@@ -216,7 +216,7 @@ public void setRectXOR (int[] buffer, CPRect rect)
 
 public void pasteAlphaRect (CPColorBmp bmp, CPRect srcRect, int x, int y)
 {
-  CPRect srcRectCpy = null, dstRect = null;
+  CPRect srcRectCpy, dstRect;
   try
     {
       dstRect = new CPRect (x, y, 0, 0);
@@ -440,7 +440,7 @@ abstract class bmpRectIterator
   {
     CPRect finalRect = new CPRect (width, height);
     finalRect.clip (rect);
-    int off = 0;
+    int off;
     for (int j = finalRect.top; j < finalRect.bottom; j++)
       {
         off = j * getWidth () + finalRect.left;
@@ -510,7 +510,7 @@ private static boolean areColorsNearAlpha (int color_1, int color_2, int distanc
 
 }
 
-static public void floodFill (int xArg, int yArg, final int colorOfDetection, final CPLayer useDataFrom, final int colorDistance, final CPLayer destination, final int destinationColor, final CPSelection selection)
+static public void floodFill (int xArg, int yArg, final CPLayer useDataFrom, final int colorDistance, final CPLayer destination, final int destinationColor, final CPSelection selection)
 {
   if (!useDataFrom.isInside (xArg, yArg))
     {
@@ -520,8 +520,8 @@ static public void floodFill (int xArg, int yArg, final int colorOfDetection, fi
   final int oldColor;
   int width = useDataFrom.getWidth ();
   int height = useDataFrom.getHeight ();
-  int offset = 0;
-  boolean checkOnlyAlpha = true;
+  int offset;
+  boolean checkOnlyAlpha;
   int destinationColorWithoutAlpha = destinationColor & 0xFFFFFF;
 
   if ((useDataFrom.getPixel (xArg, yArg) & 0xff000000) == 0)
@@ -535,7 +535,7 @@ static public void floodFill (int xArg, int yArg, final int colorOfDetection, fi
       checkOnlyAlpha = false;
     }
 
-  CPIfaces.IntChecker shouldWeFill = null;
+  CPIfaces.IntChecker shouldWeFill;
   if (selection == null)
     {
       if (checkOnlyAlpha)

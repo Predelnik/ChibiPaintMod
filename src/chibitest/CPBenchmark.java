@@ -19,14 +19,12 @@
 
  */
 
-package chibitest;
-
 import java.util.*;
 
 import chibipaint.engine.*;
 import chibipaint.util.*;
 
-public class CPBenchmark {
+class CPBenchmark {
 
 	public CPBenchmark() {
 	}
@@ -41,7 +39,7 @@ public class CPBenchmark {
 		}
 	}
 
-	static void blendingBenchmark(String[] args) {
+	private static void blendingBenchmark (String[] args) {
 		int iterations = args.length > 1 ? Integer.valueOf(args[1]) : 100;
 		int testW = args.length > 2 ? Integer.valueOf(args[2]) : 512;
 		int testH = testW;
@@ -177,7 +175,7 @@ public class CPBenchmark {
 		// l2.clear(0xffffffff);
 	}
 
-	static void blendingBench(CPLayer l1, CPLayer l2, int iterations, boolean useFullAlpha) {
+	private static void blendingBench (CPLayer l1, CPLayer l2, int iterations, boolean useFullAlpha) {
 		double lastTime = System.currentTimeMillis(), newTime;
 		CPRect size = l1.getSize();
 
@@ -200,7 +198,7 @@ public class CPBenchmark {
 						/ ((double) iterations * size.getWidth() * size.getHeight())) + "ns per pixel\n");
 	}
 
-	static public void random(CPLayer l, CPRect r) {
+	private static void random (CPLayer l, CPRect r) {
 		int[] data = l.getData();
 
 		CPRect rect = l.getSize();
@@ -215,7 +213,7 @@ public class CPBenchmark {
 		}
 	}
 
-	static void brushDabsBenchmark(String[] args) {
+	private static void brushDabsBenchmark (String[] args) {
 		int iterations = args.length > 1 ? Integer.valueOf(args[1]) : 10000;
 		int sizeMin = args.length > 2 ? Integer.valueOf(args[2]) : 1;
 		int sizeMax = args.length > 3 ? Integer.valueOf(args[3]) : 200;
@@ -290,7 +288,7 @@ public class CPBenchmark {
 		dabBench(CPBrushInfo.B_ROUND_AIRBRUSH, true, iterations, sizeMin, sizeMax - sizeMin, true);
 	}
 
-	static void dabBench(int type, boolean useAA, int iterations, int sMin, int sDiff, boolean useTexture) {
+	private static void dabBench (int type, boolean useAA, int iterations, int sMin, int sDiff, boolean useTexture) {
 		CPBrushManager manager = new CPBrushManager();
 		CPBrushInfo brush = new CPBrushInfo();
 

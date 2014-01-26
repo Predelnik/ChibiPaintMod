@@ -25,8 +25,8 @@ import java.awt.image.BufferedImage;
 
 public class CPCopyPasteImage extends CPColorBmp
 {
-private int posX;
-private int posY;
+private final int posX;
+private final int posY;
 
 public CPCopyPasteImage (int width, int height, int posXArg, int posYArg)
 {

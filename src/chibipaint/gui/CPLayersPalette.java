@@ -222,7 +222,7 @@ void showRenameControl (int layerNb)
 }
 
 @Override
-public void updateRegion (CPArtwork artwork, CPRect region)
+public void updateRegion (CPRect region)
 {
 }
 

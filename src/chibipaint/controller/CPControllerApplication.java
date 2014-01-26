@@ -56,7 +56,7 @@ public CPControllerApplication (JFrame mainFrame)
 }
 
 @Override
-public Component getDialogParent ()
+protected Component getDialogParent ()
 {
   return mainFrame;
 }
@@ -82,7 +82,7 @@ public void updateTitle ()
   if (((ChibiApp) mainFrame).getAppState () == appState.LOADING)
     titleString += " (Loading...)";
 
-  if (mainFrame.getTitle () != titleString)
+  if (!mainFrame.getTitle ().equals (titleString))
     mainFrame.setTitle (titleString);
 }
 

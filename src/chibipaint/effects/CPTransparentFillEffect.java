@@ -41,7 +41,7 @@ public void doEffectOn (CPLayer layer, CPSelection selection)
 
 public int modify (int[] data, byte[] selData, int offset)
 {
-  return colorIn (data[offset], (int) (selData[offset] & 0xFF), color);
+  return colorIn (data[offset], selData[offset] & 0xFF, color);
 }
 
 public int modify (int[] data, int offset)

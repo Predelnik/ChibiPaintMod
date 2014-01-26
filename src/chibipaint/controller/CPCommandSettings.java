@@ -28,7 +28,7 @@ public interface CPCommandSettings
 {
 public class FileExtension implements CPCommandSettings
 {
-  public String extension;
+  public final String extension;
 
   public FileExtension (String value)
   {
@@ -38,7 +38,7 @@ public class FileExtension implements CPCommandSettings
 
 public class RecentFileNumber implements CPCommandSettings
 {
-  public int number;
+  public final int number;
 
   public RecentFileNumber (int numberArg)
   {
@@ -48,7 +48,7 @@ public class RecentFileNumber implements CPCommandSettings
 
 public class CheckBoxState implements CPCommandSettings
 {
-  public boolean checked;
+  public final boolean checked;
 
   public CheckBoxState (boolean checkedArg)
   {
@@ -58,7 +58,7 @@ public class CheckBoxState implements CPCommandSettings
 
 public class DirectionSettings implements CPCommandSettings
 {
-  public CPEnums.Direction direction;
+  public final CPEnums.Direction direction;
 
   public DirectionSettings (CPEnums.Direction directionArg)
   {
@@ -70,7 +70,7 @@ public class DirectionSettings implements CPCommandSettings
 // TODO: remove this logic
 public class SourceIconButton implements CPCommandSettings
 {
-  public CPIconButton button;
+  public final CPIconButton button;
 
   public SourceIconButton (CPIconButton buttonArg)
   {

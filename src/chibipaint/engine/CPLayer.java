@@ -24,7 +24,6 @@ package chibipaint.engine;
 import chibipaint.util.CPRect;
 import chibipaint.util.CPTables;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -32,7 +31,7 @@ public class CPLayer extends CPColorBmp
 {
 
 private int blendMode = LM_NORMAL;
-int alpha = 100;
+private int alpha = 100;
 private String name;
 private boolean visible = true;
 
@@ -427,8 +426,6 @@ void fusionWithNormalFullAlpha (CPLayer fusion, CPRect rc)
   if (alpha == 0)
     return;
 
-  ByteBuffer b1 = ByteBuffer.allocate (4);
-  ByteBuffer b2 = ByteBuffer.allocate (4);
   int alpha_256 = alpha * 256;
 
   for (int j = rect.top; j < rect.bottom; j++)
@@ -1400,48 +1397,6 @@ public void invert (CPRect r)
       for (int i = rect.left; i < rect.right; i++)
         {
           getData ()[i + j * width] ^= 0xffffff;
-        }
-    }
-}
-
-// 0 - Intensity, 1 - Value, 2 - Lightness, 3 - Luma, 4 - Color
-public void makeMonochrome (CPRect r, int type, int color)
-{
-  CPRect rect = new CPRect (0, 0, width, height);
-  rect.clip (r);
-  int red, green, blue;
-  int v = 0;
-  int cr = color >>> 16 & 0xff;
-  int cg = color >>> 8 & 0xff;
-  int cb = color & 0xff;
-
-  for (int j = rect.top; j < rect.bottom; j++)
-    {
-      for (int i = rect.left; i < rect.right; i++)
-        {
-          red = getData ()[i + j * width] >>> 16 & 0xff;
-          green = getData ()[i + j * width] >>> 8 & 0xff;
-          blue = getData ()[i + j * width] & 0xff;
-          switch (type)
-            {
-            case 0:
-              v = (red + green + blue) / 3;
-              //$FALL-THROUGH$
-            case 1:
-              v = Math.max (Math.max (red, green), blue);
-              //$FALL-THROUGH$
-            case 2:
-              v = (Math.max (Math.max (red, green), blue) + Math.min (
-                      Math.min (red, green), blue)) / 2;
-              break;
-            case 3:
-              v = (int) (0.2125 * red + 0.7154 * green + 0.0721 * blue);
-              break;
-            case 4:
-              v = (cr * red + cg * green + cb * blue) / 255 / 3;
-            }
-          getData ()[i + j * width] = (getData ()[i + j * width] & 0xff000000)
-                  | v << 16 | v << 8 | v;
         }
     }
 }

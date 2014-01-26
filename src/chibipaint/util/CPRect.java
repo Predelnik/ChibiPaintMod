@@ -204,7 +204,7 @@ public boolean isEmpty ()
   return right <= left || bottom <= top;
 }
 
-public void set (CPRect r)
+void set (CPRect r)
 {
   left = r.left;
   top = r.top;

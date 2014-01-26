@@ -66,7 +66,6 @@ private JMenu lastMenu, lastSubMenu;
 private JMenu recentFilesMenuItem;
 private JMenuItem lastItem;
 private JPanel mainPanel;
-private JDesktopPane jdp;
 private JPanel bg;
 
 // FIXME: replace this hack by something better
@@ -108,7 +107,7 @@ private void createGUI ()
 {
   mainPanel = new JPanel (new BorderLayout ());
 
-  jdp = new CPDesktop ();
+  JDesktopPane jdp = new CPDesktop ();
   setPaletteManager (new CPPaletteManager (controller, jdp));
 
   createCanvasGUI (jdp);
@@ -131,7 +130,7 @@ void createCanvasGUI (JComponent c)
 // it's internal so boolean argument is ok
 private void addMenuItemInternal (String title, int mnemonic, final CPCommandId commandId, String description, final boolean isCheckable, boolean checked, final CPCommandSettings commandSettings)
 {
-  JMenuItem menuItem = null;
+  JMenuItem menuItem;
   if (controller.isRunningAsApplet () && commandId.isForAppOnly ())
     return;
 
@@ -184,13 +183,14 @@ void setSelectedByCmdId (CPCommandId cmdId, boolean value)
 
 void setEnabledForTransform (boolean enabled)
 {
-  Iterator it = menuItems.entrySet ().iterator ();
-  while (it.hasNext ())
+  for (Object o : menuItems.entrySet ())
     {
-      Map.Entry pairs = (Map.Entry) it.next ();
+      Map.Entry pairs = (Map.Entry) o;
       ArrayList<JMenuItem> item = (ArrayList<JMenuItem>) pairs.getValue ();
       for (JMenuItem menuItem : item)
-        menuItem.setEnabled (enabled);
+        {
+          menuItem.setEnabled (enabled);
+        }
     }
   ((CPLayersPalette) getPaletteManager ().getPalettes ().get ("layers")).setEnabledForTransform (enabled);
   ((CPMiscPalette) getPaletteManager ().getPalettes ().get ("misc")).setEnabledForTransform (enabled);
@@ -251,7 +251,7 @@ void addMenu (String Title, int mnemonic)
 void addSubMenu (String Title, int mnemonic)
 {
   JMenu menu = new JMenu (Title);
-  menu.setMnemonic (KeyEvent.VK_F);
+  menu.setMnemonic (mnemonic);
   lastMenu.add (menu);
   lastSubMenu = menu;
 }

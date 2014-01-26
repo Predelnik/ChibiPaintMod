@@ -414,19 +414,20 @@ class CPTransformAction
   }
 }
 
-CPColorBmp transformedPart;
-CPRect transformingRect = new CPRect ();
-CPLayer activeLayer = null;
-CPSelection currentSelection = null;
-CPTransformAction activeAction = new CPTransformAction ();
-final Point2D pointOfOrigin = new Point2D.Float ();
-final AffineTransform transform = new AffineTransform ();
+private CPColorBmp transformedPart;
+private CPRect transformingRect = new CPRect ();
+private CPLayer activeLayer = null;
+private CPSelection currentSelection = null;
+private final CPTransformAction activeAction = new CPTransformAction ();
+private final Point2D pointOfOrigin = new Point2D.Float ();
+private final AffineTransform transform = new AffineTransform ();
 private AffineTransform finalTransform; // Last used final transform ,no guarantee that it was last updated
-int shiftX;
-int shiftY;
-Image transformedPartImage;
-int artworkWidth, artworkHeight;
-static float controlDistance = 15.0f;
+private int shiftX;
+private int shiftY;
+private Image transformedPartImage;
+private int artworkWidth;
+private int artworkHeight;
+private static final float controlDistance = 15.0f;
 
 
 // Initializes transformation mode
@@ -531,7 +532,7 @@ Line2D.Float getFullyTransformedLine (Line2D.Float line)
 }
 
 
-public Point2D getCenter ()
+Point2D getCenter ()
 {
   return new Point2D.Float ((transformingRect.getLeft () + transformingRect.getRight ()) * 0.5f,
                             (transformingRect.getTop () + transformingRect.getBottom ()) * 0.5f);
@@ -567,11 +568,10 @@ static private float getLineLength (Line2D.Float line)
   return (float) (Math.sqrt ((double) (a * a + b * b)));
 }
 
-public void getActionTypeByPosition (CPTransformAction action, Point2D p)
+void getActionTypeByPosition (CPTransformAction action, Point2D p)
 {
   Point2D transformedP = new Point2D.Float ();
   Point2D pointOfInterest = new Point2D.Float ();
-  Line2D.Float lineOfInterest = new Line2D.Float ();
   float fourthOfMinSide = Math.min (getLineLength (getCanvasTransformedSideByIndex (0)), getLineLength (getCanvasTransformedSideByIndex (1))) * 0.25f;
   float calculatedControlDistance = fourthOfMinSide < controlDistance ? fourthOfMinSide : controlDistance;
   try
@@ -639,9 +639,9 @@ public void updateCursor (Point2D p, CPCanvas canvas) // TODO: change it to some
   canvas.setCursor (tempAction.cursor ());
 }
 
-final int smallRectPixelSize = 6;
+private final int smallRectPixelSize = 6;
 
-static Path2D.Float transformRectToPath (float left, float top, float right, float bottom, AffineTransform transformArg)
+private static Path2D.Float transformRectToPath (float left, float top, float right, float bottom, AffineTransform transformArg)
 {
   float[] points = {left, top, right, top, right, bottom, left, bottom};
   float[] dstPoints = new float[points.length];
@@ -738,7 +738,7 @@ public void drawTransformHandles (Graphics2D g2d, AffineTransform canvasTransfor
       }
 }
 
-final float fuzzyValue = 5.0f;
+private final float fuzzyValue = 5.0f;
 
 public void finalizeTransform ()
 {

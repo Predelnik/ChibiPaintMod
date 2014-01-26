@@ -61,9 +61,7 @@ public float texture = 1f;
 public boolean pressureScattering = false;
 public float scattering = 0.f, curScattering;
 
-private final float squeeze = 0f;
 public float curSqueeze;
-private final float angle = (float) Math.PI;
 public float curAngle;
 
 public float smoothing = 0f;
@@ -76,8 +74,10 @@ public CPBrushInfo ()
 {
 }
 
+static final float MIN_SPACING = .5f;
+
 public CPBrushInfo (
-        int toolNb, int size, int alpha, boolean isAA, boolean isAirbrush, float minSpacing,
+        int toolNb, int size, int alpha, boolean isAA, boolean isAirbrush,
         float spacing, boolean pressureSize, boolean pressureAlpha, int brushType, int paintMode, float resat,
         float bleed)
 {
@@ -86,7 +86,7 @@ public CPBrushInfo (
   this.alpha = alpha;
   this.isAA = isAA;
   this.isAirbrush = isAirbrush;
-  this.minSpacing = minSpacing;
+  this.minSpacing = MIN_SPACING;
   this.spacing = spacing;
 
   this.pressureSize = pressureSize;
@@ -118,7 +118,9 @@ public void applyPressure (float pressure)
     }
 
   curAlpha = pressureAlpha ? (int) (alpha * pressure) : alpha;
+  float squeeze = 0f;
   curSqueeze = squeeze;
+  float angle = (float) Math.PI;
   curAngle = angle;
   curScattering = scattering * curSize * (pressureScattering ? pressure : 1.f);
 

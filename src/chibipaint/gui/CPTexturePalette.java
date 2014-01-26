@@ -227,9 +227,7 @@ void processTexture ()
 
   controller.getArtwork ().brushManager.setTexture (processedTexture);
   if (optionsPanel != null)
-    {
-      optionsPanel.repaint ();
-    }
+    optionsPanel.repaint ();
 }
 
 Image createTextureImage (CPGreyBmp texture, int width, int height)

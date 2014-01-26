@@ -145,7 +145,7 @@ private boolean transformIsOn;
 
 private CPMainGUI mainGUI;
 private int activeMode;
-private Cursor rotateCursor;
+private final Cursor rotateCursor;
 
 public boolean getTransformIsOn ()
 {
@@ -503,7 +503,7 @@ public interface ICPColorListener
 public interface ICPToolListener
 {
 
-  public void newTool (int tool, CPBrushInfo toolInfo);
+  public void newTool (CPBrushInfo toolInfo);
 }
 
 public interface ICPModeListener
@@ -540,27 +540,27 @@ CPCommonController ()
   CPTables.init ();
   rotateCursor = Toolkit.getDefaultToolkit ().createCustomCursor (img, hotSpot, "Rotate");
   tools = new CPBrushInfo[T_MAX];
-  tools[T_PENCIL] = new CPBrushInfo (T_PENCIL, 16, 255, true, false, .5f, .05f, false, true,
+  tools[T_PENCIL] = new CPBrushInfo (T_PENCIL, 16, 255, true, false, .05f, false, true,
                                      CPBrushInfo.B_ROUND_AA, CPBrushInfo.M_PAINT, 1f, 0f);
-  tools[T_ERASER] = new CPBrushInfo (T_ERASER, 16, 255, true, false, .5f, .05f, false, false,
+  tools[T_ERASER] = new CPBrushInfo (T_ERASER, 16, 255, true, false, .05f, false, false,
                                      CPBrushInfo.B_ROUND_AA, CPBrushInfo.M_ERASE, 1f, 0f);
-  tools[T_PEN] = new CPBrushInfo (T_PEN, 2, 128, true, false, .5f, .05f, true, false, CPBrushInfo.B_ROUND_AA,
+  tools[T_PEN] = new CPBrushInfo (T_PEN, 2, 128, true, false, .05f, true, false, CPBrushInfo.B_ROUND_AA,
                                   CPBrushInfo.M_PAINT, 1f, 0f);
-  tools[T_SOFTERASER] = new CPBrushInfo (T_SOFTERASER, 16, 64, false, true, .5f, .05f, false, true,
+  tools[T_SOFTERASER] = new CPBrushInfo (T_SOFTERASER, 16, 64, false, true, .05f, false, true,
                                          CPBrushInfo.B_ROUND_AIRBRUSH, CPBrushInfo.M_ERASE, 1f, 0f);
-  tools[T_AIRBRUSH] = new CPBrushInfo (T_AIRBRUSH, 50, 32, false, true, .5f, .05f, false, true,
+  tools[T_AIRBRUSH] = new CPBrushInfo (T_AIRBRUSH, 50, 32, false, true, .05f, false, true,
                                        CPBrushInfo.B_ROUND_AIRBRUSH, CPBrushInfo.M_PAINT, 1f, 0f);
-  tools[T_DODGE] = new CPBrushInfo (T_DODGE, 30, 32, false, true, .5f, .05f, false, true,
+  tools[T_DODGE] = new CPBrushInfo (T_DODGE, 30, 32, false, true, .05f, false, true,
                                     CPBrushInfo.B_ROUND_AIRBRUSH, CPBrushInfo.M_DODGE, 1f, 0f);
-  tools[T_BURN] = new CPBrushInfo (T_BURN, 30, 32, false, true, .5f, .05f, false, true,
+  tools[T_BURN] = new CPBrushInfo (T_BURN, 30, 32, false, true, .05f, false, true,
                                    CPBrushInfo.B_ROUND_AIRBRUSH, CPBrushInfo.M_BURN, 1f, 0f);
-  tools[T_WATER] = new CPBrushInfo (T_WATER, 30, 70, false, true, .5f, .02f, false, true, CPBrushInfo.B_ROUND_AA,
+  tools[T_WATER] = new CPBrushInfo (T_WATER, 30, 70, false, true, .02f, false, true, CPBrushInfo.B_ROUND_AA,
                                     CPBrushInfo.M_WATER, .3f, .6f);
-  tools[T_BLUR] = new CPBrushInfo (T_BLUR, 20, 255, false, true, .5f, .05f, false, true,
+  tools[T_BLUR] = new CPBrushInfo (T_BLUR, 20, 255, false, true, .05f, false, true,
                                    CPBrushInfo.B_ROUND_PIXEL, CPBrushInfo.M_BLUR, 1f, 0f);
-  tools[T_SMUDGE] = new CPBrushInfo (T_SMUDGE, 20, 128, false, true, .5f, .01f, false, true,
+  tools[T_SMUDGE] = new CPBrushInfo (T_SMUDGE, 20, 128, false, true, .01f, false, true,
                                      CPBrushInfo.B_ROUND_AIRBRUSH, CPBrushInfo.M_SMUDGE, 0f, 1f);
-  tools[T_BLENDER] = new CPBrushInfo (T_SMUDGE, 20, 60, false, true, .5f, .1f, false, true,
+  tools[T_BLENDER] = new CPBrushInfo (T_SMUDGE, 20, 60, false, true, .1f, false, true,
                                       CPBrushInfo.B_ROUND_AIRBRUSH, CPBrushInfo.M_OIL, 0f, .07f);
 }
 
@@ -733,7 +733,7 @@ public void callToolListeners ()
 {
   for (ICPToolListener l : toolListeners)
     {
-      l.newTool (getCurBrush (), tools[getCurBrush ()]);
+      l.newTool (tools[getCurBrush ()]);
     }
 }
 
@@ -959,7 +959,7 @@ void setCurBrush (int curBrush)
   this.curBrush = curBrush;
 }
 
-public void setTransformStateImpl (boolean transformIsOnArg)
+void setTransformStateImpl (boolean transformIsOnArg)
 {
 }
 

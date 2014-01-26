@@ -46,7 +46,6 @@ private final ArrayList<ICPController> controllers = new ArrayList<ICPController
 private boolean mouseOver = false;
 private boolean mousePressed = false;
 private boolean selected = false;
-private final boolean onClickDown = false;
 
 public CPIconButton (Image icons, int iconW, int iconH, int iconIndex, int border)
 {
@@ -139,11 +138,6 @@ public void mousePressed (MouseEvent e)
 
   mousePressed = true;
   repaint ();
-  if (onClickDown)
-    {
-      for (ICPController controller : controllers)
-        controller.performCommand (commandId, new CPCommandSettings.SourceIconButton (this));
-    }
 }
 
 @Override
