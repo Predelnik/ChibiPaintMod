@@ -52,6 +52,9 @@ public abstract class CPCommonController implements ICPController
 {
 
 protected int selectionFillAlpha = 255;
+public boolean transformPreviewHQ = true;
+protected boolean useInteractivePreviewFloodFill = false;
+protected boolean useInteractivePreviewMagicWand = false;
 
 public void setSelectionAction (selectionAction selectionActionArg)
 {
@@ -86,6 +89,47 @@ public int getColorDistanceMagicWand ()
 public int getColorDistanceFloodFill ()
 {
   return colorDistanceFloodFill;
+}
+
+public boolean getTransformPreviewHQ ()
+{
+  return transformPreviewHQ;
+}
+
+public void setTransformPreviewHQ (boolean transformPreviewHQ)
+{
+  this.transformPreviewHQ = transformPreviewHQ;
+  artwork.invalidateFusion ();
+}
+
+public void setUseInteractivePreviewFloodFill (boolean useInteractivePreviewFloodFill)
+{
+  this.useInteractivePreviewFloodFill = useInteractivePreviewFloodFill;
+}
+
+public boolean isUseInteractivePreviewFloodFill ()
+{
+  return useInteractivePreviewFloodFill;
+}
+
+public void setUseInteractivePreviewMagicWand (boolean useInteractivePreviewMagicWand)
+{
+  this.useInteractivePreviewMagicWand = useInteractivePreviewMagicWand;
+}
+
+public boolean isUseInteractivePreviewMagicWand ()
+{
+  return useInteractivePreviewMagicWand;
+}
+
+public boolean getUseInteractivePreviewFloodFill ()
+{
+  return useInteractivePreviewFloodFill;
+}
+
+public boolean getUseInteractivePreviewMagicWand ()
+{
+  return useInteractivePreviewMagicWand;
 }
 
 public enum selectionAction
@@ -297,6 +341,10 @@ public void performCommand (CPCommandId commandId, CPCommandSettings commandSett
       break;
     case SelectAll:
       artwork.selectAll ();
+      canvas.repaint ();
+      break;
+    case AlphaToSelection:
+      artwork.alphaToSelection ();
       canvas.repaint ();
       break;
     case InvertSelection:
@@ -867,13 +915,17 @@ void showBlurDialog (BlurType type)
   SpinnerModel blurXSM = new SpinnerNumberModel (3, 1, 100, 1);
   JSpinner blurX = new JSpinner (blurXSM);
   panel.add (blurX);
+  JSpinner iter = null;
 
-  panel.add (new JLabel ("Iterations:"));
-  SpinnerModel iterSM = new SpinnerNumberModel (1, 1, 8, 1);
-  JSpinner iter = new JSpinner (iterSM);
-  panel.add (iter);
+  if (type == BlurType.BOX_BLUR)
+    {
+      panel.add (new JLabel ("Iterations:"));
+      SpinnerModel iterSM = new SpinnerNumberModel (1, 1, 8, 1);
+      iter = new JSpinner (iterSM);
+      panel.add (iter);
+    }
+
   String title = "";
-
   switch (type)
     {
     case BOX_BLUR:
@@ -892,7 +944,7 @@ void showBlurDialog (BlurType type)
     {
 
       int blur = ((Integer) blurX.getValue ()).intValue ();
-      int iterations = ((Integer) iter.getValue ()).intValue ();
+      int iterations = iter != null ? ((Integer) iter.getValue ()).intValue () : 1;
       switch (type)
         {
         case BOX_BLUR:

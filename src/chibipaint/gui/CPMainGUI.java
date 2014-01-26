@@ -32,7 +32,6 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.prefs.Preferences;
 
@@ -338,6 +337,7 @@ void createMainMenu ()
   addSeparator ();
 
   addMenuItem ("Select All", KeyEvent.VK_A, CPCommandId.SelectAll, "Selects the whole canvas", KeyStroke.getKeyStroke (KeyEvent.VK_A, InputEvent.CTRL_MASK));
+  addMenuItem ("Alpha to Selection", KeyEvent.VK_L, CPCommandId.AlphaToSelection, "Transform layer's alpha to selection");
   addMenuItem ("Invert Selection", KeyEvent.VK_I, CPCommandId.InvertSelection, "Invert selection", KeyStroke.getKeyStroke (KeyEvent.VK_I, InputEvent.CTRL_MASK));
   addMenuItem ("Deselect", KeyEvent.VK_D, CPCommandId.DeselectAll, "Deselects the whole canvas", KeyStroke.getKeyStroke (KeyEvent.VK_D, InputEvent.CTRL_MASK));
 

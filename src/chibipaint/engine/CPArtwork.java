@@ -132,7 +132,20 @@ public boolean getShowOverlay ()
 
 public void invertSelection ()
 {
+  undoManager.preserveCurrentSelection ();
   curSelection.invert ();
+  undoManager.currentSelectionChanged ();
+  finalizeUndo ();
+}
+
+public void alphaToSelection ()
+{
+  undoManager.preserveCurrentSelection ();
+  if (curSelection.isEmpty ())
+    curSelection.selectAll ();
+  curSelection.cutByData (activeLayer);
+  undoManager.currentSelectionChanged ();
+  finalizeUndo ();
 }
 
 public enum transformType

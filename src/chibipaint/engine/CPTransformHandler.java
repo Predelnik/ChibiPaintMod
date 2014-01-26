@@ -657,7 +657,7 @@ private static Path2D.Float transformRectToPath (float left, float top, float ri
 
 public void drawPreviewOn (CPLayer layer)
 {
-  drawItselfOnLayer (layer, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR, false);
+  drawItselfOnLayer (layer, controller.getTransformPreviewHQ () ? RenderingHints.VALUE_INTERPOLATION_BILINEAR : RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR, false);
 }
 
 public Rectangle getRectNeededForUpdating ()

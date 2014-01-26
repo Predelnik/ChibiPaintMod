@@ -531,7 +531,9 @@ public void saveControllerSettings ()
   preferences.putInt ("Threshold (Flood Fill)", colorDistanceFloodFill);
   preferences.putInt ("Selection Fill Alpha", selectionFillAlpha);
   preferences.put ("Selection Action", curSelectionAction.toString ());
-
+  preferences.putBoolean ("HQ Transform Preview", transformPreviewHQ);
+  preferences.putBoolean ("Interactive Preview (Flood Fill)", useInteractivePreviewFloodFill);
+  preferences.putBoolean ("Interactive Preview (Magic Wand)", useInteractivePreviewMagicWand);
 }
 
 public void loadUrgentSettings ()
@@ -590,6 +592,9 @@ public void loadControllerSettings ()
   colorDistanceFloodFill = preferences.getInt ("Threshold (Flood Fill)", colorDistanceFloodFill);
   selectionFillAlpha = preferences.getInt ("Selection Fill Alpha", selectionFillAlpha);
   curSelectionAction = selectionAction.valueOf (preferences.get ("Selection Action", selectionAction.SELECT.toString ()));
+  transformPreviewHQ = preferences.getBoolean ("HQ Transform Preview", transformPreviewHQ);
+  useInteractivePreviewFloodFill = preferences.getBoolean ("Interactive Preview (Flood Fill)", useInteractivePreviewFloodFill);
+  useInteractivePreviewMagicWand = preferences.getBoolean ("Interactive Preview (Magic Wand)", useInteractivePreviewMagicWand);
 
   setMode (preferences.getInt ("Mode", getCurMode ())); // Note these settings reading two times
 

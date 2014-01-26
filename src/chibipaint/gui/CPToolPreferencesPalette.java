@@ -50,11 +50,14 @@ private final CPCheckBox instantFillCB;
 // For Floodfill
 private final CPSlider colorDistanceSliderFloodFill;
 private final CPSlider colorDistanceSliderMagicWand;
+private final JCheckBox showPreviewFloodFill;
+private final JCheckBox showPreviewMagicWand;
 
 private final JComboBox<String> tipCombo;
 private final String[] tipNames = {"Round Pixelated", "Round Hard Edge", "Round Soft", "Square Pixelated", "Square Hard Edge"};
 private final JButton transformOkButton;
 private final JButton transformCancelButton;
+private final JCheckBox transformHQPreviewCheckBox;
 private final JButton transformFlipHButton;
 private final JButton transformFlipVButton;
 private final JButton transformRotate90CCWButton;
@@ -78,6 +81,18 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
   transformLabel = addLabel (10, 5, "Transform:");
   transformOkButton = addTextButton (10, 30, 60, 16, "Ok", CPCommandId.ApplyTransform);
   transformCancelButton = addTextButton (75, 30, 75, 16, "Cancel", CPCommandId.CancelTransform);
+  transformHQPreviewCheckBox = new JCheckBox ("High Quality Preview");
+  transformHQPreviewCheckBox.setLocation (10, 55);
+  transformHQPreviewCheckBox.setSize (150, 16);
+  transformHQPreviewCheckBox.addItemListener (new ItemListener ()
+  {
+    @Override
+    public void itemStateChanged (ItemEvent e)
+    {
+      controller.setTransformPreviewHQ (e.getStateChange () == ItemEvent.SELECTED);
+    }
+  });
+  add (transformHQPreviewCheckBox);
 
   transformFlipHButton = addTextButton (10, 100, 140, 16, "Flip Horizontally", CPCommandId.FlipHorizontally);
   transformFlipVButton = addTextButton (10, 125, 140, 16, "Flip Vertically", CPCommandId.FlipVertically);
@@ -126,6 +141,32 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
   colorDistanceSliderFloodFill.setLocation (20, 25);
   colorDistanceSliderFloodFill.setSize (130, 16);
   add (colorDistanceSliderFloodFill);
+
+  showPreviewFloodFill = new JCheckBox ("Interactive Tuning");
+  showPreviewFloodFill.setLocation (3, 50);
+  showPreviewFloodFill.setSize (170, 16);
+  showPreviewFloodFill.addItemListener (new ItemListener ()
+  {
+    @Override
+    public void itemStateChanged (ItemEvent e)
+    {
+      controller.setUseInteractivePreviewFloodFill (e.getStateChange () == ItemEvent.SELECTED);
+    }
+  });
+  add (showPreviewFloodFill);
+
+  showPreviewMagicWand = new JCheckBox ("Interactive Tuning");
+  showPreviewMagicWand.setLocation (3, 50);
+  showPreviewMagicWand.setSize (170, 16);
+  showPreviewMagicWand.addItemListener (new ItemListener ()
+  {
+    @Override
+    public void itemStateChanged (ItemEvent e)
+    {
+      controller.setUseInteractivePreviewMagicWand (e.getStateChange () == ItemEvent.SELECTED);
+    }
+  });
+  add (showPreviewMagicWand);
 
   // for brush controls:
 
@@ -266,10 +307,10 @@ public void newTool (CPBrushInfo toolInfo)
 {
   JComponent[] brushControls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
           bleedSlider, spacingSlider, scatteringSlider, smoothingSlider, tipCombo, brushPreview};
-  JComponent[] floodFillControls = {colorDistanceSliderFloodFill};
-  JComponent[] magicWandControls = {colorDistanceSliderMagicWand};
+  JComponent[] floodFillControls = {colorDistanceSliderFloodFill, showPreviewFloodFill};
+  JComponent[] magicWandControls = {colorDistanceSliderMagicWand, showPreviewMagicWand};
   JComponent[] transformControls = {transformLabel, transformOkButton, transformCancelButton, transformFlipHButton, transformFlipVButton,
-          transformRotate90CCWButton, transformRotate90CWButton};
+          transformRotate90CCWButton, transformRotate90CWButton, transformHQPreviewCheckBox};
   JComponent[] selectionControls = {instantFillCB, instantFillOpacity};
   JComponent[][] toolArrays = {brushControls, floodFillControls, transformControls, selectionControls, magicWandControls};
 
@@ -309,6 +350,12 @@ public void newTool (CPBrushInfo toolInfo)
   if (toolInfo == null)
     return;
 
+  if (controller.getUseInteractivePreviewFloodFill () != showPreviewFloodFill.isSelected ())
+    showPreviewFloodFill.setSelected (controller.getUseInteractivePreviewFloodFill ());
+
+  if (controller.getUseInteractivePreviewMagicWand () != showPreviewMagicWand.isSelected ())
+    showPreviewMagicWand.setSelected (controller.getUseInteractivePreviewMagicWand ());
+
   if (controller.getColorDistanceMagicWand () != colorDistanceSliderMagicWand.value)
     colorDistanceSliderMagicWand.setValue (controller.getColorDistanceMagicWand ());
 
@@ -317,6 +364,9 @@ public void newTool (CPBrushInfo toolInfo)
 
   if ((controller.getCurSelectionAction () == CPCommonController.selectionAction.FILL_AND_DESELECT) != instantFillCB.state)
     instantFillCB.setValue (controller.getCurSelectionAction () == CPCommonController.selectionAction.FILL_AND_DESELECT);
+
+  if (controller.getTransformPreviewHQ () != transformHQPreviewCheckBox.isSelected ())
+    transformHQPreviewCheckBox.setSelected (controller.getTransformPreviewHQ ());
 
   if (controller.getSelectionFillAlpha () * 100 / 255 != instantFillOpacity.value)
     instantFillOpacity.setValue (controller.getSelectionFillAlpha () * 100 / 255);

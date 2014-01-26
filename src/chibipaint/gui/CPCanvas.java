@@ -499,7 +499,7 @@ public void paint (Graphics g)
 
   if (artwork.getShowOverlay ())
     {
-      g2doc.setXORMode (Color.WHITE);
+      g2doc.setXORMode (Color.GREEN);
       g2doc.drawImage (overlayImg, 0, 0, w, h, 0, 0, overlayImg.getWidth (null), overlayImg.getHeight (null), null);
     }
 
@@ -1898,7 +1898,6 @@ abstract class CPGeneralFillMode extends CPMode
   int initialColorDistance;
   int floodFillActualColorDistance;
   Point2D.Float prevDocPoint;
-  final Timer updateTimer;
   boolean mindSelection;
 
   void updatePreview ()
@@ -1910,15 +1909,6 @@ abstract class CPGeneralFillMode extends CPMode
 
   CPGeneralFillMode ()
   {
-    updateTimer = new Timer (50, new ActionListener ()
-    {
-      @Override
-      public void actionPerformed (ActionEvent arg0)
-      {
-        updatePreview ();
-      }
-    });
-    updateTimer.setRepeats (false);
   }
 
   abstract void updateInitialColorDistance ();
@@ -1928,6 +1918,8 @@ abstract class CPGeneralFillMode extends CPMode
   {
     cursorAnchorPos = coordToDocument (new Point2D.Float (getCursorX (), getCursorY ()));
     updateInitialColorDistance ();
+    floodFillActualColorDistance = initialColorDistance;
+    cursorDragAction ();
   }
 
   private void calcColorDistance ()
@@ -1942,6 +1934,9 @@ abstract class CPGeneralFillMode extends CPMode
   @Override
   public void paint (Graphics2D g2d)
   {
+    if (!showPreview ())
+      return;
+
     g2d.setColor (Color.WHITE);
     int x = getCursorX ();
     int y = getCursorY ();
@@ -1957,9 +1952,14 @@ abstract class CPGeneralFillMode extends CPMode
     g2d.drawString (str, x, y);
   }
 
+  abstract protected boolean showPreview ();
+
   @Override
   public void cursorDragAction ()
   {
+    if (!showPreview ())
+      return;
+
     updatePreview ();
     Point p = new Point (getCursorX (), getCursorY ());
     Point2D.Float pf = coordToDocument (p);
@@ -1971,8 +1971,11 @@ abstract class CPGeneralFillMode extends CPMode
   @Override
   public void cursorReleaseAction ()
   {
-    artwork.cancelOverlayDrawing ();
-    calcColorDistance ();
+    if (showPreview ())
+      {
+        artwork.cancelOverlayDrawing ();
+        calcColorDistance ();
+      }
 
     if (artwork.isPointWithin (cursorAnchorPos.x, cursorAnchorPos.y))
       {
@@ -2001,6 +2004,12 @@ class CPFloodFillMode extends CPGeneralFillMode
   }
 
   @Override
+  protected boolean showPreview ()
+  {
+    return controller.getUseInteractivePreviewFloodFill ();
+  }
+
+  @Override
   void performFloodFill ()
   {
     artwork.performFloodFill (cursorAnchorPos.x, cursorAnchorPos.y, floodFillActualColorDistance);
@@ -2018,6 +2027,12 @@ class CPMagicWandMode extends CPGeneralFillMode
   void updateInitialColorDistance ()
   {
     initialColorDistance = controller.getColorDistanceMagicWand ();
+  }
+
+  @Override
+  protected boolean showPreview ()
+  {
+    return controller.getUseInteractivePreviewMagicWand ();
   }
 
   @Override
