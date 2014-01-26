@@ -529,6 +529,9 @@ public void saveControllerSettings ()
   preferences.putBoolean ("Sample All Layers", artwork.isSampleAllLayers ());
   preferences.putInt ("Threshold (Magic Wand)", colorDistanceMagicWand);
   preferences.putInt ("Threshold (Flood Fill)", colorDistanceFloodFill);
+  preferences.putInt ("Selection Fill Alpha", selectionFillAlpha);
+  preferences.put ("Selection Action", curSelectionAction.toString ());
+
 }
 
 public void loadUrgentSettings ()
@@ -585,6 +588,8 @@ public void loadControllerSettings ()
   artwork.setSampleAllLayers ((preferences.getBoolean ("Sample All Layers", artwork.isSampleAllLayers ())));
   colorDistanceMagicWand = preferences.getInt ("Threshold (Magic Wand)", colorDistanceMagicWand);
   colorDistanceFloodFill = preferences.getInt ("Threshold (Flood Fill)", colorDistanceFloodFill);
+  selectionFillAlpha = preferences.getInt ("Selection Fill Alpha", selectionFillAlpha);
+  curSelectionAction = selectionAction.valueOf (preferences.get ("Selection Action", selectionAction.SELECT.toString ()));
 
   setMode (preferences.getInt ("Mode", getCurMode ())); // Note these settings reading two times
 

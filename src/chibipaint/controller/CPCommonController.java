@@ -51,7 +51,7 @@ import java.util.HashMap;
 public abstract class CPCommonController implements ICPController
 {
 
-private int selectionFillAlpha = 255;
+protected int selectionFillAlpha = 255;
 
 public void setSelectionAction (selectionAction selectionActionArg)
 {
@@ -108,7 +108,7 @@ public CPCanvas canvas = null;
 final CPBrushInfo[] tools;
 private int curBrush = T_PENCIL;
 private int curMode = M_DRAW;
-private selectionAction curSelectionAction = selectionAction.SELECT;
+protected selectionAction curSelectionAction = selectionAction.SELECT;
 
 private final ArrayList<ICPColorListener> colorListeners = new ArrayList<ICPColorListener> ();
 private final ArrayList<ICPToolListener> toolListeners = new ArrayList<ICPToolListener> ();

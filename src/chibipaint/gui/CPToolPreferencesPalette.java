@@ -315,6 +315,12 @@ public void newTool (CPBrushInfo toolInfo)
   if (controller.getColorDistanceFloodFill () != colorDistanceSliderFloodFill.value)
     colorDistanceSliderFloodFill.setValue (controller.getColorDistanceFloodFill ());
 
+  if ((controller.getCurSelectionAction () == CPCommonController.selectionAction.FILL_AND_DESELECT) != instantFillCB.state)
+    instantFillCB.setValue (controller.getCurSelectionAction () == CPCommonController.selectionAction.FILL_AND_DESELECT);
+
+  if (controller.getSelectionFillAlpha () * 100 / 255 != instantFillOpacity.value)
+    instantFillOpacity.setValue (controller.getSelectionFillAlpha () * 100 / 255);
+
   if (toolInfo.alpha != alphaSlider.value)
     {
       alphaSlider.setValue (toolInfo.alpha);
