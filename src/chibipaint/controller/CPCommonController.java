@@ -78,6 +78,16 @@ public int getSelectionFillAlpha ()
   return selectionFillAlpha;
 }
 
+public int getColorDistanceMagicWand ()
+{
+  return colorDistanceMagicWand;
+}
+
+public int getColorDistanceFloodFill ()
+{
+  return colorDistanceFloodFill;
+}
+
 public enum selectionAction
 {
   FILL_AND_DESELECT,
@@ -140,7 +150,8 @@ public static final int M_MAGIC_WAND = 6;
 public static final int M_MAX = 7;
 
 // Setting for other modes than draw (probably should do different class for them)
-private int colorDistance = 0;
+protected int colorDistanceMagicWand = 0;
+protected int colorDistanceFloodFill = 0;
 private boolean transformIsOn;
 
 private CPMainGUI mainGUI;
@@ -939,14 +950,14 @@ void setCurMode (int curMode)
   this.curMode = curMode;
 }
 
-public int getColorDistance ()
+public void setColorDistanceFloodFill (int colorDistance)
 {
-  return colorDistance;
+  this.colorDistanceFloodFill = colorDistance;
 }
 
-public void setColorDistance (int colorDistance)
+public void setColorDistanceMagicWand (int colorDistance)
 {
-  this.colorDistance = colorDistance;
+  this.colorDistanceMagicWand = colorDistance;
 }
 
 public int getCurBrush ()

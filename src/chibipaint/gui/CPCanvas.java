@@ -1921,11 +1921,13 @@ abstract class CPGeneralFillMode extends CPMode
     updateTimer.setRepeats (false);
   }
 
+  abstract void updateInitialColorDistance ();
+
   @Override
   public void cursorPressAction ()
   {
     cursorAnchorPos = coordToDocument (new Point2D.Float (getCursorX (), getCursorY ()));
-    initialColorDistance = controller.getColorDistance ();
+    updateInitialColorDistance ();
   }
 
   private void calcColorDistance ()
@@ -1993,6 +1995,12 @@ class CPFloodFillMode extends CPGeneralFillMode
   }
 
   @Override
+  void updateInitialColorDistance ()
+  {
+    initialColorDistance = controller.getColorDistanceFloodFill ();
+  }
+
+  @Override
   void performFloodFill ()
   {
     artwork.performFloodFill (cursorAnchorPos.x, cursorAnchorPos.y, floodFillActualColorDistance);
@@ -2004,6 +2012,12 @@ class CPMagicWandMode extends CPGeneralFillMode
   CPMagicWandMode ()
   {
     mindSelection = false;
+  }
+
+  @Override
+  void updateInitialColorDistance ()
+  {
+    initialColorDistance = controller.getColorDistanceMagicWand ();
   }
 
   @Override

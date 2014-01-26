@@ -527,6 +527,8 @@ public void saveControllerSettings ()
   // Well this settings are stored in artwork...
   preferences.putBoolean ("Lock Alpha", artwork.isLockAlpha ());
   preferences.putBoolean ("Sample All Layers", artwork.isSampleAllLayers ());
+  preferences.putInt ("Threshold (Magic Wand)", colorDistanceMagicWand);
+  preferences.putInt ("Threshold (Flood Fill)", colorDistanceFloodFill);
 }
 
 public void loadUrgentSettings ()
@@ -577,11 +579,17 @@ public void loadControllerSettings ()
                                                                     + String.valueOf (i) + " - Scattering from Pressure",
                                                             tools[i].pressureScattering);
     }
+
+
+  artwork.setLockAlpha ((preferences.getBoolean ("Lock Alpha", artwork.isLockAlpha ())));
+  artwork.setSampleAllLayers ((preferences.getBoolean ("Sample All Layers", artwork.isSampleAllLayers ())));
+  colorDistanceMagicWand = preferences.getInt ("Threshold (Magic Wand)", colorDistanceMagicWand);
+  colorDistanceFloodFill = preferences.getInt ("Threshold (Flood Fill)", colorDistanceFloodFill);
+
   setMode (preferences.getInt ("Mode", getCurMode ())); // Note these settings reading two times
+
   if (getCurMode () == M_DRAW)                             // Because we should set them one more time after enabling
     setTool (preferences.getInt ("ToolPreferences", getCurBrush ())); // of some canvas listeners
   // Well this settings are stored in artwork...
-  artwork.setLockAlpha ((preferences.getBoolean ("Lock Alpha", artwork.isLockAlpha ())));
-  artwork.setSampleAllLayers ((preferences.getBoolean ("Sample All Layers", artwork.isSampleAllLayers ())));
 }
 }

@@ -48,9 +48,10 @@ private final CPSlider instantFillOpacity;
 private final CPCheckBox instantFillCB;
 
 // For Floodfill
-private final CPSlider colorDistanceSlider;
+private final CPSlider colorDistanceSliderFloodFill;
+private final CPSlider colorDistanceSliderMagicWand;
 
-private final JComboBox tipCombo;
+private final JComboBox<String> tipCombo;
 private final String[] tipNames = {"Round Pixelated", "Round Hard Edge", "Round Soft", "Square Pixelated", "Square Hard Edge"};
 private final JButton transformOkButton;
 private final JButton transformCancelButton;
@@ -102,10 +103,29 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
   add (instantFillOpacity);
 
   // fill controls
-  colorDistanceSlider = new CPColorDistanceSlider ();
-  colorDistanceSlider.setLocation (20, 25);
-  colorDistanceSlider.setSize (130, 16);
-  add (colorDistanceSlider);
+  colorDistanceSliderMagicWand = new CPColorDistanceSlider ()
+  {
+    @Override
+    void updateValue ()
+    {
+      controller.setColorDistanceMagicWand (value);
+    }
+  };
+  colorDistanceSliderMagicWand.setLocation (20, 25);
+  colorDistanceSliderMagicWand.setSize (130, 16);
+  add (colorDistanceSliderMagicWand);
+
+  colorDistanceSliderFloodFill = new CPColorDistanceSlider ()
+  {
+    @Override
+    void updateValue ()
+    {
+      controller.setColorDistanceFloodFill (value);
+    }
+  };
+  colorDistanceSliderFloodFill.setLocation (20, 25);
+  colorDistanceSliderFloodFill.setSize (130, 16);
+  add (colorDistanceSliderFloodFill);
 
   // for brush controls:
 
@@ -129,7 +149,7 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
   sizeCB.setLocation (2, 95);
   add (sizeCB);
 
-  tipCombo = new JComboBox (tipNames);
+  tipCombo = new JComboBox<String> (tipNames);
   tipCombo.addActionListener (this);
   tipCombo.setLocation (5, 5);
   tipCombo.setSize (120, 16);
@@ -221,7 +241,8 @@ public CPToolPreferencesPalette (CPCommonController ctrlr)
   instantFillCB.setValue (ctrlr.getCurSelectionAction () == CPCommonController.selectionAction.FILL_AND_DESELECT);
   instantFillOpacity.setValue (ctrlr.getSelectionFillAlpha ());
 
-  colorDistanceSlider.setValue (ctrlr.getColorDistance ());
+  colorDistanceSliderMagicWand.setValue (ctrlr.getColorDistanceMagicWand ());
+  colorDistanceSliderFloodFill.setValue (ctrlr.getColorDistanceFloodFill ());
 
   alphaSlider.setValue (ctrlr.getAlpha ());
   sizeSlider.setValue (ctrlr.getBrushSize ());
@@ -245,8 +266,8 @@ public void newTool (CPBrushInfo toolInfo)
 {
   JComponent[] brushControls = {alphaSlider, sizeSlider, alphaCB, sizeCB, scatteringCB, resatSlider,
           bleedSlider, spacingSlider, scatteringSlider, smoothingSlider, tipCombo, brushPreview};
-  JComponent[] floodFillControls = {colorDistanceSlider};
-  JComponent[] magicWandControls = {colorDistanceSlider};
+  JComponent[] floodFillControls = {colorDistanceSliderFloodFill};
+  JComponent[] magicWandControls = {colorDistanceSliderMagicWand};
   JComponent[] transformControls = {transformLabel, transformOkButton, transformCancelButton, transformFlipHButton, transformFlipVButton,
           transformRotate90CCWButton, transformRotate90CWButton};
   JComponent[] selectionControls = {instantFillCB, instantFillOpacity};
@@ -288,8 +309,11 @@ public void newTool (CPBrushInfo toolInfo)
   if (toolInfo == null)
     return;
 
-  if (controller.getColorDistance () != colorDistanceSlider.value)
-    colorDistanceSlider.setValue (controller.getColorDistance ());
+  if (controller.getColorDistanceMagicWand () != colorDistanceSliderMagicWand.value)
+    colorDistanceSliderMagicWand.setValue (controller.getColorDistanceMagicWand ());
+
+  if (controller.getColorDistanceFloodFill () != colorDistanceSliderFloodFill.value)
+    colorDistanceSliderFloodFill.setValue (controller.getColorDistanceFloodFill ());
 
   if (toolInfo.alpha != alphaSlider.value)
     {
@@ -470,7 +494,7 @@ class CPAlphaSlider extends CPSlider
   }
 }
 
-class CPColorDistanceSlider extends CPSlider
+abstract class CPColorDistanceSlider extends CPSlider
 {
 
   public CPColorDistanceSlider ()
@@ -479,10 +503,12 @@ class CPColorDistanceSlider extends CPSlider
     minValue = 0;
   }
 
+  abstract void updateValue ();
+
   @Override
   public void onValueChange ()
   {
-    controller.setColorDistance (value);
+    updateValue ();
     title = "Threshold: " + value;
   }
 }
