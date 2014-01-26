@@ -176,6 +176,7 @@ public void makeSelectionFromPolygon (Path2D polygon, AffineTransform canvasTran
   g.addRenderingHints (hints);
   transformedPolygon.setWindingRule (Path2D.WIND_EVEN_ODD);
   g.fill (transformedPolygon);
+  g.dispose ();
   data = ((DataBufferByte) bImage.getData ().getDataBuffer ()).getData ();
 
   precalculateSelection (new CPRect (transformedPolygon.getBounds ()));

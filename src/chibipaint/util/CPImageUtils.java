@@ -41,6 +41,7 @@ public static void PasteImageToOrigin (CPLayer layer, Image img)
   Graphics2D g = bI.createGraphics ();
   g.drawImage (layerImage, 0, 0, null);
   g.drawImage (img, 0, 0, null);
+  g.dispose ();
   layer.setData (((DataBufferInt) bI.getData ().getDataBuffer ()).getData ());
 }
 
@@ -54,6 +55,7 @@ public static Image RenderLayerSelectionToImage (CPLayer layer, CPSelection curS
   BufferedImage bI = new BufferedImage (layer.getWidth (), layer.getHeight (), BufferedImage.TYPE_INT_ARGB);
   Graphics2D g = bI.createGraphics ();
   g.drawImage (layerImage, 0, 0, null);
+  g.dispose ();
   return bI.getSubimage (rect.left, rect.top, rect.getWidth (), rect.getHeight ());
 }
 }

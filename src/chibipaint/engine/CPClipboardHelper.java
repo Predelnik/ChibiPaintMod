@@ -110,6 +110,7 @@ static public CPCopyPasteImage GetClipboardImage (boolean limited)
       BufferedImage bI = new BufferedImage (img.getWidth (null), img.getHeight (null), BufferedImage.TYPE_INT_ARGB);
       Graphics g = bI.createGraphics ();
       g.drawImage (img, 0, 0, null);
+      g.dispose ();
       return new CPCopyPasteImage (bI);
     }
   catch (UnsupportedFlavorException e)

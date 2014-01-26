@@ -59,6 +59,7 @@ public boolean write (OutputStream os, CPArtwork a)
   BufferedImage bI = new BufferedImage (a.getWidth (), a.getHeight (), imageType);
   Graphics2D g = bI.createGraphics ();
   g.drawImage (img, 0, 0, null);
+  g.dispose ();
   try
     {
       ImageIO.write (bI, ext (), os);
@@ -89,6 +90,7 @@ public CPArtwork read (InputStream is)
   BufferedImage bIConverted = new BufferedImage (a.getWidth (), a.getHeight (), BufferedImage.TYPE_INT_ARGB);
   Graphics2D g = bIConverted.createGraphics ();
   g.drawImage (bI, 0, 0, null);
+  g.dispose ();
   a.getLayersVector ().get (0).setData (((DataBufferInt) bIConverted.getData ().getDataBuffer ()).getData ());
   return a;
 }

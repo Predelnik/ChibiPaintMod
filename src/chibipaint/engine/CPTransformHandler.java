@@ -674,7 +674,6 @@ private void drawItselfOnLayer (CPLayer layer, Object interpolation, boolean upd
 {
   Rectangle bounds = getRectNeededForUpdating ();
   BufferedImage bI = new BufferedImage ((int) bounds.getWidth (), (int) bounds.getHeight (), BufferedImage.TYPE_INT_ARGB);
-  Graphics gBuffered = bI.createGraphics ();
   Graphics2D g = bI.createGraphics ();
 
   if (interpolation != null)
@@ -691,6 +690,7 @@ private void drawItselfOnLayer (CPLayer layer, Object interpolation, boolean upd
   // Image should transform to be put exactly into our prearranged BufferedImage
   // Uber cool render hints because we're rendering it only one time obviously
   g.drawImage (transformedPartImage, shiftX, shiftY, transformedPartImage.getWidth (null) + shiftX, transformedPartImage.getHeight (null) + shiftY, 0, 0, transformedPartImage.getWidth (null), transformedPartImage.getHeight (null), null);
+  g.dispose ();
   CPColorBmp transformedPartBmp = new CPColorBmp (bI);
   // Now all we need is to fusion this part with activeLayer, also change current selection
   if (updateSelection)
