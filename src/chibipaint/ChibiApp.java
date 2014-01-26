@@ -198,9 +198,11 @@ public void recreateEverything (CPArtwork artwork)
 {
   controller.setArtwork (artwork);
   controller.canvas.reinitCanvas (); // Reinit canvas
-  ((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers")).addListener ();
-  ((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers")).updateScroll ();
-  ((CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers")).updateArtworkState ();
+  CPLayersPalette layersPalette = (CPLayersPalette) mainGUI.getPaletteManager ().getPalettes ().get ("layers");
+  layersPalette.addListener ();
+  layersPalette.updateScroll ();
+  layersPalette.updateArtworkState ();
+  layersPalette.layerChange (artwork);
 
   mainGUI.updateRecentFiles (); // TODO: Change this to correct update of recent files
 
