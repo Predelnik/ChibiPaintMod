@@ -48,7 +48,7 @@ private static class TransferableImage implements Transferable
   public Object getTransferData (DataFlavor flavor)
           throws UnsupportedFlavorException, IOException
   {
-    if (flavor.equals (cpmImageFlavor) && image != null)
+    if (flavor.equals (getCpmImageFlavor ()) && image != null)
       {
         return image;
       }
@@ -84,15 +84,25 @@ private static class TransferableImage implements Transferable
   }
 }
 
+static DataFlavor getCpmImageFlavor ()
+{
+  if (cpmImageFlavor == null)
+    cpmImageFlavor = new DataFlavor ("image/cpm-image; class=" + chibipaint.engine.CPCopyPasteImage.class.getName (), "ChibiPaint Image");
 
-private static final DataFlavor cpmImageFlavor = new DataFlavor ("image/cpm-image; class=chibipaint.engine.CPCopyPasteImage", "ChibiPaint Image");
+  return cpmImageFlavor;
+}
+
+private static DataFlavor cpmImageFlavor = null;
 
 static public CPCopyPasteImage GetClipboardImage (boolean limited)
 {
+  if (limited)
+    return staticImage;
+
   Clipboard clipboard = Toolkit.getDefaultToolkit ().getSystemClipboard ();
   try
     {
-      return (CPCopyPasteImage) clipboard.getData (cpmImageFlavor);
+      return (CPCopyPasteImage) clipboard.getData (getCpmImageFlavor ());
     }
   catch (UnsupportedFlavorException e)
     {
@@ -123,11 +133,20 @@ static public CPCopyPasteImage GetClipboardImage (boolean limited)
     }
 }
 
+static private CPCopyPasteImage staticImage = null;
+
 static public void SetClipboardImage (CPCopyPasteImage image, boolean limited)
 {
-  TransferableImage transferable = new TransferableImage (image, limited);
-  Clipboard clipboard = Toolkit.getDefaultToolkit ().getSystemClipboard ();
-  clipboard.setContents (transferable, null);
+  if (!limited)
+    {
+      TransferableImage transferable = new TransferableImage (image, limited);
+      Clipboard clipboard = Toolkit.getDefaultToolkit ().getSystemClipboard ();
+      clipboard.setContents (transferable, null);
+    }
+  else
+    {
+      staticImage = image;
+    }
 }
 }
 

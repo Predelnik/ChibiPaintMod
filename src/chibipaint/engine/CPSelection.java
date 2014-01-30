@@ -25,7 +25,6 @@ import chibipaint.gui.CPCanvas;
 import chibipaint.util.CPRect;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.stack.array.TIntArrayStack;
-import sun.awt.SunHints;
 
 import java.awt.*;
 import java.awt.geom.*;
@@ -172,7 +171,7 @@ public void makeSelectionFromPolygon (Path2D polygon, AffineTransform canvasTran
   Graphics2D g = bImage.createGraphics ();
   g.setColor (Color.WHITE);
   RenderingHints hints = g.getRenderingHints ();
-  hints.put (SunHints.KEY_ANTIALIASING, SunHints.VALUE_ANTIALIAS_ON);
+  hints.put (RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
   g.addRenderingHints (hints);
   transformedPolygon.setWindingRule (Path2D.WIND_EVEN_ODD);
   g.fill (transformedPolygon);

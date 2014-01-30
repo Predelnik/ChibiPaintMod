@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_chibipaint" default="compile.module.chibipaint">
+  <dirname property="module.chibipaint.basedir" file="${ant.file.module_chibipaint}"/>
+  
+  <property name="module.jdk.home.chibipaint" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.chibipaint" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.chibipaint" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.chibipaint" value="${compiler.args}"/>
+  
+  <property name="chibipaint.output.dir" value="${module.chibipaint.basedir}/bin"/>
+  <property name="chibipaint.testoutput.dir" value="${module.chibipaint.basedir}/bin"/>
+  
+  <path id="chibipaint.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="chibipaint.module.production.classpath">
+    <path refid="${module.jdk.classpath.chibipaint}"/>
+    <path refid="library.jtablet.classpath"/>
+    <path refid="library.trove-3.0.3.classpath"/>
+  </path>
+  
+  <path id="chibipaint.runtime.production.module.classpath">
+    <pathelement location="${chibipaint.output.dir}"/>
+    <path refid="library.jtablet.classpath"/>
+    <path refid="library.trove-3.0.3.classpath"/>
+  </path>
+  
+  <path id="chibipaint.module.classpath">
+    <pathelement location="${chibipaint.output.dir}"/>
+    <path refid="${module.jdk.classpath.chibipaint}"/>
+    <path refid="library.jtablet.classpath"/>
+    <path refid="library.trove-3.0.3.classpath"/>
+  </path>
+  
+  <path id="chibipaint.runtime.module.classpath">
+    <pathelement location="${chibipaint.output.dir}"/>
+    <path refid="library.jtablet.classpath"/>
+    <path refid="library.trove-3.0.3.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.chibipaint">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.chibipaint">
+    <patternset refid="excluded.from.module.chibipaint"/>
+  </patternset>
+  
+  <path id="chibipaint.module.sourcepath">
+    <dirset dir="${module.chibipaint.basedir}">
+      <include name="src"/>
+      <include name="src/resource"/>
+      <include name="src/chibitest"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.chibipaint" depends="compile.module.chibipaint.production,compile.module.chibipaint.tests" description="Compile module ChibiPaint"/>
+  
+  <target name="compile.module.chibipaint.production" depends="register.custom.compilers" description="Compile module ChibiPaint; production classes">
+    <mkdir dir="${chibipaint.output.dir}"/>
+    <javac2 destdir="${chibipaint.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.chibipaint}/javac">
+      <compilerarg line="${compiler.args.chibipaint}"/>
+      <bootclasspath refid="chibipaint.module.bootclasspath"/>
+      <classpath refid="chibipaint.module.production.classpath"/>
+      <src refid="chibipaint.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.chibipaint"/>
+    </javac2>
+    
+    <copy todir="${chibipaint.output.dir}">
+      <fileset dir="${module.chibipaint.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.chibipaint.basedir}/src/resource">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.chibipaint.basedir}/src/chibitest">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.chibipaint.tests" depends="register.custom.compilers,compile.module.chibipaint.production" description="compile module ChibiPaint; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.chibipaint" description="cleanup module">
+    <delete dir="${chibipaint.output.dir}"/>
+    <delete dir="${chibipaint.testoutput.dir}"/>
+  </target>
+</project>

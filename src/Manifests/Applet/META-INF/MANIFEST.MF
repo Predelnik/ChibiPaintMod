@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Main-Class: chibipaint.ChibiPaint
+Permissions: sandbox
+Codebase: abysslimits.com
+Application-Name: ChibiPaintMod
+Caller-Allowable-Codebase: abysslimits.com
+Trusted-Only: true
+Trusted-Library: true
+Caller-Allowable-Codebase: abysslimits.com
