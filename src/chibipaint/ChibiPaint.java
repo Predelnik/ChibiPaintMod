@@ -95,6 +95,7 @@ void createApplet ()
 {
   controller = new CPControllerApplet (this);
   controller.setArtwork (createArtwork ());
+  controller.artwork.setAppletEmulation (true);
 
   // FIXME: set a default tool so that we can start drawing
   controller.setTool (CPCommonController.T_PEN);

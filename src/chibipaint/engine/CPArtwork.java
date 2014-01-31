@@ -45,6 +45,8 @@ public void doTransformAction (transformType type)
   doTransformAction (type, CPEnums.Direction.Invalid);
 }
 
+private boolean appletEmulation = false;
+
 public void doTransformAction (transformType type, CPEnums.Direction direction)
 {
   CPRect updatingRect = new CPRect (transformHandler.getRectNeededForUpdating ());
@@ -148,6 +150,16 @@ public void alphaToSelection ()
   finalizeUndo ();
 }
 
+public boolean isAppletEmulation ()
+{
+  return appletEmulation;
+}
+
+public void setAppletEmulation (boolean appletEmulation)
+{
+  this.appletEmulation = appletEmulation;
+}
+
 public enum transformType
 {
   FLIP_H,
@@ -218,6 +230,8 @@ public void RestoreActiveLayerAndSelection ()
 
 public void copySelected (boolean limited)
 {
+  if (appletEmulation)
+    limited = true;
   CPColorBmp copy = new CPColorBmp (width, height);
   copy.copyDataFrom (activeLayer);
   copy.cutBySelection (curSelection);
@@ -230,6 +244,8 @@ public void copySelected (boolean limited)
 
 public void copySelectedMerged (boolean limited)
 {
+  if (appletEmulation)
+    limited = true;
   CPColorBmp copy = new CPColorBmp (width, height);
   copy.copyDataFrom (fusion);
   copy.cutBySelection (curSelection);
@@ -243,6 +259,8 @@ public void copySelectedMerged (boolean limited)
 
 public void cutSelected (boolean limited)
 {
+  if (appletEmulation)
+    limited = true;
   undoManager.preserveActiveLayerData ();
   undoManager.preserveCurrentSelection ();
   copySelected (limited);
@@ -258,10 +276,13 @@ public void cutSelected (boolean limited)
 
 public void pasteFromClipboard (boolean limited)
 {
+  if (appletEmulation)
+    limited = true;
   CPCopyPasteImage imageInClipboard = CPClipboardHelper.GetClipboardImage (limited);
   if (imageInClipboard == null)
     return;
   addLayer ();
+  getUndoManager ().preserveActiveLayerData ();
   imageInClipboard.paste (getActiveLayer ());
   CPSelection selection = new CPSelection (getWidth (), getHeight ());
   selection.makeSelectionFromAlpha (getActiveLayer ().getData (), new CPRect (imageInClipboard.getPosX (), imageInClipboard.getPosY (),

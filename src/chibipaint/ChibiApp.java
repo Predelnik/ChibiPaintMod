@@ -205,7 +205,6 @@ public void recreateEverything (CPArtwork artwork)
   layersPalette.layerChange (artwork);
 
   mainGUI.updateRecentFiles (); // TODO: Change this to correct update of recent files
-
 }
 
 public void resetMainMenu ()

@@ -35,11 +35,11 @@ import java.util.zip.InflaterInputStream;
 
 public class CPChibiFile extends CPFile
 {
-
 private static final byte[] CHIB = {67, 72, 73, 66};
 private static final byte[] IOEK = {73, 79, 69, 75};
 private static final byte[] HEAD = {72, 69, 65, 68};
 private static final byte[] LAYR = {76, 65, 89, 82};
+private static final byte[] LYER = {76, 89, 69, 82};
 private static final byte[] ZEND = {90, 69, 78, 68};
 
 @Override
@@ -54,35 +54,73 @@ public FileNameExtensionFilter fileFilter ()
   return new FileNameExtensionFilter ("ChibiPaintMod Files(*.chi)", "chi");
 }
 
+private ChiWriter getWriterByVersion (int version)
+{
+  switch (version)
+    {
+    case 0x0100:
+      return new AdvancedChiWriter ();
+    case 0x0000:
+      return new DefaultChiWriter ();
+    }
+  return null;
+}
+
+private ChiReader getReaderByVersion (int version)
+{
+  switch (version)
+    {
+    case 0x0100:
+      return new ChiReader_v1 ();
+    case 0x0000:
+      return new DefaultChiReader ();
+    }
+  return null;
+}
+
+static private int LATEST_VER = 0x0100;
+
 @Override
 public boolean write (OutputStream os, CPArtwork a)
 {
-  try
-    {
-      writeMagic (os);
-      os.flush ();
+  return getWriterByVersion (a.isAppletEmulation () ? 0x0000 : LATEST_VER).write (os, a);
+}
 
-      Deflater def = new Deflater (7);
-      DeflaterOutputStream dos = new DeflaterOutputStream (os, def);
-      // OutputStream dos = os;
+class AdvancedChiWriter extends DefaultChiWriter
+{
+  @Override
+  protected void writeHeader (OutputStream os, CPArtwork a) throws IOException
+  {
+    os.write (HEAD); // Chunk ID
+    writeInt (os, 16); // ChunkSize
 
-      writeHeader (dos, a);
+    writeInt (os, LATEST_VER); // Actual Version
+    writeInt (os, a.getWidth ());
+    writeInt (os, a.getHeight ());
+    writeInt (os, a.getLayersNb ());
 
-      for (Object l : a.getLayersVector ())
-        {
-          writeLayer (dos, (CPLayer) l);
-        }
+    // This is not part of the legacy header:
+    writeInt (os, a.getActiveLayerNum ());
+  }
 
-      writeEnd (dos);
+  @Override
+  protected void writeLayer (OutputStream os, CPLayer l) throws IOException
+  {
+    byte[] title = l.getName ().getBytes ("UTF-8");
 
-      dos.flush ();
-      dos.close ();
-      return true;
-    }
-  catch (IOException e)
-    {
-      return false;
-    }
+    os.write (LYER); // Chunk ID
+    writeInt (os, 20 + l.getData ().length * 4 + title.length); // ChunkSize
+
+    writeInt (os, 20 + title.length); // Data offset from start of header
+    writeInt (os, l.getBlendMode ()); // layer blend mode
+    writeInt (os, l.getAlpha ()); // layer opacity
+    writeInt (os, l.isVisible () ? 1 : 0); // layer visibility and future flags
+
+    writeInt (os, title.length);
+    os.write (title);
+
+    writeIntArray (os, l.getData ());
+  }
 }
 
 private static void writeInt (OutputStream os, int i) throws IOException
@@ -91,65 +129,225 @@ private static void writeInt (OutputStream os, int i) throws IOException
   os.write (temp);
 }
 
-private static void writeIntArray (OutputStream os, int arr[]) throws IOException
+interface ChiWriter
 {
-  byte[] temp = new byte[arr.length * 4];
-  int idx = 0;
-  for (int i : arr)
-    {
-      temp[idx++] = (byte) (i >>> 24);
-      temp[idx++] = (byte) ((i >>> 16) & 0xff);
-      temp[idx++] = (byte) ((i >>> 8) & 0xff);
-      temp[idx++] = (byte) (i & 0xff);
-    }
-
-  os.write (temp);
+  public abstract boolean write (OutputStream os, CPArtwork a);
 }
 
-private static void writeMagic (OutputStream os) throws IOException
+class DefaultChiWriter implements ChiWriter
 {
-  os.write (CHIB);
-  os.write (IOEK);
+  protected void writeHeader (OutputStream os, CPArtwork a) throws IOException
+  {
+    os.write (HEAD); // Chunk ID
+    writeInt (os, 16); // ChunkSize
+
+    writeInt (os, 0x0000); // Current Version: Major: 0 Minor: 0
+    writeInt (os, a.getWidth ());
+    writeInt (os, a.getHeight ());
+    writeInt (os, a.getLayersNb ());
+  }
+
+  protected void writeLayer (OutputStream os, CPLayer l) throws IOException
+  {
+    byte[] title = l.getName ().getBytes ("UTF-8");
+
+    os.write (LAYR); // Chunk ID
+    writeInt (os, 20 + l.getData ().length * 4 + title.length); // ChunkSize
+
+    writeInt (os, 20 + title.length); // Data offset from start of header
+    writeInt (os, l.getBlendMode ()); // layer blend mode
+    writeInt (os, l.getAlpha ()); // layer opacity
+    writeInt (os, l.isVisible () ? 1 : 0); // layer visibility and future flags
+
+    writeInt (os, title.length);
+    os.write (title);
+
+    writeIntArray (os, l.getData ());
+  }
+
+
+  protected void writeIntArray (OutputStream os, int arr[]) throws IOException
+  {
+    byte[] temp = new byte[arr.length * 4];
+    int idx = 0;
+    for (int i : arr)
+      {
+        temp[idx++] = (byte) (i >>> 24);
+        temp[idx++] = (byte) ((i >>> 16) & 0xff);
+        temp[idx++] = (byte) ((i >>> 8) & 0xff);
+        temp[idx++] = (byte) (i & 0xff);
+      }
+
+    os.write (temp);
+  }
+
+  private void writeMagic (OutputStream os) throws IOException
+  {
+    os.write (CHIB);
+    os.write (IOEK);
+  }
+
+  private void writeEnd (OutputStream os) throws IOException
+  {
+    os.write (ZEND);
+    writeInt (os, 0);
+  }
+
+  public boolean write (OutputStream os, CPArtwork a)
+  {
+    try
+      {
+        writeMagic (os);
+        os.flush ();
+
+        Deflater def = new Deflater (7);
+        DeflaterOutputStream dos = new DeflaterOutputStream (os, def);
+        // OutputStream dos = os;
+
+        writeHeader (dos, a);
+
+        for (Object l : a.getLayersVector ())
+          {
+            writeLayer (dos, (CPLayer) l);
+          }
+
+        writeEnd (dos);
+
+        dos.flush ();
+        dos.close ();
+        return true;
+      }
+    catch (IOException e)
+      {
+        return false;
+      }
+  }
 }
 
-private static void writeEnd (OutputStream os) throws IOException
+
+interface ChiReader
 {
-  os.write (ZEND);
-  writeInt (os, 0);
+  abstract public CPArtwork read (InflaterInputStream iis, CPChibiHeader header) throws IOException;
 }
 
-private static void writeHeader (OutputStream os, CPArtwork a) throws IOException
+class ChiReader_v1 implements ChiReader
 {
-  os.write (HEAD); // Chunk ID
-  writeInt (os, 16); // ChunkSize
 
-  writeInt (os, 0); // Current Version: Major: 0 Minor: 0
-  writeInt (os, a.getWidth ());
-  writeInt (os, a.getHeight ());
-  writeInt (os, a.getLayersNb ());
+  private void readLayer (InputStream is, CPChibiChunk chunk, CPArtwork a) throws IOException
+  {
+    CPLayer l = new CPLayer (a.getWidth (), a.getHeight ());
+
+    int offset = readInt (is);
+    l.setBlendMode (readInt (is)); // layer blend mode
+    l.setAlpha (readInt (is));
+    l.setVisible ((readInt (is) & 1) != 0);
+
+    int titleLength = readInt (is);
+    byte[] title = new byte[titleLength];
+    realRead (is, title, titleLength);
+    l.setName (new String (title, "UTF-8"));
+
+    realSkip (is, offset - 20 - titleLength);
+    readIntArray (is, l.getData (), l.getWidth () * l.getHeight ());
+
+    a.getLayersVector ().add (l);
+
+    realSkip (is, chunk.chunkSize - offset - l.getWidth () * l.getHeight () * 4);
+  }
+
+  @Override
+  public CPArtwork read (InflaterInputStream iis, CPChibiHeader header) throws IOException
+  {
+    CPArtwork a = new CPArtwork (header.width, header.height);
+    a.getLayersVector ().remove (0); // FIXME: it would be better not to have created it in the first place
+    CPChibiChunk chunk;
+    int activeLayerNum = readInt (iis);
+
+    while (true)
+      {
+        chunk = new CPChibiChunk (iis);
+
+        if (chunk.is (ZEND))
+          {
+            break;
+          }
+        else if (chunk.is (LYER))
+          {
+            readLayer (iis, chunk, a);
+          }
+        else
+          {
+            realSkip (iis, chunk.chunkSize);
+          }
+      }
+
+    a.setActiveLayerNumberWithoutUndo (activeLayerNum);
+    iis.close ();
+    return a;
+  }
 }
 
-private static void writeLayer (OutputStream os, CPLayer l) throws IOException
+class DefaultChiReader implements ChiReader
 {
-  byte[] title = l.getName ().getBytes ("UTF-8");
 
-  os.write (LAYR); // Chunk ID
-  writeInt (os, 20 + l.getData ().length * 4 + title.length); // ChunkSize
+  private void readLayer (InputStream is, CPChibiChunk chunk, CPArtwork a) throws IOException
+  {
+    CPLayer l = new CPLayer (a.getWidth (), a.getHeight ());
 
-  writeInt (os, 20 + title.length); // Data offset from start of header
-  writeInt (os, l.getBlendMode ()); // layer blend mode
-  writeInt (os, l.getAlpha ()); // layer opacity
-  writeInt (os, l.isVisible () ? 1 : 0); // layer visibility and future flags
+    int offset = readInt (is);
+    l.setBlendMode (readInt (is)); // layer blend mode
+    l.setAlpha (readInt (is));
+    l.setVisible ((readInt (is) & 1) != 0);
 
-  writeInt (os, title.length);
-  os.write (title);
+    int titleLength = readInt (is);
+    byte[] title = new byte[titleLength];
+    realRead (is, title, titleLength);
+    l.setName (new String (title, "UTF-8"));
 
-  writeIntArray (os, l.getData ());
+    realSkip (is, offset - 20 - titleLength);
+    readIntArray (is, l.getData (), l.getWidth () * l.getHeight ());
+
+    a.getLayersVector ().add (l);
+
+    realSkip (is, chunk.chunkSize - offset - l.getWidth () * l.getHeight () * 4);
+  }
+
+  @Override
+  public CPArtwork read (InflaterInputStream iis, CPChibiHeader header) throws IOException
+  {
+    CPArtwork a = new CPArtwork (header.width, header.height);
+    a.getLayersVector ().remove (0); // FIXME: it would be better not to have created it in the first place
+    CPChibiChunk chunk;
+
+    while (true)
+      {
+        chunk = new CPChibiChunk (iis);
+
+        if (chunk.is (ZEND))
+          {
+            break;
+          }
+        else if (chunk.is (LAYR))
+          {
+            readLayer (iis, chunk, a);
+          }
+        else
+          {
+            realSkip (iis, chunk.chunkSize);
+          }
+      }
+
+    a.setActiveLayerNumberWithoutUndo (0);
+    a.setAppletEmulation (true);
+    iis.close ();
+    return a;
+  }
 }
 
 @Override
 public CPArtwork read (InputStream is)
-{  try
+{
+  try
 
     {
       if (!readMagic (is))
@@ -166,37 +364,14 @@ public CPArtwork read (InputStream is)
         }
 
       CPChibiHeader header = new CPChibiHeader (iis, chunk);
-      if ((header.version >>> 16) > 0)
+      ChiReader reader = getReaderByVersion (header.version);
+      if (reader == null)
         {
-          iis.close ();
-          return null; // the file version is higher than what we can deal with, bail out
+          is.close ();
+          return null;
         }
 
-      CPArtwork a = new CPArtwork (header.width, header.height);
-      a.getLayersVector ().remove (0); // FIXME: it would be better not to have created it in the first place
-
-      while (true)
-        {
-          chunk = new CPChibiChunk (iis);
-
-          if (chunk.is (ZEND))
-            {
-              break;
-            }
-          else if (chunk.is (LAYR))
-            {
-              readLayer (iis, chunk, a);
-            }
-          else
-            {
-              realSkip (iis, chunk.chunkSize);
-            }
-        }
-
-      a.setActiveLayerNumberWithoutUndo (0);
-      iis.close ();
-      return a;
-
+      return reader.read (iis, header);
     }
   catch (IOException e)
     {
@@ -206,28 +381,6 @@ public CPArtwork read (InputStream is)
     {
       return null;
     }
-}
-
-static private void readLayer (InputStream is, CPChibiChunk chunk, CPArtwork a) throws IOException
-{
-  CPLayer l = new CPLayer (a.getWidth (), a.getHeight ());
-
-  int offset = readInt (is);
-  l.setBlendMode (readInt (is)); // layer blend mode
-  l.setAlpha (readInt (is));
-  l.setVisible ((readInt (is) & 1) != 0);
-
-  int titleLength = readInt (is);
-  byte[] title = new byte[titleLength];
-  realRead (is, title, titleLength);
-  l.setName (new String (title, "UTF-8"));
-
-  realSkip (is, offset - 20 - titleLength);
-  readIntArray (is, l.getData (), l.getWidth () * l.getHeight ());
-
-  a.getLayersVector ().add (l);
-
-  realSkip (is, chunk.chunkSize - offset - l.getWidth () * l.getHeight () * 4);
 }
 
 static private void readIntArray (InputStream is, int[] intArray, int size) throws IOException
