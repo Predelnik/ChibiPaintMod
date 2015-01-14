@@ -474,24 +474,6 @@ public void drawRectangle (CPRect rect, final int color, final boolean xor)
 // Flood fill algorithm
 //
 
-static class CPFillLine
-{
-
-  final int x1;
-  final int x2;
-  final int y;
-  final int dy;
-
-  CPFillLine (int x1, int x2, int y, int dy)
-  {
-    this.x1 = x1;
-    this.x2 = x2;
-    this.y = y;
-    this.dy = dy;
-  }
-}
-
-// we building metric in which our new color will always be counted as not near (so it passed in farAwayColor parameter)
 private static boolean areColorsNear (int color_1, int color_2, int distance)
 {
   int[] dist = new int[4];
@@ -542,8 +524,11 @@ static public void floodFill (int xArg, int yArg, final CPLayer useDataFrom, fin
         {
           shouldWeFill = new CPIfaces.IntChecker ()
           {
+            int counter = 0;
+
             public boolean check (int arg)
             {
+              counter++;
               return areColorsNearAlpha (useDataFrom.getData ()[arg], oldColor, colorDistance) && (destination.getData ()[arg] == 0);
             }
           };
@@ -583,58 +568,157 @@ static public void floodFill (int xArg, int yArg, final CPLayer useDataFrom, fin
         }
     }
 
+  if (!shouldWeFill.check (yArg * width + xArg))
+    return;
 
   TIntArrayStack S = new TIntArrayStack ();
+  // to go Bottom
+  if (yArg < height - 1 && shouldWeFill.check ((yArg + 1) * width + xArg))
+    {
+      S.push (xArg);
+      S.push (xArg);
+      S.push (yArg + 1);
+      S.push (1);
+    }
+  // to go top
+  S.push (xArg);
   S.push (xArg);
   S.push (yArg);
+  S.push (-1);
 
+  // TODO: Reduce code duplication
   while (S.size () != 0)
     {
+      int dir = S.pop ();
       int y = S.pop ();
-      int x = S.pop ();
-      offset = y * width;
-      while (x >= 0 && shouldWeFill.check (offset + x))
-        x--;
-      x++; // Now we find the left side of this part
-      // careful: px.x is used as an iterator and px.y is constant
-      boolean spanTop = false;
-      boolean spanBottom = false;
-
-      offset += x;
-      int heightMinus1 = height - 1;
-      int offsetMinus1 = offset - width;
-      int offsetPlus1 = offset + width;
-      while (x < width && shouldWeFill.check (offset))
+      int xr = S.pop ();
+      int xl = S.pop ();
+      int xlOld = xl;
+      int xrOld = xr;
+      offset = y * width + xl;
+      int newX = -1;
+      int offsetLower = offset - dir * width;
+      xl--;
+      offset--;
+      offsetLower--;
+      boolean yExpansion = (y - dir >= 0 && y - dir < height);
+      while (xl >= 0 && shouldWeFill.check (offset))
         {
           if (selection == null)
             destination.getData ()[offset] = destinationColor;
           else
             destination.getData ()[offset] = destinationColorWithoutAlpha | selection.getData ()[offset] << 24;
-          if (!spanTop && y > 0 && shouldWeFill.check (offsetMinus1))
+          if (yExpansion && shouldWeFill.check (offsetLower))
             {
-              S.push (x);
-              S.push (y - 1);
-              spanTop = true;
+              if (newX == -1)
+                newX = xl;
             }
-          else if (spanTop && y > 0 && !shouldWeFill.check (offsetMinus1))
+          else
             {
-              spanTop = false;
+              if (newX != -1)
+                {
+                  S.push (xl + 1);
+                  S.push (newX);
+                  S.push (y - dir);
+                  S.push (-dir);
+                }
             }
-          if (!spanBottom && y < heightMinus1 && shouldWeFill.check (offsetPlus1))
-            {
-              S.push (x);
-              S.push (y + 1);
-              spanBottom = true;
-            }
-          else if (spanBottom && y < heightMinus1 && !shouldWeFill.check (offsetPlus1))
-            {
-              spanBottom = false;
-            }
-          x++;
-          offset++;
-          offsetMinus1++;
-          offsetPlus1++;
+          xl--;
+          offset--;
+          offsetLower--;
         }
+
+      if (newX != -1)
+        {
+          S.push (xl + 1);
+          S.push (newX);
+          S.push (y - dir);
+          S.push (-dir);
+          newX = -1;
+        }
+      xl++;
+
+      offset = y * width + xr;
+      offsetLower = offset - dir * width;
+      newX = -1;
+      xr++;
+      offset++;
+      offsetLower++;
+      while (xr < width && shouldWeFill.check (offset))
+        {
+          if (selection == null)
+            destination.getData ()[offset] = destinationColor;
+          else
+            destination.getData ()[offset] = destinationColorWithoutAlpha | selection.getData ()[offset] << 24;
+          if (yExpansion && shouldWeFill.check (offsetLower))
+            {
+              if (newX == -1)
+                newX = xr;
+            }
+          else
+            {
+              if (newX != -1)
+                {
+                  S.push (newX);
+                  S.push (xr - 1);
+                  S.push (y - dir);
+                  S.push (-dir);
+                }
+            }
+          xr++;
+          offset++;
+          offsetLower++;
+        }
+
+      if (newX != -1)
+        {
+          S.push (newX);
+          S.push (xr - 1);
+          S.push (y - dir);
+          S.push (-dir);
+          newX = -1;
+        }
+      xr--;
+
+      yExpansion = (y + dir >= 0 && y + dir < height);
+      offset = y * width + xl;
+      int offsetHigher = offset + dir * width;
+      newX = -1;
+      for (int i = xl; i <= xr; i++, offset++, offsetHigher++)
+        {
+          // all of our interval should be filled, we know it
+          if (i >= xlOld && i <= xrOld)
+            {
+              if (selection == null)
+                destination.getData ()[offset] = destinationColor;
+              else
+                destination.getData ()[offset] = destinationColorWithoutAlpha | selection.getData ()[offset] << 24;
+            }
+          if (yExpansion && shouldWeFill.check (offsetHigher))
+            {
+              if (newX == -1)
+                newX = i;
+            }
+          else
+            {
+              if (newX != -1)
+                {
+                  S.push (newX);
+                  S.push (i - 1);
+                  S.push (y + dir);
+                  S.push (dir);
+                  newX = -1;
+                }
+            }
+        }
+      if (newX != -1)
+        {
+          S.push (newX);
+          S.push (xr);
+          S.push (y + dir);
+          S.push (dir);
+        }
+
     }
 
 }

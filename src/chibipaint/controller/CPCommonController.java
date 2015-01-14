@@ -27,10 +27,7 @@ import chibipaint.engine.CPArtwork;
 import chibipaint.engine.CPBrushInfo;
 import chibipaint.gui.CPCanvas;
 import chibipaint.gui.CPMainGUI;
-import chibipaint.util.CPColor;
-import chibipaint.util.CPTables;
-import chibipaint.util.CPTablet;
-import chibipaint.util.CPTablet2;
+import chibipaint.util.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -477,6 +474,9 @@ private void launchZoomDialog ()
   panel.add (new JLabel ("Desired Zoom Amount (in %):"));
   SpinnerModel zoomXSM = new SpinnerNumberModel (100.0, 1.0, 1600.0, 5.0);
   JSpinner zoomX = new JSpinner (zoomXSM);
+  JSpinner.NumberEditor editor = new JSpinner.NumberEditor (zoomX, "0.00");
+  zoomX.setEditor (editor);
+  CPSwingUtils.allowOnlyCorrectValues (zoomX);
   panel.add (zoomX);
 
   Object[] array = {panel};
@@ -914,6 +914,8 @@ void showBlurDialog (BlurType type)
   panel.add (new JLabel ("Blur amount:"));
   SpinnerModel blurXSM = new SpinnerNumberModel (3, 1, 100, 1);
   JSpinner blurX = new JSpinner (blurXSM);
+  CPSwingUtils.allowOnlyCorrectValues (blurX);
+
   panel.add (blurX);
   JSpinner iter = null;
 
@@ -922,6 +924,7 @@ void showBlurDialog (BlurType type)
       panel.add (new JLabel ("Iterations:"));
       SpinnerModel iterSM = new SpinnerNumberModel (1, 1, 8, 1);
       iter = new JSpinner (iterSM);
+      CPSwingUtils.allowOnlyCorrectValues (iter);
       panel.add (iter);
     }
 
