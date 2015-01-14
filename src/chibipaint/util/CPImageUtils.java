@@ -29,7 +29,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.awt.image.MemoryImageSource;
 
-class CPImageUtils
+public class CPImageUtils
 {
 public static void PasteImageToOrigin (CPLayer layer, Image img)
 {
@@ -57,4 +57,5 @@ public static Image RenderLayerSelectionToImage (CPLayer layer, CPSelection curS
   g.dispose ();
   return bI.getSubimage (rect.left, rect.top, rect.getWidth (), rect.getHeight ());
 }
+
 }

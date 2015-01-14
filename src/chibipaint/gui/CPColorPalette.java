@@ -25,19 +25,61 @@ import chibipaint.controller.CPCommonController;
 import chibipaint.util.CPColor;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
+import java.util.ArrayList;
 
-public class CPColorPalette extends CPPalette implements CPCommonController.ICPColorListener
+public class CPColorPalette extends CPPalette
 {
 
+enum paletteMode
+{
+  RECTANGLE,
+  CIRCLE,
+};
+
 private final CPColor curColor = new CPColor ();
-private final CPColorSelect colorSelect;
-private final CPColorSlider colorSlider;
-private final CPColorShow colorShow;
+private final JToggleButton paletteModeButtons[] = new JToggleButton[paletteMode.values().length];
+private final int iconSize = 16;
+private final int buttonSize = 20;
+private final CPCircleColorPaletteWidget circleColorPaletteWidget;
+private final ArrayList<ArrayList<JComponent>> modeComponents = new ArrayList<ArrayList<JComponent>> ();
+private final CPRectangleColorPaletteWidget rectangleColorPaletteWidget;
+
+JToggleButton paletteModeButton (paletteMode mode)
+{
+  return paletteModeButtons[mode.ordinal ()];
+}
+
+ArrayList<JComponent> modeComponents (paletteMode mode)
+{
+  return modeComponents.get (mode.ordinal ());
+}
+
+void addComponent (JComponent component, paletteMode mode)
+{
+  add (component);
+  modeComponents (mode).add (component);
+}
+
+void updateComponentsVisibility ()
+{
+  for (int i = 0; i < modeComponents.size (); i++)
+    for (JComponent component : modeComponents.get (i))
+      component.setVisible (false);
+
+  for (int i = 0; i < modeComponents.size (); i++)
+    if (paletteModeButtons[i].isSelected()) {
+      for (JComponent component : modeComponents.get(i))
+        component.setVisible(true);
+    }
+  if (getPaletteContainer () != null)
+    getPaletteContainer ().pack ();
+}
 
 public CPColorPalette (CPCommonController controller)
 {
@@ -47,32 +89,43 @@ public CPColorPalette (CPCommonController controller)
 
   title = "Color";
   // setBounds(getInnerDimensions());
-
-  setLayout (new FlowLayout ());
-  colorSelect = new CPColorSelect ();
-  add (colorSelect);
-  colorSlider = new CPColorSlider (colorSelect);
-  add (colorSlider);
-
-  colorShow = new CPColorShow ();
-  colorShow.setPreferredSize (new Dimension (160, 20));
-  colorShow.color = controller.getCurColorRgb ();
-  add (colorShow);
-
-  controller.addColorListener (this);
-}
-
-@Override
-public void newColor (CPColor color)
-{
-  if (!curColor.isEqual (color))
+  BufferedImage icons = controller.loadImage("paletteicons.png");
+  JPanel modePanel = new JPanel ();
+  add (modePanel);
+  modePanel.setLayout (new BoxLayout(modePanel, BoxLayout.LINE_AXIS));
+  for (int i = 0; i < paletteModeButtons.length; ++i)
     {
-      curColor.copyFrom (color);
-      colorSelect.setColor (color);
-      colorSlider.setHue (curColor.getHue ());
+      paletteModeButtons[i] = new JToggleButton (new ImageIcon(icons.getSubimage(iconSize * i, 0, iconSize, iconSize)));
+      paletteModeButtons[i].setPreferredSize(new Dimension(buttonSize, buttonSize));
+      paletteModeButtons[i].setSize(new Dimension(buttonSize, buttonSize));
+      modePanel.add(paletteModeButtons[i]);
+      final int j = i;
+
+      paletteModeButtons[i].addChangeListener (new ChangeListener()
+      {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+          updateComponentsVisibility ();
+
+        }
+      });
+      paletteModeButtons[i].setAlignmentX (Component.LEFT_ALIGNMENT);
+      modeComponents.add (new ArrayList<JComponent>());
     }
-  colorShow.color = color.getRgb ();
-  colorShow.repaint ();
+  modePanel.add (Box.createHorizontalGlue ());
+
+  paletteModeButton(paletteMode.RECTANGLE).setSelected (true);
+
+  setLayout(new BoxLayout (this, BoxLayout.PAGE_AXIS));
+
+  rectangleColorPaletteWidget = new CPRectangleColorPaletteWidget(controller);
+  addComponent (rectangleColorPaletteWidget, paletteMode.RECTANGLE);
+  controller.addColorChangeListener(rectangleColorPaletteWidget);
+
+  circleColorPaletteWidget = new CPCircleColorPaletteWidget (controller);
+  addComponent (circleColorPaletteWidget, paletteMode.CIRCLE);
+
+  updateComponentsVisibility ();
 }
 
 public class CPColorSelect extends JComponent implements MouseListener, MouseMotionListener
@@ -218,9 +271,311 @@ public class CPColorSelect extends JComponent implements MouseListener, MouseMot
   }
 }
 
+  public class CPRectangleColorPaletteWidget extends JComponent implements CPCommonController.ICPColorChangeListener {
+    CPColorSelect colorSelect;
+    CPColorSlider colorSlider;
+    CPColorShow colorShow;
+    final int horMargin = 5, verMargin = 5;
+
+    CPRectangleColorPaletteWidget(CPCommonController controller)
+    {
+      setLayout (null);
+      colorSelect = new CPColorSelect ();
+      add(colorSelect);
+      Dimension size = colorSelect.getPreferredSize();
+      colorSelect.setBounds (0, 0, size.width, size.height);
+      colorSlider = new CPColorSlider (colorSelect);
+      size = colorSlider.getPreferredSize();
+      colorSlider.setBounds (colorSelect.getPreferredSize().width + horMargin, 0, size.width, size.height);
+      add(colorSlider);
+      colorShow = new CPColorShow ();
+      colorShow.setPreferredSize (new Dimension (colorSelect.getPreferredSize().width + horMargin + colorSlider.getPreferredSize().width, 20));
+      size = colorShow.getPreferredSize();
+      colorShow.setBounds (0, colorSelect.getPreferredSize().height + verMargin, size.width, size.height);
+      add(colorShow);
+      controller.addColorChangeListener (colorShow);
+    }
+
+    @Override
+    public Dimension getPreferredSize ()
+    {
+      return new Dimension (colorSelect.getPreferredSize().width + colorSlider.getPreferredSize().width + horMargin,
+                            colorSelect.getPreferredSize().height + colorShow.getPreferredSize().height + verMargin
+              );
+    }
+
+    @Override
+    public void colorChanged(CPColor color) {
+        if (!curColor.isEqual (color))
+        {
+          curColor.copyFrom (color);
+          colorSelect.setColor (color);
+          colorSlider.setHue (curColor.getHue ());
+        }
+        colorShow.repaint ();
+    }
+  }
+
+  public class CPCircleColorPaletteWidget extends JComponent
+  {
+    CPCircleColorPalette circleColorPalette;
+    CPColorShow colorShow;
+    final int verMargin = 5;
+
+    public CPCircleColorPaletteWidget(CPCommonController controller)
+    {
+      setLayout (null);
+      circleColorPalette = new CPCircleColorPalette ();
+      add(circleColorPalette);
+      Dimension size = circleColorPalette.getPreferredSize();
+      colorShow = new CPColorShow ();
+      colorShow.setPreferredSize (new Dimension (circleColorPalette.getPreferredSize().width, 20));
+      size = colorShow.getPreferredSize();
+      colorShow.setBounds (0, circleColorPalette.getPreferredSize().height + verMargin, size.width, size.height);
+      add(colorShow);
+      controller.addColorChangeListener (circleColorPalette);
+      controller.addColorChangeListener (colorShow);
+    }
+
+    @Override
+    public Dimension getPreferredSize ()
+    {
+      return new Dimension (circleColorPalette.getPreferredSize().width,
+              circleColorPalette.getPreferredSize().height + colorShow.getPreferredSize().height + verMargin
+      );
+    }
+  }
+
+  public class CPCircleColorPalette extends JComponent implements MouseListener, MouseMotionListener, CPCommonController.ICPColorChangeListener
+  {
+    final int[] data;
+    final Image img;
+    int cachedHue;
+    final int side = 150;
+    final int circleThickness = 16;
+    final double bigRadius = side * 0.5;
+    final double smallRadius = side * 0.5 - circleThickness;
+    final int squareL = (int)(smallRadius / (Math.sqrt (2.0) * 0.5));
+    final double radius = (bigRadius + smallRadius) / 2;
+    final Point center = new Point (side / 2, side / 2);
+    boolean needRefresh;
+    boolean hueSelectionMode;
+    CPColorShow colorShow;
+
+    public CPCircleColorPalette ()
+    {
+      setBackground (Color.black); // tmp to help see refresh problems
+      setSize(new Dimension(side, side));
+
+      data = new int[side * side];
+      img = createImage (new MemoryImageSource (side, side, data, 0, side));
+      cachedHue = -1;
+
+      makeBitmap (controller.getCurColor ());
+
+      addMouseListener (this);
+      addMouseMotionListener (this);
+    }
+
+    Integer getHueFromPoint (int i, int j)
+    {
+      double dist = center.distance (i, j);
+      if (dist > smallRadius && dist <= bigRadius)
+        return getHueFromPointUnrestricted (i, j);
+      else
+       return null;
+    }
+
+    Integer getHueFromPointUnrestricted (int i, int j)
+    {
+      return (((int) Math.toDegrees(Math.atan2(j - center.y, i - center.x)) + 360) % 360);
+    }
+
+    Integer getSaturationFromPoint (int i, int j)
+    {
+      if (Math.abs (i - center.x) > squareL / 2)
+        return null;
+
+      return 255 * (i - (center.x - squareL / 2)) / squareL;
+    }
+
+    Integer getValueFromPoint (int i, int j)
+    {
+      if (Math.abs (j - center.y) > squareL / 2)
+        return null;
+
+      return 255 * (center.y + squareL / 2 - j) / squareL;
+    }
+
+    Integer get (int i, int j)
+    {
+      if (Math.abs (i - center.x) > squareL / 2)
+        return null;
+
+      return (255 * (i - (center.x - squareL / 2)) / squareL);
+    }
+
+    void makeBitmap (CPColor color) {
+      cachedHue = color.getHue();
+      CPColor colorLocal = new CPColor(0, 0xFF, 0xFF);
+
+      for (int i = 0; i < side; i++)
+        for (int j = 0; j < side; j++) {
+          {
+            int alpha = 0;
+            Integer hue = null;
+            Integer hueTmp = getHueFromPoint(i, j);
+            if (hueTmp != null) {
+              alpha += 255 / 2;
+              if (hue == null)
+                hue =  hueTmp;
+            }
+            for (int k = 0; k <= 1; k++)
+              {
+                hueTmp = getHueFromPoint (i + (k * 2 - 1), j);
+                if (hueTmp != null) {
+                  alpha += 255 / 16;
+                  if (hue == null)
+                    hue =  hueTmp;
+                }
+                hueTmp = getHueFromPoint (i, j + (k * 2 - 1));
+                if (hueTmp != null) {
+                  alpha += 255 / 16;
+                  if (hue == null)
+                    hue = hueTmp;
+                }
+
+                  hueTmp = getHueFromPoint (i + (k * 2 - 1), j + (k * 2 - 1));
+                  if (hueTmp != null) {
+                    alpha += 255 / 16;
+                    if (hue == null)
+                      hue =  hueTmp;
+                  }
+                  hueTmp = getHueFromPoint (i + (k * 2 - 1), j - (k * 2 - 1));
+                  if (hueTmp != null) {
+                    alpha += 255 / 16;
+                    if (hue == null)
+                      hue =  hueTmp;
+                }
+              }
+
+            if (alpha != 0) {
+              colorLocal.setHue(hue);
+              data[i + j * side] = alpha << 24 | (colorLocal.rgb & 0x00FFFFFF);
+            }
+          }
+
+          Integer sat = getSaturationFromPoint(i, j);
+          Integer val = getValueFromPoint(i, j);
+          if (sat != null && val != null) {
+            CPColor tempColor = (CPColor) color.clone();
+            tempColor.setSaturation(sat);
+            tempColor.setValue(val);
+            data[i + j * side] = tempColor.rgb;
+          }
+        }
+    }
+
+    @Override
+    public void update (Graphics g)
+    {
+      paint (g);
+    }
+
+    @Override
+    public void paint (Graphics g)
+    {
+      img.flush();
+      g.drawImage (img, 0, 0, null);
+      CPColor color = controller.getCurColor ();
+      double hueAngle = Math.toRadians(color.getHue());
+      Point huePoint = new Point (center.x + (int) (Math.cos(hueAngle) * radius), center.y + (int) (Math.sin (hueAngle) * radius));
+      g.setXORMode (Color.white);
+      int smallCircleRad = 5;
+      g.drawOval (huePoint.x - smallCircleRad, huePoint.y - smallCircleRad, smallCircleRad * 2, smallCircleRad * 2);
+
+      Point hvPoint = new Point (center.x - squareL / 2, center.y - squareL / 2);
+      hvPoint.translate(color.getSaturation() * squareL / 255, (255 - color.getValue()) * squareL / 255);
+      g.drawOval (hvPoint.x - smallCircleRad, hvPoint.y - smallCircleRad, smallCircleRad * 2, smallCircleRad * 2);
+    }
+
+    public void mouseSelect (MouseEvent e)
+    {
+      Integer hue = null;
+      hue = hueSelectionMode ? getHueFromPointUnrestricted(e.getX (), e.getY ()) : getHueFromPoint(e.getX (), e.getY ());
+      CPColor color = controller.getCurColor ();
+
+      if (hue != null) {
+        color.setHue (hue);
+        controller.setCurColor (color);
+        hueSelectionMode = true;
+        return;
+      }
+
+      Integer sat = getSaturationFromPoint(e.getX (), e.getY ());
+      Integer val = getValueFromPoint(e.getX (), e.getY ());
+      if (sat != null && val != null) {
+        color.setSaturation(sat);
+        color.setValue(val);
+        controller.setCurColor(color);
+        return;
+      }
+
+    }
+
+    @Override
+    public void mouseEntered (MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mouseExited (MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mouseClicked (MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mousePressed (MouseEvent e)
+    {
+      mouseSelect (e);
+    }
+
+    @Override
+    public void mouseReleased (MouseEvent e)
+    {
+      hueSelectionMode = false;
+    }
+
+    @Override
+    public void mouseMoved (MouseEvent e)
+    {
+    }
+
+    @Override
+    public void mouseDragged (MouseEvent e)
+    {
+      mouseSelect (e);
+    }
+    @Override
+    public Dimension getPreferredSize ()
+    {
+      return new Dimension (side, side);
+    }
+
+    @Override
+    public void colorChanged(CPColor color) {
+      if (cachedHue != color.getHue ())
+        makeBitmap (color);
+      repaint ();
+    }
+  }
+
 public class CPColorSlider extends JComponent implements MouseListener, MouseMotionListener
 {
-
   final int[] data;
   final int w;
   final int h;
@@ -343,10 +698,10 @@ public class CPColorSlider extends JComponent implements MouseListener, MouseMot
   }
 }
 
-public class CPColorShow extends JComponent
+public class CPColorShow extends JComponent implements CPCommonController.ICPColorChangeListener
 {
 
-  int color;
+  int curColor;
 
   @Override
   public void update (Graphics g)
@@ -358,8 +713,14 @@ public class CPColorShow extends JComponent
   public void paint (Graphics g)
   {
     Dimension d = getSize ();
-    g.setColor (new Color (color));
+    g.setColor (new Color (curColor));
     g.fillRect (0, 0, d.width, d.height);
+  }
+
+  @Override
+  public void colorChanged(CPColor color) {
+    curColor = color.getRgb ();
+    repaint ();
   }
 }
 }

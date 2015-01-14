@@ -44,11 +44,38 @@ public CPColor (int hue, int saturation, int value)
   setHsv (hue, saturation, value);
 }
 
-void setRgb (int rgb)
+public void setRgb (int rgb)
 {
   this.rgb = rgb;
   rgbToHsv ();
 }
+
+  public int alpha ()
+  {
+    return (rgb & 0xFF000000 >> 24) & 0xFF;
+  }
+
+  public int red ()
+  {
+    return (rgb & 0xFF0000 >> 16) & 0xFF;
+  }
+
+  public int green ()
+  {
+    return (rgb & 0x00FF00 >> 8) & 0xFF;
+  }
+
+  public int blue ()
+  {
+    return (rgb & 0x0000FF);
+  }
+
+  public void mixWith (CPColor other)
+  {
+    this.rgb = (((alpha () + other.alpha ()) / 2) << 24) | (((red () + other.red ()) / 2) << 16) |
+               (((green () + other.green ()) / 2) << 8) | (((blue () + other.blue ()) / 2));
+    rgbToHsv ();
+  }
 
 void setHsv (int hue, int value, int saturation)
 {
@@ -154,6 +181,7 @@ void hsvToRgb ()
       rgb = 0; // invalid hue
       break;
     }
+  rgb |= 0xff000000;
 }
 
 public void setHue (int hue)

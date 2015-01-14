@@ -12,4 +12,20 @@ public static void allowOnlyCorrectValues (JSpinner spinner)
   DefaultFormatter formatter = (DefaultFormatter) field.getFormatter ();
   formatter.setAllowsInvalid (false);
 }
+
+  public static class NoneSelectedButtonGroup extends ButtonGroup {
+
+    @Override
+    public void setSelected(ButtonModel model, boolean selected) {
+
+      if (selected) {
+
+        super.setSelected(model, selected);
+
+      } else {
+
+        clearSelection();
+      }
+    }
+  }
 }

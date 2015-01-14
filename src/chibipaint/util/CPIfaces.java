@@ -28,4 +28,5 @@ public interface IntChecker
 {
   abstract boolean check (int arg);
 }
+
 }

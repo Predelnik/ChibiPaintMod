@@ -151,12 +151,12 @@ private int curBrush = T_PENCIL;
 private int curMode = M_DRAW;
 protected selectionAction curSelectionAction = selectionAction.SELECT;
 
-private final ArrayList<ICPColorListener> colorListeners = new ArrayList<ICPColorListener> ();
+private final ArrayList<ICPColorChangeListener> colorListeners = new ArrayList<ICPColorChangeListener> ();
 private final ArrayList<ICPToolListener> toolListeners = new ArrayList<ICPToolListener> ();
 private final ArrayList<ICPModeListener> modeListeners = new ArrayList<ICPModeListener> ();
 private final ArrayList<ICPViewListener> viewListeners = new ArrayList<ICPViewListener> ();
 private final ArrayList<ICPEventListener> cpEventListeners = new ArrayList<ICPEventListener> ();
-private final HashMap<String, Image> imageCache = new HashMap<String, Image> ();
+private final HashMap<String, BufferedImage> imageCache = new HashMap<String, BufferedImage> ();
 
 //
 // Definition of all the standard tools available
@@ -553,10 +553,9 @@ private void clearHistory ()
     }
 }
 
-public interface ICPColorListener
+public interface ICPColorChangeListener
 {
-
-  public void newColor (CPColor color);
+  public void colorChanged(CPColor color);
 }
 
 public interface ICPToolListener
@@ -705,7 +704,7 @@ public void setCurColor (CPColor color)
       curColor.copyFrom (color);
       for (Object l : colorListeners)
         {
-          ((ICPColorListener) l).newColor (color);
+          ((ICPColorChangeListener) l).colorChanged(color);
         }
     }
 }
@@ -773,7 +772,7 @@ protected void initTransform ()
 
 }
 
-public void addColorListener (ICPColorListener listener)
+public void addColorChangeListener(ICPColorChangeListener listener)
 {
   colorListeners.add (listener);
 }
@@ -859,9 +858,9 @@ byte[] getPngData (Image img)
   return pngData;
 }
 
-public Image loadImage (String imageName)
+public BufferedImage loadImage (String imageName)
 {
-  Image img = imageCache.get (imageName);
+  BufferedImage img = imageCache.get (imageName);
   if (img == null)
     {
       try
@@ -870,7 +869,7 @@ public Image loadImage (String imageName)
           Class[] classes = {Image.class};
 
           URL url = loader.getResource ("resource/" + imageName);
-          img = (Image) url.openConnection ().getContent (classes);
+          img = ImageIO.read (url);
         }
       catch (Throwable t)
         {

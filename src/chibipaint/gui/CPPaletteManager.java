@@ -56,6 +56,8 @@ interface ICPPaletteContainer
 
   public void showPalette (CPPalette palette);
 
+  public void pack ();
+
   public List<CPPalette> getPalettesList ();
 }
 
@@ -115,7 +117,6 @@ public CPPaletteManager (CPCommonController controller, JDesktopPane desktop)
   paletteFrames.add (frame);
 
   frame.pack ();
-  frame.setSize (175, 175);
   frame.setLocation (0, 385);
   desktop.add (frame);
 
