@@ -114,6 +114,7 @@ public CPPaletteManager (CPCommonController controller, JDesktopPane desktop)
   getPalettes ().put ("color", palette);
 
   CPPaletteFrame frame = new CPPaletteFrame (palette);
+  frame.setResizable(false);
   paletteFrames.add (frame);
 
   frame.pack ();
