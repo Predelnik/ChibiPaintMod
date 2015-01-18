@@ -23,6 +23,7 @@ package chibipaint.gui;
 
 import chibipaint.controller.CPCommonController;
 import chibipaint.util.CPColor;
+import chibipaint.util.CPMath;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -325,7 +326,7 @@ public class CPColorSelect extends JComponent implements MouseListener, MouseMot
     public CPCircleColorPaletteWidget(CPCommonController controller)
     {
       setLayout (null);
-      circleColorPalette = new CPCircleColorPalette ();
+      circleColorPalette = new CPCircleColorPalette (controller);
       add(circleColorPalette);
       Dimension size = circleColorPalette.getPreferredSize();
       colorShow = new CPColorShow ();
@@ -346,7 +347,7 @@ public class CPColorSelect extends JComponent implements MouseListener, MouseMot
     }
   }
 
-  public class CPCircleColorPalette extends JComponent implements MouseListener, MouseMotionListener, CPCommonController.ICPColorChangeListener
+  static public class CPCircleColorPalette extends JComponent implements MouseListener, MouseMotionListener, CPCommonController.ICPColorChangeListener
   {
     final int[] data;
     final Image img;
@@ -358,12 +359,21 @@ public class CPColorSelect extends JComponent implements MouseListener, MouseMot
     final int squareL = (int)(smallRadius / (Math.sqrt (2.0) * 0.5));
     final double radius = (bigRadius + smallRadius) / 2;
     final Point center = new Point (side / 2, side / 2);
-    boolean needRefresh;
-    boolean hueSelectionMode;
-    CPColorShow colorShow;
+    CPCommonController controller;
 
-    public CPCircleColorPalette ()
+    enum selectionMode
     {
+      NONE,
+
+      HUE,
+      SAT_VAL
+    };
+
+    selectionMode curSelectionMode = selectionMode.NONE;
+
+    public CPCircleColorPalette (CPCommonController controllerArg)
+    {
+      controller = controllerArg;
       setBackground (Color.black); // tmp to help see refresh problems
       setSize(new Dimension(side, side));
 
@@ -391,12 +401,22 @@ public class CPColorSelect extends JComponent implements MouseListener, MouseMot
       return (((int) Math.toDegrees(Math.atan2(j - center.y, i - center.x)) + 360) % 360);
     }
 
+    Integer getSaturationFromPointUnrestricted (int i, int j)
+    {
+      return CPMath.bound(255 * (i - (center.x - squareL / 2)) / squareL, 0, 255);
+    }
+
     Integer getSaturationFromPoint (int i, int j)
     {
       if (Math.abs (i - center.x) > squareL / 2)
         return null;
 
-      return 255 * (i - (center.x - squareL / 2)) / squareL;
+      return getSaturationFromPointUnrestricted (i, j);
+    }
+
+    Integer getValueFromPointUnrestricted (int i, int j)
+    {
+      return CPMath.bound (255 * (center.y + squareL / 2 - j) / squareL, 0, 255);
     }
 
     Integer getValueFromPoint (int i, int j)
@@ -404,7 +424,7 @@ public class CPColorSelect extends JComponent implements MouseListener, MouseMot
       if (Math.abs (j - center.y) > squareL / 2)
         return null;
 
-      return 255 * (center.y + squareL / 2 - j) / squareL;
+      return getValueFromPointUnrestricted (i, j);
     }
 
     Integer get (int i, int j)
@@ -502,21 +522,22 @@ public class CPColorSelect extends JComponent implements MouseListener, MouseMot
     public void mouseSelect (MouseEvent e)
     {
       Integer hue = null;
-      hue = hueSelectionMode ? getHueFromPointUnrestricted(e.getX (), e.getY ()) : getHueFromPoint(e.getX (), e.getY ());
+      hue = curSelectionMode == selectionMode.HUE ? getHueFromPointUnrestricted(e.getX (), e.getY ()) : getHueFromPoint(e.getX (), e.getY ());
       CPColor color = controller.getCurColor ();
 
-      if (hue != null) {
+      if (hue != null && (curSelectionMode == selectionMode.NONE || curSelectionMode == selectionMode.HUE)) {
         color.setHue (hue);
         controller.setCurColor (color);
-        hueSelectionMode = true;
+        curSelectionMode = selectionMode.HUE;
         return;
       }
 
-      Integer sat = getSaturationFromPoint(e.getX (), e.getY ());
-      Integer val = getValueFromPoint(e.getX (), e.getY ());
-      if (sat != null && val != null) {
+      Integer sat = curSelectionMode == selectionMode.SAT_VAL ? getSaturationFromPointUnrestricted (e.getX (), e.getY ()) : getSaturationFromPoint(e.getX (), e.getY ());
+      Integer val = curSelectionMode == selectionMode.SAT_VAL ? getValueFromPointUnrestricted(e.getX (), e.getY ()) : getValueFromPoint(e.getX (), e.getY ());
+      if (sat != null && val != null && (curSelectionMode == selectionMode.NONE || curSelectionMode == selectionMode.SAT_VAL)) {
         color.setSaturation(sat);
         color.setValue(val);
+        curSelectionMode = selectionMode.SAT_VAL;
         controller.setCurColor(color);
         return;
       }
@@ -547,7 +568,7 @@ public class CPColorSelect extends JComponent implements MouseListener, MouseMot
     @Override
     public void mouseReleased (MouseEvent e)
     {
-      hueSelectionMode = false;
+      curSelectionMode = selectionMode.NONE;
     }
 
     @Override
